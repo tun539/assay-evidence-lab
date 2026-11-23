@@ -4,6 +4,10 @@
 
 ![Measured reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
 
+## Simulation lab
+
+[Two interactive experiments](studio/simulation.html) cover force-law learning and ensemble sampling. Change model assumptions, inspect trajectories and export reproducible plots as CSV or a team review as JSON. The [teaching guide](SIMULATIONS.md) includes role-based exercises and an independent MACE-metric checker.
+
 ## Classroom and research practical
 
 [Download the classroom files](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip), extract the ZIP and open `studio/practical.html`. Choose the undergraduate or graduate track, fit the published example or a local CSV, inspect held-concentration errors, and export your lab record and predictions. The [instructor guide](TEACHING.md) includes learning goals, submission requirements, a reference result and marking criteria. Run `node studio/test-fit.cjs` to check the browser fits against the SciPy benchmark.
