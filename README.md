@@ -4,6 +4,12 @@
 
 ![Measured reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
 
+## Interactive studio
+
+Open the [studio folder](studio), download the repository and open `studio/index.html` in any modern browser. The app runs offline. Switch between an evidence diagram and quantitative figures for four kinetic hypotheses and four classifier configurations. Try “compare enzyme plateaus” or “show cytology errors”, then export the current canvas as SVG. The search matches supported topics locally. Model training and fitting run in Python.
+
+Rebuild the embedded data with `python studio/build.py` after regenerating either benchmark. See the [contributor guide](CONTRIBUTING.md) for scientific review criteria. The MIT license applies to the original software. Third-party datasets retain their upstream terms and attribution.
+
 ## What the assay supports
 
 Holding out one substrate concentration at a time, a model with separate apparent maximum rates reduced pooled prediction error from **19.33 to 11.92 counts/min/min**. Giving each condition its own half-saturation parameter as well reduced the error to **11.62**. We retain the three-parameter model as a descriptive reference. It captures most of the improvement with one additional parameter. The fourth parameter remains plausible.
