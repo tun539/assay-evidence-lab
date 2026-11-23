@@ -8,6 +8,10 @@
 
 [Download the classroom files](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip), extract the ZIP and open `studio/practical.html`. Choose the undergraduate or graduate track, fit the published example or a local CSV, inspect held-concentration errors, and export your lab record and predictions. The [instructor guide](TEACHING.md) includes learning goals, submission requirements, a reference result and marking criteria. Run `node studio/test-fit.cjs` to check the browser fits against the SciPy benchmark.
 
+## Cellpose and AlphaFold integration
+
+The [prediction audit](studio/audit.html) uses numerical routines vendored from the two upstream repositories. Score your own label maps or model confidence logits with the [offline evaluator](evidence/README.md), then inspect its JSON in the studio. Teaching fixtures are synthetic. Original source credits and licenses accompany both modules.
+
 ## Interactive studio
 
 Open the [studio folder](studio), download the repository and open `studio/index.html` in any modern browser. The app runs offline. Switch between an evidence diagram and quantitative figures for four kinetic hypotheses and four classifier configurations. Try “compare enzyme plateaus” or “show cytology errors”, then export the current canvas as SVG. The search matches supported topics locally. Model training and fitting run in Python.
