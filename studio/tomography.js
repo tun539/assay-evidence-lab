@@ -8,7 +8,51 @@ const solids=[
 ];
 const get=id=>document.getElementById(id);
 let yaw=.44,pitch=.36,record;
+let protein;
+const studies = [
+  ['ATP synthase subunit a', 'Energy conversion', 'Trace the bends in the mitochondrial chain. At four views, which separated traces appear to merge in the central slice?'],
+  ['Large ribosomal subunit protein L10', 'Protein synthesis', 'Follow the protruding part of the backbone. Move the slice through it. Does a narrow extension remain visible when the scan is limited to 90°?'],
+  ['Glyceraldehyde-3-phosphate dehydrogenase (Tdh3)', 'Sugar metabolism', 'Find a slice containing adjacent dense regions. How many views do you need before the gap between them reappears?'],
+  ['RuBisCO large subunit', 'Photosynthetic carbon fixation', 'Compare the crowded core with a slice near the edge. Which small features disappear first when you reduce the number of views?'],
+  ['Zinc-binding ribosomal protein', 'Plant protein synthesis', 'Compare this plant chain with bacterial L10. Use the dimensions in ångströms to distinguish physical size from the automatic zoom.']
+];
+function choose(){
+  const id=get('specimen').value, index=foldIds.indexOf(id);
+  protein=null;
+  if(index>=0){
+    const rows=bundledFolds[id].rows, info=dnaRecords[index], [name,role,question]=studies[index];
+    const xyz=rows.map(r=>r.slice(2,5));
+    const center=[0,1,2].map(k=>xyz.reduce((s,p)=>s+p[k],0)/xyz.length);
+    const centered=xyz.map(p=>p.map((v,k)=>v-center[k]));
+    const radius=Math.max(...centered.map(p=>Math.hypot(...p)))+5;
+    protein={id,radius,points:centered.map(p=>p.map(v=>v/radius))};
+    get('identity').textContent=name+' · '+info.species;
+    get('biology').textContent=role+'. '+info.note;
+    get('question').textContent='Investigate: '+question;
+    get('measurement').textContent=info.gene+' · '+rows.length+' backbone positions · image width '+(2*radius).toFixed(1)+' Å';
+    get('sources').innerHTML='<a href="https://alphafold.ebi.ac.uk/entry/'+id+'">AlphaFold model '+id+'</a> · <a href="https://www.uniprot.org/uniprotkb/'+id+'/entry">Protein annotation</a>';
+  }else{
+    get('identity').textContent='Geometric calibration sample';
+    get('biology').textContent='Nested ellipsoids with known densities provide a reference for testing the solver.';
+    get('question').textContent='Which small inclusion can you recover with four views?';
+    get('measurement').textContent='Dimensionless reference grid';get('sources').textContent='';
+  }
+  get('slice').value=0;run();
+}
 function sample(z){
+  if(protein){
+    const values=new Float64Array(N*N),sigma=2.5/protein.radius;
+    for(const [x,y,h] of protein.points){
+      if(Math.abs(z-h)>3*sigma)continue;
+      for(let j=Math.max(0,Math.floor((y-3*sigma+1)*N/2));j<Math.min(N,(y+3*sigma+1)*N/2);j++)
+        for(let i=Math.max(0,Math.floor((x-3*sigma+1)*N/2));i<Math.min(N,(x+3*sigma+1)*N/2);i++){
+          const dx=(i+.5)*2/N-1-x,dy=(j+.5)*2/N-1-y;
+          values[j*N+i]+=Math.exp(-(dx*dx+dy*dy+(z-h)**2)/(2*sigma*sigma));
+        }
+    }
+    const peak=Math.max(...values);
+    return peak?values.map(v=>v/peak):values;
+  }
   return Float64Array.from({length:N*N},(_,i)=>{
     const p=[2*((i%N+.5)/N)-1,2*((Math.floor(i/N)+.5)/N)-1,z];
     return solids.reduce((s,[c,r,d])=>s+(p.reduce((v,x,k)=>v+((x-c[k])/r[k])**2,0)<=1?d:0),0);
@@ -55,7 +99,14 @@ function world(){
     ctx.beginPath();points.forEach((p,i)=>{const [x,y]=project(p);if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);});
     ctx.strokeStyle=color;ctx.stroke();if(fill){ctx.fillStyle='rgba(237,189,94,.13)';ctx.fill();}
   }
-  solids.forEach(([c,r],index)=>{
+  if(protein){
+    ctx.lineWidth=2.4;
+    for(let i=1;i<protein.points.length;i++){
+      const a=protein.points[i-1],b=protein.points[i];
+      path([a,b],Math.min(a[2],b[2])<=z+.04 && Math.max(a[2],b[2])>=z-.04?'#ffd077':'#71cfa9');
+    }
+    ctx.lineWidth=1;
+  }else solids.forEach(([c,r],index)=>{
     for(let line=0;line<12;line++){
       const phi=line*Math.PI/6;
       path(Array.from({length:35},(_,j)=>{const t=j*Math.PI/34;return [c[0]+r[0]*Math.cos(phi)*Math.sin(t),c[1]+r[1]*Math.sin(phi)*Math.sin(t),c[2]+r[2]*Math.cos(t)];}),['#356768','#64bfa0','#cd9971','#c8b8e7'][index]);
@@ -74,7 +125,7 @@ function run(){
   const max=Math.max(.001,history[0]);
   const points=history.map((v,i)=>(60+510*i/passes)+','+(95-75*v/max)).join(' ');
   get('curve').innerHTML='<path d="M60 15V95H570" fill="none" stroke="#657b70"/><polyline fill="none" stroke="#167356" stroke-width="3" points="'+points+'"/><text x="4" y="24">'+max.toFixed(3)+'</text><text x="35" y="99">0</text><text x="55" y="118">0</text><text x="505" y="118">Pass '+passes+'</text>';
-  record={z,angles,span_degrees:span,passes,grid:N,bins_per_view:B,target:Array.from(target),angle_major_projections:Array.from(totals),reconstruction:Array.from(estimate),rmse:history};
+  record={specimen:protein?.id || "calibration",width_angstrom:protein?2*protein.radius:null,z,angles,span_degrees:span,passes,grid:N,bins_per_view:B,target:Array.from(target),angle_major_projections:Array.from(totals),reconstruction:Array.from(estimate),rmse:history};
 }
 for(const id of ['angles','steps','limited','slice'])get(id).oninput=run;
 const canvas=get('volume');let drag;
@@ -83,4 +134,5 @@ canvas.onpointermove=e=>{if(drag){yaw+=(e.clientX-drag[0])*.015;pitch+=(e.client
 canvas.onlostpointercapture=()=>{drag=null;};
 canvas.onkeydown=e=>{const d={ArrowLeft:[-.1,0],ArrowRight:[.1,0],ArrowUp:[0,.1],ArrowDown:[0,-.1]}[e.key];if(d){e.preventDefault();yaw+=d[0];pitch+=d[1];world();}};
 get('save').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='tomography-experiment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-run();
+get('specimen').onchange=choose;
+choose();
