@@ -14,13 +14,14 @@ function simulate(mode,D,k,seed){
   for(let frame=0;frame<=steps;frame++){
     const t=frame*dt;
     if(frame){
-      const next=history[frame-1].map((p,i)=>decay*p+sigma*normal()+(mode==='drift'&&i%3===0?k*dt:0));
+      const shift=mode==='wave'?k*(Math.sin(Math.PI*t)-Math.sin(Math.PI*(t-dt)))/Math.PI:mode==='drift'?k*dt:0;
+      const next=history[frame-1].map((p,i)=>decay*p+sigma*normal()*(mode==='axis'&&i%3===0?Math.sqrt(1+k):1)+(i%3===0?shift:0));
       history.push(next);
     }
     const p=history[frame], mean=[0,0,0];
     let msd=0;
     p.forEach((v,i)=>{msd+=v*v/count;mean[i%3]+=v/count;});
-    const theory=trap?-3*D*Math.expm1(-2*k*t)/k:6*D*t+(mode==='drift'?(k*t)**2:0);
+    const theory=trap?-3*D*Math.expm1(-2*k*t)/k:2*D*t*(mode==='axis'?3+k:3)+(mode==='wave'?(k*Math.sin(Math.PI*t)/Math.PI)**2:mode==='drift'?(k*t)**2:0);
     summary.push([t,msd,theory,...mean]);
   }
   return [history,summary];
@@ -28,17 +29,23 @@ function simulate(mode,D,k,seed){
 function controls(){
   const mode=get('mode').value;
   get('forceLabel').hidden=mode==='free';get('forceLabel').style.display=mode==='free'?'none':'grid';
-  get('forceName').textContent=mode==='drift'?'Drift speed (μm/s)':'Restoring rate (1/s)';
+  get('forceName').textContent=({drift:'Drift speed (μm/s)',trap:'Restoring rate (1/s)',wave:'Peak flow speed (μm/s)',axis:'Extra x diffusivity (fraction of D)'})[mode]||'';
   get('dval').textContent=get('D').value+' μm²/s';
-  get('fval').textContent=mode==='free'?'':get('strength').value+(mode==='drift'?' μm/s':' /s');
+  get('fval').textContent=mode==='free'?'':get('strength').value+(mode==='axis'?' × D':mode==='trap'?' /s':' μm/s');
 }
 function run(){
   if(!get('seed').reportValidity()||!get('seed').value)return;
   config={mode:get('mode').value,D:+get('D').value,k:get('mode').value==='free'?0:+get('strength').value,seed:+get('seed').value};
   [frames,stats]=simulate(config.mode,config.D,config.k,config.seed);
-  get('formula').textContent={free:'Free diffusion: E[r²] = 6Dt.',drift:'Constant drift along x: E[r²] = 6Dt + (vt)².',trap:'Harmonic confinement: E[r²] = 3D(1 − exp(−2kt))/k. At k = 0 the free-diffusion limit applies.'}[config.mode];
-  get('investigate').textContent={free:'Try doubling D with the same seed. What happens to the slope?',drift:'Compare the centroid motion to the random spread. When does the quadratic term dominate?',trap:'Increase the restoring rate. Does the plateau rise or fall? Repeat with a second seed.'}[config.mode];
+  get('formula').textContent={axis:'Anisotropic diffusion: Dx = D(1 + k); Dy = Dz = D. Expected squared distance = 2t(Dx + Dy + Dz).',wave:'Periodic flow: E[r²] = 6Dt + [v sin(πt)/π]² with time in seconds.',free:'Free diffusion: E[r²] = 6Dt.',drift:'Constant drift along x: E[r²] = 6Dt + (vt)².',trap:'Harmonic confinement: E[r²] = 3D(1 − exp(−2kt))/k. At k = 0 the free-diffusion limit applies.'}[config.mode];
+  get('investigate').textContent={axis:'Which axis grows widest? Rotate the cloud and compare the fitted diffusion coefficients.',wave:'Inspect the centroid at 0.5 and 1 second. Can constant drift explain both?',free:'Try doubling D with the same seed. What happens to the slope?',drift:'Compare the centroid motion to the random spread. When does the quadratic term dominate?',trap:'Increase the restoring rate. Does the plateau rise or fall? Repeat with a second seed.'}[config.mode];
   get('message').textContent='Displaying '+get('mode').selectedOptions[0].text+' · seed '+config.seed;
+  const table=get('fit');table.replaceChildren();
+  for(const result of fitMotion(frames,dt,64)){
+    const row=table.insertRow();
+    const parameter=result.model==='Restoring force'?result.rate.toFixed(3)+' /s':(['Constant drift','Periodic flow'].includes(result.model)?result.beta.toFixed(3)+' μm/s':'—');
+    for(const value of [result.model,result.loss.toFixed(5),result.diffusivity.map(v=>v.toFixed(3)).join(' / '),parameter])row.insertCell().textContent=value;
+  }
   stop();draw();
 }
 function draw(){
@@ -60,6 +67,13 @@ function draw(){
   }
   ['x','y','z'].forEach((s,k)=>{const v=[0,0,0];v[k]=1;const p=project(...v);line([project(0,0,0),p],'#a6cfc1');ctx.fillStyle='#c8e0d8';ctx.font='14px sans-serif';ctx.fillText(s,p[0]+4,p[1]);});
   line(frames.slice(Math.max(0,i-45),i+1).map(f=>project(f[0],f[1],f[2])),'#f3c470');
+  if(get('spread').checked){
+    const means=[x,y,z],sd=means.map((mu,k)=>Math.sqrt(frame.reduce((sum,n,j)=>sum+(j%3===k?(n-mu)**2:0),0)/count));
+    for(const [u,v] of [[0,1],[1,2],[0,2]]){
+      line(Array.from({length:65},(_,j)=>{const p=means.slice();p[u]+=sd[u]*Math.cos(j*Math.PI/32);p[v]+=sd[v]*Math.sin(j*Math.PI/32);return project(...p);}), '#83bcb2');
+    }
+    line(stats.slice(0,i+1).map(r=>project(...r.slice(3))), '#e495b4');
+  }
   const dots=Array.from({length:count},(_,j)=>[...project(...frame.subarray(j*3,j*3+3)),j]).sort((a,b)=>a[2]-b[2]);
   for(const [a,b,depth,j] of dots){
     const r=Math.max(3,Math.min(8,5+depth*.45))+(j===0?2:0);
@@ -88,4 +102,5 @@ world.onpointermove=e=>{if(drag){yaw+=(e.clientX-drag[0])*.01;pitch+=(e.clientY-
 world.onlostpointercapture=()=>{drag=null;};
 world.onkeydown=e=>{const step={ArrowLeft:[-.1,0],ArrowRight:[.1,0],ArrowUp:[0,.1],ArrowDown:[0,-.1]}[e.key];if(step){e.preventDefault();yaw+=step[0];pitch+=step[1];draw();}};
 get('export').onclick=()=>{const csv='model,D,strength,seed,time_s,MSD_um2,expected_um2,mean_x_um,mean_y_um,mean_z_um\n'+stats.map(r=>[config.mode,config.D,config.k,config.seed,...r].join(',')).join('\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='transport-'+config.mode+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+get('spread').onchange=draw;
 controls();run();
