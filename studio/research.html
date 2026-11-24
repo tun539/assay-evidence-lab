@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research benchmark · Assay Evidence Studio</title>
+<link rel="stylesheet" href="research.css">
+<script defer src="research-data.js"></script>
+<script defer src="research.js"></script>
+</head>
+<body>
+<header><a href="index.html">Assay Evidence Studio</a><a href="methods.html#cytology">Methods and sources</a></header>
+<main>
+<h1>When do better rankings give better probabilities?</h1>
+<p class="intro">Compare four trained model families on the same 569 cytology specimens. Examine ranking, probability error and the effect of changing a decision threshold.</p>
+<div class="facts"><div><strong>569</strong> specimens</div><div><strong>5 × 4</strong> nested CV folds</div><div><strong>1,000</strong> paired bootstrap draws</div></div>
+<section aria-labelledby="comparison">
+<h2 id="comparison">Model comparison</h2>
+<p>Higher mean fold AUROC indicates better ranking. Lower Brier score indicates lower squared probability error. Negative differences favor the selected model over logistic regression.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Model</th><th scope="col">Mean fold AUROC</th><th scope="col">Pooled Brier</th><th scope="col">Δ Brier vs. logistic (95% interval)</th></tr></thead><tbody id="models"></tbody></table></div>
+</section>
+<div class="controls">
+<label>Model <select id="model"></select></label>
+<button id="download">Export predictions CSV</button>
+</div>
+<div class="charts">
+<section>
+<h2>Probability reliability</h2>
+<p>Each point compares mean predicted probability with the observed positive proportion in one of ten fixed bins. Labels show bin counts.</p>
+<svg id="reliability" viewBox="0 0 360 250" role="img" aria-label="Reliability plot"></svg>
+<details><summary>View reliability values</summary><div class="table-wrap"><table><thead><tr><th>Mean predicted</th><th>Observed</th><th>Count</th></tr></thead><tbody id="bins"></tbody></table></div></details>
+</section>
+<section>
+<h2>Threshold sandbox</h2>
+<p>The positive label is malignant in this benchmark. Move the threshold to see which prediction errors change.</p>
+<label for="threshold">Threshold <output id="cutoff" for="threshold">0.50</output></label>
+<input id="threshold" type="range" min="0" max="1" step="0.01" value="0.5">
+<table><caption>Cross-validated predictions</caption><thead><tr><th scope="col">Actual label</th><th scope="col">Predicted negative</th><th scope="col">Predicted positive</th></tr></thead><tbody><tr><th scope="row">Negative</th><td id="tn"></td><td id="fp" class="error"></td></tr><tr><th scope="row">Positive</th><td id="fn" class="error"></td><td id="tp"></td></tr></tbody></table>
+<p id="rates" role="status"></p>
+</section>
+<section>
+<h2>Ranking within each split</h2>
+<p>Each bar shows AUROC from one outer test fold. All model families use the same specimen splits.</p>
+<svg id="folds" viewBox="0 0 360 250" role="img" aria-label="AUROC by outer fold"></svg>
+<details><summary>Hyperparameters selected in each fold</summary><ol id="settings"></ol></details>
+</section>
+</div>
+<section>
+<h2>Protocol and limits</h2>
+<p>Five stratified outer folds provide one held-out prediction per specimen. Within each outer training set, four inner folds select hyperparameters using AUROC. Feature scaling runs inside the training pipelines. The probability error interval uses paired, class-stratified resampling of the fixed predictions and describes conditional variation on this dataset. It excludes retraining variability.</p>
+<p>These results describe an internal benchmark. The previous 114-specimen experiment used the same dataset. Independent validation would require a separate cohort. Exploring thresholds here is descriptive and provides no prospective operating point.</p>
+<p><a href="https://archive.ics.uci.edu/dataset/17/breast%2Bcancer%2Bwisconsin%2Bdiagnostic%3B">UCI source dataset</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/research/README.md">Reproduction guide and defense questions</a></p>
+</section>
+</main>
+</body>
+</html>

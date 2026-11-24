@@ -78,6 +78,10 @@ The fit uses positive parameters, equal observation weights and nonlinear least 
 
 [Input measurements](kinetics/puromycin.csv) · [Fitted parameters and fold errors](kinetics/fits.json) · [Held-out predictions](kinetics/predictions.csv) · [Related work and applications](LANDSCAPE.md)
 
+## Research benchmark · model comparison and probability error
+
+[Open the interactive benchmark](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/research) to compare logistic regression, k-nearest neighbors, RBF SVM and random forest on shared outer folds. Explore reliability, threshold behavior and paired Brier differences. The [research report](research/README.md) includes commands to reproduce and independently verify the results.
+
 ## Second case study · NucleusAudit
 
 A separate supervised learning benchmark tests how removing direct nuclear-size descriptors affects prediction on 114 held-out cytology specimens. The 30-feature classifier reached ROC-AUC 0.9901 and missed two positive specimens. Exported weights can be replayed independently. [Read the model report and error analysis](NucleusAudit/README.md).
