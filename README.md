@@ -2,6 +2,10 @@
 
 **Does a treatment change the plateau of an enzyme response, the substrate concentration at half-maximum, or both?** Explore 23 measured rates from a galactosyltransferase experiment, inspect four competing explanations, and trace each prediction to the observations used to test it.
 
+[Launch Assay Evidence Studio](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/) · [Methods and sources](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/methods)
+
+The studio is a static site. For a local preview, run `python -m http.server 8000 --directory studio` from the repository root and open http://localhost:8000/. The interactive labs and bundled examples also work by opening `studio/index.html` directly. Source links open their original records on the web.
+
 ![Measured reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
 
 ## DNA sequence and strand practical
