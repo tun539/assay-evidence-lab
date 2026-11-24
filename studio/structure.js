@@ -8,6 +8,7 @@ const original = Object.fromEntries(['heading','intro','legend','lesson','proven
 const picker = el('protein');
 picker.add(new Option('Human ubiquitin · experimental reference','1UBQ'));
 dnaRecords.forEach((record,i)=>picker.add(new Option(record.species+' · '+record.gene,foldIds[i])));
+for(const [id,m] of Object.entries(experimental)) picker.add(new Option(m.name+' · PDB '+id,id));
 let scaleFactor = 9;
 
 
@@ -39,17 +40,41 @@ function update(){
   const [a,b] = pair();
   el('reading').textContent = dist(a,b).toFixed(2)+' Å';
   el('gap').textContent = 'Sequence separation: '+Math.abs(rows[a][1]-rows[b][1])+' positions.';
+  const neighbors=contacts.filter(([i,j])=>i===a||j===a).map(([i,j,d])=>[i===a?j:i,d]).sort((x,y)=>x[1]-y[1]);
+  el('neighbors').replaceChildren(...neighbors.map(([j,d])=>new Option(label(j)+' · '+d.toFixed(2)+' Å',j)));
+  el('inspect').disabled=!neighbors.length;
+  if(!neighbors.length)el('neighbors').add(new Option('No qualifying contacts',''));
   ctx.drawImage(base,0,0);
   ctx.strokeStyle='#d54f20';ctx.lineWidth=2;ctx.strokeRect(3*a-2,3*b-2,7,7);
   draw();
 }
 const base = document.createElement('canvas');
+let degrees=[], contacts=[], farthest, rg;
 function buildMap(){
 base.width=base.height=map.width=map.height=3*size;
 const raster=base.getContext('2d');
-for(let j=0;j<size;j++) for(let i=0;i<size;i++){
-  raster.fillStyle=dist(i,j)<=8?'#216960':'#e7efe7';raster.fillRect(3*i,3*j,3,3);
+const cutoff=Number(el('cut').value), separation=Number(el('sep').value);
+degrees=Array(size).fill(0);contacts=[];farthest=[0,0,0];
+raster.fillStyle='#e7efe7';raster.fillRect(0,0,base.width,base.height);
+raster.fillStyle='#216960';
+for(let i=0;i<size;i++){
+  if(!separation)raster.fillRect(3*i,3*i,3,3);
+  for(let j=i+1;j<size;j++){
+    const d=dist(i,j);
+    if(d>farthest[2])farthest=[i,j,d];
+    if(d>cutoff || rows[j][1]-rows[i][1]<separation)continue;
+    contacts.push([i,j,d]);degrees[i]++;degrees[j]++;
+    raster.fillRect(3*i,3*j,3,3);raster.fillRect(3*j,3*i,3,3);
+  }
 }
+rg=Math.sqrt(coord.reduce((sum,p)=>sum+p.reduce((v,n,k)=>v+(n-center[k])**2,0),0)/size);
+el('geometry').textContent='Cα radius of gyration (equal bead weights): '+rg.toFixed(2)+' Å · Maximum Cα separation: '+farthest[2].toFixed(2)+' Å.';
+const order=contacts.reduce((sum,[i,j])=>sum+rows[j][1]-rows[i][1],0)/(contacts.length*(rows[size-1][1]-rows[0][1]+1));
+el('network').textContent=contacts.length+' unique contacts · Mean degree '+(2*contacts.length/size).toFixed(2)+' · Relative contact order '+(contacts.length?order.toFixed(3):'undefined (no contacts)')+'.';
+const peak=Math.max(1,...degrees),width=550/size;
+el('profile').innerHTML=degrees.map((n,i)=>'<rect fill="#28694e" x="'+(5+i*width)+'" y="'+(96-90*n/peak)+'" width="'+width+'" height="'+(90*n/peak)+'"><title>'+label(i)+': '+n+' partners</title></rect>').join('');
+el('legend').textContent='Rows and columns follow resolved residues in chain order. Teal marks pairs within '+cutoff+' Å with residue-number separation ≥ '+separation+'. Click to measure any pair.';
+
 }
 map.onclick = e => {
   const r = map.getBoundingClientRect();
@@ -95,6 +120,15 @@ async function selectStructure(){
   const serial=++loadSerial, id=picker.value;
   const record=dnaRecords[foldIds.indexOf(id)];
   el('workspace').hidden=true;el('load-status').textContent='';
+  if(experimental[id]){
+    const m=experimental[id],source='https://www.rcsb.org/structure/'+id;
+    el('heading').textContent=m.name+' in 3D';document.title=m.name+' · Assay Evidence Lab';
+    el('intro').textContent='Inspect the experimentally resolved chain A of '+m.name+'. Residue labels preserve the deposited numbering.';
+    el('provenance').replaceChildren('Experimental X-ray coordinates · ',refLink(source,'PDB '+id));
+    el('dna-link').href='dna.html';scene.setAttribute('aria-label','Rotatable '+m.name+' Cα trace');
+    el('lesson').textContent='Compare the contact profile at 6 and 10 Å. Find a residue whose neighborhood changes and export the two contact lists.';
+    el('load-status').textContent=m.rows.length+' resolved Cα positions';present({id,source,rows:m.rows});return;
+  }
   if(!record){
     for(const key of Object.keys(original))el(key).innerHTML=original[key];
     scene.setAttribute('aria-label','Rotatable human ubiquitin trace. Use arrow keys to rotate.');
@@ -126,7 +160,7 @@ async function selectStructure(){
   }
 }
 const initId=new URLSearchParams(location.search).get('protein');
-picker.value=foldIds.includes(initId)?initId:'1UBQ';
+picker.value=(foldIds.includes(initId)||Object.hasOwn(experimental,initId))?initId:'1UBQ';
 picker.onchange=()=>{
   const url=new URL(location.href);
   if(picker.value==='1UBQ')url.searchParams.delete('protein');else url.searchParams.set('protein',picker.value);
@@ -137,4 +171,14 @@ el('trace').onclick=()=>{
   const data={accession:active.id,source:active.source,chain:'A',columns:['residue','position','x_angstrom','y_angstrom','z_angstrom'],rows:rows.map(r=>r.slice(0,5))};
   const url=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
   const link=document.createElement('a');link.href=url;link.download=active.id+'-trace.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
+el('cut').onchange=el('sep').onchange=()=>{buildMap();update();};
+el('extent').onclick=()=>{el('a').value=farthest[0];el('b').value=farthest[1];update();};
+el('inspect').onclick=()=>{el('b').value=el('neighbors').value;update();};
+el('edges').onclick=()=>{
+  const lines=['structure,source,chain,residue_a,residue_b,distance_angstrom,cutoff_angstrom,min_separation'];
+  for(const [i,j,d] of contacts)lines.push([active.id,active.source,'A',label(i),label(j),d.toFixed(4),el('cut').value,el('sep').value].join(','));
+  const url=URL.createObjectURL(new Blob([lines.join('\n')+'\n'],{type:'text/csv'}));
+  const link=document.createElement('a');link.href=url;link.download=active.id+'-contacts.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
