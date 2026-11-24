@@ -32,3 +32,14 @@ el('export').onclick=()=>download('golub-probes.csv',[['probe','description','tr
 for(const m of expression.models)row(el('models'),[m.name,m.auc.toFixed(4),m.ba.toFixed(4),m.cm[0][1],m.cm[1][0]]);
 el('predictions').onclick=()=>download('golub-predictions.csv',[['sample','actual_AML','model','predicted_AML','AML_score'],...expression.models.flatMap(m=>expression.ids.map((id,i)=>[id,expression.labels[i],m.name,m.pred[i],m.scores[i]]))]);
 search();
+const panelProbes=expression.selected.map(i=>expression.probes[i]);
+const difference=r=>[r[3]-r[2],r[5]-r[4]];
+for(const [i,r] of panelProbes.entries())el('compareProbe').add(new Option(r[0]+' · '+r[1],i));
+function compareProbe(){
+  const probe=panelProbes[Number(el('compareProbe').value)],delta=difference(probe);
+  el('probeStory').textContent=probe[1]+'. '+(delta.includes(0)?'One cohort has equal group means.':Math.sign(delta[0])===Math.sign(delta[1])?'Both cohorts show the same direction.':'The difference reverses direction in the test cohort.');
+  el('cohortMap').replaceChildren();
+  evidenceMatrix(el('cohortMap'),'Difference in original intensity units',['Probe','Training','Test'],[delta],[probe[0]],true);
+}
+el('compareProbe').onchange=compareProbe;compareProbe();
+evidenceMatrix(el('panelMap'),'Shared scale across the full selected panel',['Probe','Training','Test'],panelProbes.map(difference),panelProbes.map(r=>r[0]),true);

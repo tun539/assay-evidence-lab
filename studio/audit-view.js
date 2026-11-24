@@ -16,6 +16,7 @@ function show(report){
       if(!Array.isArray(run.rows)||!run.rows.length||!run.rows.every(r=>[r.threshold,r.tp,r.fp,r.fn].every(finite)&&(r.score===null||finite(r.score))))throw Error('Invalid mask scores.');
       add(box,'h2','Segmentation agreement');
       add(box,'p','Change the required overlap and inspect how many objects still match the annotation.');
+      evidenceMatrix(box,'Object counts at each overlap threshold · darker means more objects',['IoU','Matched','Extra','Missed'],run.rows.map(r=>[r.tp,r.fp,r.fn]),run.rows.map(r=>r.threshold));
       const label=add(box,'label','Minimum intersection over union ');
       const select=add(label,'select');
       run.rows.forEach((r,i)=>select.add(new Option(String(r.threshold),String(i))));
@@ -29,6 +30,13 @@ function show(report){
       if(!Array.isArray(run.scores)||!run.scores.length||!run.scores.every(v=>finite(v)&&v>=0&&v<=100)||!finite(run.mean))throw Error('Invalid pLDDT values.');
       add(box,'h2','Residue confidence');
       add(box,'p','Mean pLDDT '+run.mean.toFixed(2)+' across '+run.scores.length+' positions. Inspect a position to see what the mean conceals.');
+      const bands=[0,0,0,0];
+      for(const score of run.scores)bands[score<50?0:score<70?1:score<90?2:3]++;
+      const chart=add(box,'figure');add(chart,'figcaption','How much of the chain falls in each confidence range?');
+      ['Below 50','50 to <70','70 to <90','90 to 100'].forEach((band,i)=>{
+        const line=add(chart,'div');add(line,'span',band+' · '+bands[i]+' residues ');
+        const meter=add(line,'progress');meter.max=run.scores.length;meter.value=bands[i];meter.setAttribute('aria-label',band+' share of chain');
+      });
       const label=add(box,'label','Position (one-based) ');
       const pos=add(label,'input');pos.type='number';pos.min=1;pos.max=run.scores.length;pos.value=1;
       const out=add(box,'output'),bar=add(box,'progress');bar.max=100;
