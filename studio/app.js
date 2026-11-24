@@ -61,9 +61,21 @@ function evidenceMap(enz){
  el('chartTitle').textContent=enz?'Galactosyltransferase assay design':'Nuclear morphology evaluation design';
  el('caption').textContent=enz?'Both conditions share the same concentration grid. Each validation fold removes one concentration from both conditions.':'The training split fits the classifier. The frozen model scores held-out specimens. Both assets are available in the repository.';
 }
-function render(){const e=el('study').value==='enz';el('chartTitle').textContent=e?'Reaction velocity by substrate concentration':'Nuclear morphology · confusion matrix';(e?enzyme:cytology)(el('model').value);if(el('view').value==='map')evidenceMap(e)}
+function render(){
+ const enzymeStudy = el('study').value==='enz';
+ const validationOption = el('view').querySelector('[value="validation"]');
+ validationOption.disabled = !enzymeStudy;
+ if (!enzymeStudy && el('view').value==='validation') el('view').value='chart';
+ const view = el('view').value;
+ const key = el('model').value;
+ el('validationDetail').hidden = view!=='validation';
+ el('chartTitle').textContent = enzymeStudy ? 'Reaction velocity by substrate concentration' : 'Nuclear morphology · confusion matrix';
+ (enzymeStudy ? enzyme : cytology)(key);
+ if (view==='map') evidenceMap(enzymeStudy);
+ if (view==='validation') assayValidation.render(key);
+}
 function setStudy(key){const s=el('study').value;el('model').replaceChildren(...Object.entries(studies[s]).map(([v,l])=>new Option(l,v)));el('model').value=key||(s==='enz'?'split_vmax':'all');render()}
 el('study').onchange=()=>setStudy();el('model').onchange=render;el('view').onchange=render;
-el('ask').onsubmit=e=>{e.preventDefault();const q=el('query').value.toLowerCase();let s,k;if(/cytology|nucle|classif|confusion|morphology|size|baseline/.test(q)){s='cell';k=/baseline/.test(q)?'majority_baseline':/without|remov/.test(q)?'without_direct_size':/size/.test(q)?'size_only':'all'}else if(/enzym|plateau|saturat|kinetic|vmax|both|shared|puromycin|galacto|\bkm\b/.test(q)){s='enz';k=/both/.test(q)?'split_both':/shared|common/.test(q)?'shared':/half|\bkm\b/.test(q)?'split_km':'split_vmax'}else{el('status').textContent='Available topics include enzyme plateaus, half-saturation, cytology errors and size ablation.';return}el('study').value=s;el('view').value=/diagram|map|workflow|design/.test(q)?'map':'chart';setStudy(k);el('status').textContent='Opened '+studies[s][k]+'.'};
+el('ask').onsubmit=e=>{e.preventDefault();const q=el('query').value.toLowerCase();let s,k;if(/cytology|nucle|classif|confusion|morphology|size|baseline/.test(q)){s='cell';k=/baseline/.test(q)?'majority_baseline':/without|remov/.test(q)?'without_direct_size':/size/.test(q)?'size_only':'all'}else if(/enzym|plateau|saturat|kinetic|vmax|both|shared|puromycin|galacto|holdout|held|validation|residual|heatmap|\bkm\b/.test(q)){s='enz';k=/both/.test(q)?'split_both':/shared|common/.test(q)?'shared':/half|\bkm\b/.test(q)?'split_km':'split_vmax'}else{el('status').textContent='Available topics include enzyme plateaus, half-saturation, cytology errors and size ablation.';return}el('study').value=s;el('view').value=/diagram|workflow|design/.test(q)?'map':s==='enz'&&/holdout|held|validation|residual|heatmap|matrix/.test(q)?'validation':'chart';setStudy(k);el('status').textContent='Opened '+studies[s][k]+'.'};
 el('download').onclick=()=>{const svg=el('canvas').querySelector('svg');const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=url;a.download=el('study').value+'-'+el('model').value+'-'+el('view').value+'.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-setStudy();
+
