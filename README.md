@@ -4,6 +4,10 @@
 
 ![Measured reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
 
+## Structural biology in 3D
+
+Open `studio/structure.html` locally to inspect the 76-residue alpha-carbon trace of [ubiquitin (PDB 1UBQ)](https://www.rcsb.org/structure/1UBQ). Rotate the structure, select a pair on the contact map and export its measured distance for peer review. The viewer works offline.
+
 ## Simulation lab
 
 [Two interactive experiments](studio/simulation.html) cover force-law learning and ensemble sampling. Change model assumptions, inspect trajectories and export reproducible plots as CSV or a team review as JSON. The [teaching guide](SIMULATIONS.md) includes role-based exercises and an independent MACE-metric checker.
