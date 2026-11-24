@@ -4,6 +4,10 @@
 
 ![Measured reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
 
+## DNA sequence and strand practical
+
+Open `studio/dna.html` online or offline. Five linked reference records supply 60-base coding excerpts. Slide a 12-base window, rotate an idealized duplex, export FASTA and practice antiparallel pairing or assembly of two simulated reads.
+
 ## Structural biology in 3D
 
 Open `studio/structure.html` locally to inspect the 76-residue alpha-carbon trace of [ubiquitin (PDB 1UBQ)](https://www.rcsb.org/structure/1UBQ). Rotate the structure, select a pair on the contact map and export its measured distance for peer review. The viewer works offline.
