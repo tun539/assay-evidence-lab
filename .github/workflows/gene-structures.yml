@@ -1,0 +1,17 @@
+name: Refresh gene structure coordinates
+on:
+  workflow_dispatch:
+  push:
+    paths: ['scripts/refresh_gene_models.py', '.github/workflows/gene-structures.yml']
+permissions:
+  contents: read
+jobs:
+  coordinates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/refresh_gene_models.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gene-folds
+          path: studio/folds/*.json
