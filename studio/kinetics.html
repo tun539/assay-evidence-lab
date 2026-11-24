@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kinetics workbench · Assay Evidence Studio</title>
+<link rel="stylesheet" href="research.css">
+<style>
+.kinetics-plot{width:100%;display:block;background:#f6faf6;border-radius:12px}
+.kinetics-plot text{fill:#173c34;font:13px system-ui,sans-serif}
+.kinetics-key{display:flex;gap:1rem;flex-wrap:wrap}
+.signal{color:#096b54}.control{color:#884627}
+tr.held{background:#f4e9d3}
+</style>
+<script defer src="kinetics-data.js"></script><script defer src="kinetics-workbench.js"></script>
+</head>
+<body>
+<header><a href="index.html">Assay Evidence Studio</a><a href="methods.html">Methods and sources</a></header>
+<main>
+<h1>Kinetics workbench</h1>
+<p class="intro">Can an enzyme model predict the initial reaction rate at a substrate concentration it has never seen?</p>
+<section>
+<h2>Hide a concentration</h2>
+<p>Each fold excludes every replicate at that concentration in both conditions. All four models fit the remaining observations using positive-parameter least squares.</p>
+<div class="controls"><label>Held-out concentration (ppm) <select id="concentration"></select></label><label>Model shown in plots <select id="model"></select></label></div>
+<p id="fold-summary" role="status"></p>
+<p class="kinetics-key"><span class="signal">Green · treated</span><span class="control">Brown · untreated</span><span>Filled circles · fitted observations</span><span>Crosses · held-out observations</span></p>
+<svg class="kinetics-plot" id="curves" viewBox="0 0 700 270" role="img" aria-label="Measured rates and fitted curves by concentration"></svg>
+<p id="parameters"></p>
+</section>
+<section>
+<h2>Where does the model miss?</h2>
+<p>Residual = observed minus predicted. A point above zero means the model underpredicted the measured rate. Switch models to see which misses persist.</p>
+<svg class="kinetics-plot" id="residuals" viewBox="0 0 700 270" role="img" aria-label="Signed residuals by substrate concentration"></svg>
+<div class="table-wrap"><table><caption>Held-out replicates for the selected model</caption><thead><tr><th>Observation</th><th>Condition</th><th>Measured</th><th>Predicted</th><th>Residual</th></tr></thead><tbody id="replicates"></tbody></table></div>
+</section>
+<section>
+<h2>Compare models on the same holdout</h2>
+<p>Fold MAE and RMSE are in counts/min/min. Pooled RMSE combines the held-out predictions from every concentration and weights each observation equally.</p>
+<div class="table-wrap"><table><thead><tr><th>Model</th><th>Fold MAE</th><th>Fold RMSE</th><th>Pooled RMSE</th></tr></thead><tbody id="comparison"></tbody></table></div>
+<button id="download">Download all held-out predictions (CSV)</button>
+</section>
+<section><h2>Data and assumptions</h2><p>The 23 initial-rate measurements come from the R Puromycin dataset. The curves use v = Vmax × S / (Km + S). At the lowest and highest holdouts the curve must extrapolate beyond the training concentrations. These are apparent parameters fitted to the rate data.</p><a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html">Dataset and units</a></section>
+</main>
+</body></html>
