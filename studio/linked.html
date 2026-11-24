@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Linked protein explorer · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><style>
+.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:1rem}.views figure{margin:0}.views canvas{width:100%;aspect-ratio:1;display:block;touch-action:none}.views figcaption{margin:.5rem 0}#sequence{max-height:10rem;overflow:auto;display:flex;flex-wrap:wrap;gap:3px;padding:.4rem}#sequence button{font:14px monospace;padding:.22rem .36rem;margin:0;background:#e9f1eb;color:#193d37}#sequence button.a{background:#ffc364;color:#19281e}#sequence button.b{background:#8270be;color:white}#measurement{display:block;padding:1rem;background:#173d36;color:white;border-radius:8px;font-variant-numeric:tabular-nums}
+</style></head><body><header><a href="index.html">Assay Evidence Studio</a><a href="tomography.html">Tomography lab</a></header><main><h1>Linked protein explorer</h1><p>Which residues lie far apart in the sequence but meet in the fold? Choose two letters or click a pixel in the contact map to measure their separation.</p>
+<label>Protein <select id="protein"></select></label> <a id="source">AlphaFold source coordinates</a>
+<section><h2>Residue pair</h2><label>Next selection <select id="slot"><option value="0">A · gold</option><option value="1">B · violet</option></select></label><div id="sequence" aria-label="Protein sequence"></div><output id="measurement" aria-live="polite"></output></section>
+<div class="views"><figure><h2>Predicted backbone</h2><canvas id="fold" width="520" height="520" tabindex="0" aria-label="3D backbone. Use arrow keys to rotate."></canvas><figcaption>Drag or use arrow keys to rotate. Click the chain to select the nearest visible point. The dashed line joins your pair.</figcaption></figure>
+<figure><h2>Contact map</h2><canvas id="map" width="520" height="520" aria-label="Residue contact matrix. Use sequence buttons for keyboard selection."></canvas><figcaption>Columns select A from left to right. Rows select B from top to bottom. Green marks Cα pairs within 8 Å. Crosshairs mark your selection.</figcaption></figure></div><p>Distances use the original three-dimensional alpha-carbon coordinates of the predicted single chain. The 8 Å cutoff describes geometric proximity. The diagonal compares each residue with itself.</p></main>
+<script src="dna-data.js"></script><script src="fold-catalog.js"></script>
+<script src="folds/O23290.js"></script>
+<script src="folds/P00359.js"></script>
+<script src="folds/P00846.js"></script>
+<script src="folds/P0A7J3.js"></script>
+<script src="folds/Q31BY4.js"></script>
+<script src="linked.js"></script></body></html>
