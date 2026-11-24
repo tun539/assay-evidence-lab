@@ -14,4 +14,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: gene-folds
-          path: studio/folds/*.json
+          path: studio/folds/*.js

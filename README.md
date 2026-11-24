@@ -8,6 +8,12 @@
 
 Open `studio/dna.html` online or offline. Five linked reference records supply 60-base coding excerpts. Slide a 12-base window, rotate an idealized duplex, export FASTA and practice antiparallel pairing or assembly of two simulated reads.
 
+## Folded gene products
+
+Open [the protein structure lab](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/structure.html?protein=P00846) and select a gene product or the experimental ubiquitin reference. Each predicted trace includes one alpha carbon per residue. Rotate the trace, select contacts and export a distance or the coordinates. The DNA lab links directly to the selected product. All five traces are bundled for offline use.
+
+Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each export records the versioned source PDB URL. Run `python scripts/refresh_gene_models.py` to extract fresh chain-A traces. Distances in predicted monomers describe model geometry.
+
 ## Structural biology in 3D
 
 Open `studio/structure.html` locally to inspect the 76-residue alpha-carbon trace of [ubiquitin (PDB 1UBQ)](https://www.rcsb.org/structure/1UBQ). Rotate the structure, select a pair on the contact map and export its measured distance for peer review. The viewer works offline.

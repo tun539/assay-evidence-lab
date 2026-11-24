@@ -21,11 +21,11 @@ def main():
         rows = []
         for line in fetch(entry["pdbUrl"]).splitlines():
             if line.startswith("ATOM  ") and line[12:16].strip() == "CA" and line[21] == "A":
-                rows.append([line[17:20], int(line[22:26]), *[float(line[k:k+8]) for k in (30, 38, 46)], float(line[60:66])])
+                rows.append([line[17:20], int(line[22:26]), *[float(line[k:k+8]) for k in (30, 38, 46)]])
         if [r[1] for r in rows] != list(range(1, len(entry["uniprotSequence"]) + 1)):
             raise ValueError(f"Incomplete residue coverage: {accession}")
-        model = {"accession": accession, "source": entry["pdbUrl"], "chain": "A", "rows": rows}
-        (OUTPUT / (accession + ".json")).write_text(json.dumps(model, separators=(",", ":")) + "\n")
+        model = {"accession": accession, "source": entry["pdbUrl"], "chain": "A", "columns": ["residue", "position", "x_angstrom", "y_angstrom", "z_angstrom"], "rows": rows}
+        (OUTPUT / (accession + ".js")).write_text(f'bundledFolds["{accession}"]=' + json.dumps(model, separators=(",", ":")) + ";\n")
         print(accession, len(rows), "residues")
 
 
