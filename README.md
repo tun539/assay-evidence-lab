@@ -2,7 +2,13 @@
 
 **Does a treatment change the plateau of an enzyme response, the substrate concentration at half-maximum, or both?** Explore 23 measured rates from a galactosyltransferase experiment, inspect four competing explanations, and trace each prediction to the observations used to test it.
 
-[Launch Assay Evidence Studio](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/) · [Methods and sources](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/methods)
+[**Play online**](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/atlas) · [**Download the offline app**](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/assay-evidence-studio.zip) · [Download the full source ZIP](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip) · [Methods and sources](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/methods)
+
+## Play, edit, and remix
+
+1. Extract the offline ZIP and open `studio/atlas.html` to start the nine Biology missions.
+2. Edit `studio/atlas.js` to change missions, `studio/atlas.css` to style the atlas, or individual pages in `studio/` to change a lab. Reload your browser to see edits.
+3. Fork this repository to share your own version. The [local play guide](PLAY.md) covers the optional Python launcher, training notebooks, and rebuilding the ZIP.
 
 The studio is a static site. For a local preview, run `python -m http.server 8000 --directory studio` from the repository root and open http://localhost:8000/. The interactive labs and bundled examples also work by opening `studio/index.html` directly. Source links open their original records on the web.
 
@@ -14,7 +20,7 @@ Open `studio/dna.html` online or offline. Five linked reference records supply 6
 
 ## Folded gene products
 
-Open [the protein structure lab](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/structure.html?protein=P00846) and select a gene product or the experimental ubiquitin reference. Each predicted trace includes one alpha carbon per residue. Rotate the trace, select contacts and export a distance or the coordinates. The DNA lab links directly to the selected product. All five traces are bundled for offline use.
+Open [the protein structure lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/structure.html?protein=P00846) and select a gene product or the experimental ubiquitin reference. Each predicted trace includes one alpha carbon per residue. Rotate the trace, select contacts and export a distance or the coordinates. The DNA lab links directly to the selected product. All five traces are bundled for offline use.
 
 Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each export records the versioned source PDB URL. Run `python scripts/refresh_gene_models.py` to extract fresh chain-A traces. Distances in predicted monomers describe model geometry.
 
@@ -80,7 +86,7 @@ The fit uses positive parameters, equal observation weights and nonlinear least 
 
 ## Research benchmark · model comparison and probability error
 
-[Open the interactive benchmark](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/research) to compare logistic regression, k-nearest neighbors, RBF SVM and random forest on shared outer folds. Explore reliability, threshold behavior and paired Brier differences. The [research report](research/README.md) includes commands to reproduce and independently verify the results.
+[Open the interactive benchmark](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/research) to compare logistic regression, k-nearest neighbors, RBF SVM and random forest on shared outer folds. Explore reliability, threshold behavior and paired Brier differences. The [research report](research/README.md) includes commands to reproduce and independently verify the results.
 
 ## Second case study · NucleusAudit
 
@@ -94,4 +100,4 @@ The reference implementation and interpretation were prepared with AI assistance
 
 ## Gene expression atlas
 
-[Open the atlas](https://assay-evidence-studio.kh-ng-gian-l-5063.chatgpt.site/expression). Search 7,129 microarray probe sets, compare cohort means, export the training-selected panel and inspect specimen-level predictions. To reproduce, download `actual.csv`, `data_set_ALL_AML_train.csv` and `data_set_ALL_AML_independent.csv` from the [data mirror](https://github.com/varshith-alladi/Leukemia-Cancer-Classification), install the root requirements, then run `python research/expression.py /path/to/csv-directory`. Hyperparameters and the 25-probe panel size are fixed. The small historical test cohort limits precision and transportability.
+[Open the atlas](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/expression). Search 7,129 microarray probe sets, compare cohort means, export the training-selected panel and inspect specimen-level predictions. To reproduce, download `actual.csv`, `data_set_ALL_AML_train.csv` and `data_set_ALL_AML_independent.csv` from the [data mirror](https://github.com/varshith-alladi/Leukemia-Cancer-Classification), install the root requirements, then run `python research/expression.py /path/to/csv-directory`. Hyperparameters and the 25-probe panel size are fixed. The small historical test cohort limits precision and transportability.
