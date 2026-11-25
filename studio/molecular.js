@@ -18,6 +18,7 @@ function current() {
 }
 function reset() {
  const {rate, values} = current();
+ molecularScene.load(null);
  byId('first').textContent = doses[anchor]+' ppm · observed rate '+rate.toFixed(1)+' counts/min/min';
  byId('result').textContent = '';
  byId('mechanism').textContent = 'Select the second concentration to reveal the observed rate and compare it with the simulator’s noiseless rate.';
@@ -39,6 +40,7 @@ byId('policy').onclick=()=>{
 };
 byId('measure').onclick=()=>{
  const {example}=current(), choice=Number(byId('dose').value), dose=actions[choice];
+ molecularScene.load({example, dose, fixed:molecularData.fixedDose});
  const [vmax,km]=example.params, fraction=doses[dose]/(km+doses[dose]);
  byId('result').textContent=doses[dose]+' ppm · observed '+example.rates[dose].toFixed(1)+' counts/min/min · predicted '+families[example.decoded[choice]]+' · generating family '+families[example.family];
  byId('mechanism').textContent='The generating model gives Km '+km.toFixed(3)+' ppm and Vmax '+vmax.toFixed(1)+' counts/min/min. At this concentration it reaches '+(100*fraction).toFixed(1)+'% of Vmax, for a noiseless rate of '+(fraction*vmax).toFixed(1)+' counts/min/min.';

@@ -76,9 +76,11 @@ def main():
     actual, test, truth = simulate(800, 91)
     forest, neural = train_regressors(train, params)
     metrics = {}
+    estimates = {}
     for name, model in [('Random forest',forest), ('PyTorch MLP',neural)]:
         prediction = model(test)
         inferred = np.column_stack([prediction[:,0]*180, .1*np.exp(prediction[:,1])])
+        estimates[name] = inferred
         metrics[name] = np.abs(actual-inferred).mean(axis=0).tolist()
     test_states = np.digitize(test[:,ANCHOR], BINS)
     # Fit the decoder and train the policy on independent simulated episodes.
@@ -96,11 +98,12 @@ def main():
     interval = np.quantile(bootstrap, [.025,.975]).tolist()
     result = dict(gain=float(difference.mean()), gainInterval=interval, doses=DOSES.tolist(), anchor=ANCHOR, actions=ACTIONS.tolist(),
                   bins=BINS.tolist(), q=q.tolist(), metrics=metrics, train=len(train), test=len(test),
-                  rlTrain=len(episodes), policies={'Learned policy':float(paired.mean()),
+                  fixedDose=int(ACTIONS[fixed]), rlTrain=len(episodes), policies={'Learned policy':float(paired.mean()),
                          'Best fixed dose selected during training':float(scores[:,fixed].mean()),
                          'Uniform random dose (expected)':float(scores.mean())},
                   examples=[dict(family=int(truth[i]), rates=test[i].tolist(), params=actual[i].tolist(),
-                                 decoded=decoded[i].tolist()) for i in range(18)])
+                                 decoded=decoded[i].tolist(),
+                                 estimates={name: values[i].tolist() for name, values in estimates.items()}) for i in range(18)])
     print(json.dumps(result['metrics'] | result['policies'],indent=2))
     dest=Path(__file__).resolve().parents[1]/'studio'/'molecular-data.js'
     dest.write_text('const molecularData = '+json.dumps(result,allow_nan=False)+';\n')
