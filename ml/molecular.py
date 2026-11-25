@@ -3,7 +3,9 @@ from pathlib import Path
 import json
 
 import numpy as np
+from scipy.optimize import least_squares
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Ridge
 import torch
 from torch import nn
 
@@ -48,6 +50,20 @@ def train_regressors(x, y):
     return forest.predict, neural
 
 
+
+def fit_curve(rates):
+    """Fit positive Michaelis–Menten parameters to one observed curve."""
+    def residual(log_params):
+        vmax, km = np.exp(log_params)
+        return vmax * DOSES / (km + DOSES) - rates
+
+    fit = least_squares(residual, np.log([180, .1]), bounds=(np.log([1, .0001]), np.log([5000, 10])))
+    if not fit.success:
+        raise RuntimeError(fit.message)
+    vmax, km = np.exp(fit.x)
+    return [vmax / 180, np.log(km / .1)]
+
+
 def decoder(train, labels, observed, action):
     """Gaussian prototype likelihood fitted on training curves only."""
     columns = [ANCHOR, action]
@@ -77,7 +93,15 @@ def main():
     forest, neural = train_regressors(train, params)
     metrics = {}
     estimates = {}
-    for name, model in [('Random forest',forest), ('PyTorch MLP',neural)]:
+    scaled_targets = np.column_stack([params[:, 0] / 180, np.log(params[:, 1] / .1)])
+    ridge = Ridge(alpha=100).fit(train, scaled_targets)
+    methods = [
+        ('Michaelis–Menten fit', lambda rates: np.array([fit_curve(row) for row in rates])),
+        ('Ridge regression', ridge.predict),
+        ('Random forest', forest),
+        ('PyTorch MLP', neural),
+    ]
+    for name, model in methods:
         prediction = model(test)
         inferred = np.column_stack([prediction[:,0]*180, .1*np.exp(prediction[:,1])])
         estimates[name] = inferred

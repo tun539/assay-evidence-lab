@@ -1,27 +1,30 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Molecular learning lab · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><style>
 .scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1rem}.scenes figure{margin:0}.scenes canvas{display:block;width:100%;background:#0e2c31;border-radius:12px;touch-action:none}.scenes figcaption{padding:.6rem 0}#controls{display:flex;flex-wrap:wrap;align-items:end;gap:1rem}.bars progress{display:block;width:100%;accent-color:#17755e}.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:1rem}.bars label{padding:.6rem;background:#edf4ee;border-radius:6px} output{display:block;font-weight:600;margin:1rem 0}
+.scene-lab{background:#f1f6f1}.scene-heading,.scenes figcaption,.timeline{display:flex;justify-content:space-between;gap:.75rem;align-items:baseline}.scene-heading h3{font:normal clamp(24px,4vw,36px) Georgia,serif;margin:0}.scene-heading p{margin:.35rem 0 1rem;color:#395e51}.play-scene{background:#175746;color:#fff;padding:.65rem 1rem;white-space:nowrap}.scenes figure{background:#102d31;border:1px solid #294d48;border-radius:12px;color:#e6f7ed;padding:0 .75rem}.scenes figcaption{align-items:flex-start;flex-direction:column;gap:.2rem}.scenes figcaption span{font-size:.9rem;color:#c6e5d7}.scenes canvas{cursor:grab}.scenes canvas:active{cursor:grabbing}.phase{margin:.5rem 0;font-size:.9rem;color:#dbefe6}.timeline{margin:1rem 0;align-items:center}.timeline input{width:auto;flex:1;min-width:3rem}.timeline span{white-space:nowrap;font-variant-numeric:tabular-nums}.scene-lab button,.scene-lab select{min-height:44px}.scene-lab select:disabled{opacity:.7}.spin-control{display:flex;gap:.45rem;align-items:center}.scene-legend{display:flex;flex-wrap:wrap;gap:1rem;list-style:none;padding:0}.scene-legend li::before{content:'';display:inline-block;width:.75em;height:.75em;border-radius:50%;margin-right:.4rem;background:#33836d}.scene-legend li:nth-child(2)::before{background:#b66a17}.scene-legend li:nth-child(3)::before{background:#8264bd}.scene-hint{color:#426255;font-size:.9rem}
+@media(max-width:570px){.scene-heading{flex-wrap:wrap}.timeline{flex-wrap:wrap}.timeline input{order:3;flex-basis:100%}}
 </style></head><body><header><a href="index.html">Assay Evidence Studio</a><a href="kinetics.html">Measured kinetics</a></header><main>
 <h1>Molecular learning lab</h1><p class="intro">How much can two substrate concentrations tell you about an enzyme? Choose a second measurement, compare it with a trained policy, and see which family of kinetic curves the two rates support.</p>
 <section><h2>Choose the next measurement</h2><p>All simulated assays start at 0.11 ppm. The policy groups the initial rate into a bin and estimates the chance of a correct family prediction for each remaining dose. Take one more measurement to submit the episode.</p>
 <div id="controls"><label>Held-out assay <select id="episode"></select></label><label>Second concentration <select id="dose"></select></label><button id="policy">Use learned policy</button><button id="measure">Reveal second rate</button></div>
 <output id="first"></output><div class="bars" id="actions"></div><output id="result" aria-live="polite"></output>
-<section aria-labelledby="scene-title">
-<h3 id="scene-title">Compare enzyme activity in 3D</h3>
-<p>Reveal the second rate to unlock playback. Drag to orbit or use the arrow keys. Both scenes use the same scale, so faster turnover is visible as more frequent product release.</p>
-<div id="motion-controls" class="controls">
-<button id="play-scene" disabled>Play simulation</button><button id="reset-camera">Reset camera</button>
-<label><input id="auto-orbit" type="checkbox" checked> Rotate during playback</label>
-<label>Rate model <select id="rate-model" disabled><option value="">Generating parameters</option><option>Random forest</option><option>PyTorch MLP</option></select></label>
-<label>Time <input id="scene-time" type="range" min="0" max="8" value="0" step="0.001" disabled></label>
-</div>
+<section class="scene-lab" aria-labelledby="scene-title">
+<div class="scene-heading"><div><h3 id="scene-title">Enzyme activity in 3D</h3><p id="scene-mode"></p></div><button id="play-scene" class="play-scene">Play simulation</button></div>
 <div class="scenes">
-<figure><canvas id="scene-selected" width="520" height="340" tabindex="0" aria-label="Rotatable enzyme scene for the selected dose"></canvas><figcaption id="label-selected">Selected concentration</figcaption></figure>
-<figure><canvas id="scene-fixed" width="520" height="340" tabindex="0" aria-label="Rotatable enzyme scene for the fixed dose baseline"></canvas><figcaption id="label-fixed">Fixed-dose baseline</figcaption></figure>
+<figure><figcaption><strong>Selected concentration</strong><span id="label-selected"></span></figcaption><canvas id="scene-selected" width="520" height="340" tabindex="0" aria-label="Rotatable enzyme scene for the selected dose"></canvas><p class="phase" id="phase-selected"></p></figure>
+<figure><figcaption><strong>Fixed-dose baseline</strong><span id="label-fixed"></span></figcaption><canvas id="scene-fixed" width="520" height="340" tabindex="0" aria-label="Rotatable enzyme scene for the fixed dose baseline"></canvas><p class="phase" id="phase-fixed"></p></figure>
 </div>
-<p id="model-detail"></p><p>Green lobes depict a schematic enzyme, amber depicts substrate, and violet depicts product. Binding and release are staged illustrations. Playback is scaled by the Michaelis–Menten rate. The supervised models use six measured-in-simulation rates per example, while the policy chooses a second dose using the first rate only. Changing the scene’s rate model leaves the policy and its reward unchanged.</p>
+<div class="timeline"><label for="scene-time">Playback time</label><input id="scene-time" type="range" min="0" max="8" value="0" step="0.001"><span id="time-readout" aria-hidden="true">0.0 / 8 s</span></div>
+<div id="motion-controls" class="controls">
+<label>Rate estimate <select id="rate-model"><option value="">Generating parameters</option></select></label>
+<label class="spin-control"><input id="auto-orbit" type="checkbox"> Auto-rotate</label><button id="reset-camera">Reset camera</button>
+</div>
+<p id="model-detail"></p>
+<ul class="scene-legend" aria-label="Molecular colors"><li>Enzyme</li><li>Substrate</li><li>Product</li></ul>
+<p class="scene-hint">Drag either view to orbit both scenes. With a view focused, use the arrow keys. Both scenes share a clock and rate scale.</p>
+<details><summary>How to interpret the animation</summary><p>The geometry and reaction stages are schematic. Playback speed scales with the Michaelis–Menten rate. The four rate estimators use six simulated observations per example. The learned policy uses only the first observation to choose its second dose.</p></details>
 </section>
 <p id="mechanism"></p></section>
-<section><h2>Evaluate the trained models</h2><p>The random forest and two-hidden-layer PyTorch network estimate <i>V</i><sub>max</sub> and <i>K</i><sub>m</sub> from all six rates. The measurement policy gets two rates and predicts the generating family using a fitted Gaussian decoder. Both tasks use the same held-out assays.</p>
+<section><h2>Evaluate the trained models</h2><p>The nonlinear Michaelis–Menten fit, ridge regression, random forest, and two-hidden-layer PyTorch network estimate <i>V</i><sub>max</sub> and <i>K</i><sub>m</sub> from all six rates. The measurement policy gets two rates and predicts the generating family using a fitted Gaussian decoder. Both tasks use the same held-out assays.</p>
 <div class="table-wrap"><table><thead><tr><th>Parameter estimator</th><th>Vmax MAE (counts/min/min)</th><th>Km MAE (ppm)</th></tr></thead><tbody id="ml"></tbody></table></div>
 <div class="table-wrap"><table><thead><tr><th>Two-measurement policy</th><th>Family accuracy</th></tr></thead><tbody id="rl"></tbody></table></div>
 <p id="split"></p></section>

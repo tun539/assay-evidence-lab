@@ -33,9 +33,11 @@ function reset() {
 examples.forEach((_,i)=>byId('episode').add(new Option('Assay '+(i+1),i)));
 actions.forEach((dose,i)=>byId('dose').add(new Option(doses[dose]+' ppm',i)));
 byId('episode').onchange=reset;
+byId('dose').onchange=molecularScene.render;
 byId('policy').onclick=()=>{
  const {values}=current();
  byId('dose').value=values.indexOf(Math.max(...values));
+ molecularScene.render();
  byId('measure').focus();
 };
 byId('measure').onclick=()=>{
