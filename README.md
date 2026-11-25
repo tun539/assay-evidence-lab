@@ -32,6 +32,10 @@
 | Structure and prediction audits | The **Cellpose** metric routines score segmentation overlap. **AlphaFold DB** supplies predicted structures for the 3D explorer. The audit also includes upstream routines for residue confidence. |
 | App and design | **HTML, CSS, JavaScript, and Canvas** power the offline labs and 3D playback. **Lovable** was used for a separate mission-control UI prototype. |
 
+## Evidence workspace
+
+[Open the workspace](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/workspace). Save a measured kinetics fold or a simulated molecular assay, compare compatible records, and export a JSON packet for independent review. Records are stored in the current browser.
+
 ## Explore the studio
 
 | Research area | Open a lab | What to try |

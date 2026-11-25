@@ -12,7 +12,7 @@
 .signal{color:#096b54}.control{color:#884627}
 tr.held{background:#f4e9d3}
 </style>
-<script defer src="kinetics-data.js"></script><script defer src="kinetics-workbench.js"></script>
+<script defer src="kinetics-data.js"></script><script defer src="evidence-records.js"></script><script defer src="kinetics-workbench.js"></script>
 </head>
 <body>
 <header><a href="index.html">Assay Evidence Studio</a><a href="methods.html">Methods and sources</a><a href="molecular.html">Molecular learning lab</a></header>
@@ -26,7 +26,7 @@ tr.held{background:#f4e9d3}
 <p id="fold-summary" role="status"></p>
 <p class="kinetics-key"><span class="signal">Green · treated</span><span class="control">Brown · untreated</span><span>Filled circles · fitted observations</span><span>Crosses · held-out observations</span></p>
 <svg class="kinetics-plot" id="curves" viewBox="0 0 700 270" role="img" aria-label="Measured rates and fitted curves by concentration"></svg>
-<p id="parameters"></p>
+<p id="parameters"></p><button id="save-evidence">Save to evidence workspace</button> <a href="workspace.html">Open workspace</a><p id="save-status" role="status"></p>
 </section>
 <section>
 <h2>Where does the model miss?</h2>

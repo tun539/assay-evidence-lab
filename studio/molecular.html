@@ -23,10 +23,10 @@
 <p class="scene-hint">Drag either view to orbit both scenes. With a view focused, use the arrow keys. Both scenes share a clock and rate scale.</p>
 <details><summary>How to interpret the animation</summary><p>The geometry and reaction stages are schematic. Playback speed scales with the Michaelis–Menten rate. The four rate estimators use six simulated observations per example. The learned policy uses only the first observation to choose its second dose.</p></details>
 </section>
-<p id="mechanism"></p></section>
+<p id="mechanism"></p><button id="save-evidence" disabled>Save to evidence workspace</button> <a href="workspace.html">Open workspace</a><p id="save-status" role="status"></p></section>
 <section><h2>Evaluate the trained models</h2><p>The nonlinear Michaelis–Menten fit, ridge regression, random forest, and two-hidden-layer PyTorch network estimate <i>V</i><sub>max</sub> and <i>K</i><sub>m</sub> from all six rates. The measurement policy gets two rates and predicts the generating family using a fitted Gaussian decoder. Both tasks use the same held-out assays.</p>
 <div class="table-wrap"><table><thead><tr><th>Parameter estimator</th><th>Vmax MAE (counts/min/min)</th><th>Km MAE (ppm)</th></tr></thead><tbody id="ml"></tbody></table></div>
 <div class="table-wrap"><table><thead><tr><th>Two-measurement policy</th><th>Family accuracy</th></tr></thead><tbody id="rl"></tbody></table></div>
 <p id="split"></p></section>
 <section><h2>Reproduce the experiment</h2><p>Simulate rates with v = Vmax × S / (Km + S) and additive Gaussian noise. The terminal reward is one for a correct family prediction and zero otherwise. Training uses epsilon-greedy exploration and sample-average Q updates. The labels describe synthetic parameter families. Experimental validation would require independent assay runs. Km is an apparent kinetic parameter and can depend on the reaction mechanism.</p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py">Training code and simulation</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed Jupyter notebook</a></section>
-</main><script src="molecular-data.js"></script><script src="molecular-scene.js"></script><script src="molecular.js"></script></body></html>
+</main><script src="molecular-data.js"></script><script src="molecular-scene.js"></script><script src="evidence-records.js"></script><script src="molecular.js"></script></body></html>

@@ -119,3 +119,24 @@ byId('download').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(url),1000);
 };
 render();
+
+byId('save-evidence').onclick = () => {
+  const fold = folds[byId('concentration').value];
+  const model = byId('model').value;
+  const records = observations(fold,model);
+  const held = records.filter(row=>row.held);
+  try {
+    evidenceRecords.capture({
+      kind:'measured', title:models[model]+' · '+fold.level+' ppm',
+      dataset:'Puromycin · galactosyltransferase initial rates', method:'Leave one concentration out',
+      metric:'Held-out RMSE', value:rmse(held), unit:'counts/min/min',
+      source:'https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html',
+      details:{comparisonKey:'puromycin-holdout-'+fold.level, concentrationPpm:fold.level, model,
+        trainingIds:records.filter(row=>!row.held).map(row=>row.id),
+        fittedParameters:fold.models[model], heldOut:held},
+    });
+    byId('save-status').textContent='Saved the selected fold, model, and residuals.';
+  } catch(error) {
+    byId('save-status').textContent='Could not save the run. '+error.message;
+  }
+};

@@ -21,6 +21,8 @@ function reset() {
  molecularScene.load(null);
  byId('first').textContent = doses[anchor]+' ppm · observed rate '+rate.toFixed(1)+' counts/min/min';
  byId('result').textContent = '';
+ byId('save-status').textContent = '';
+ byId('save-evidence').disabled = true;
  byId('mechanism').textContent = 'Select the second concentration to reveal the observed rate and compare it with the simulator’s noiseless rate.';
  byId('measure').disabled = byId('policy').disabled = byId('dose').disabled = false;
  byId('actions').replaceChildren(...values.map((value,i) => {
@@ -46,6 +48,22 @@ byId('measure').onclick=()=>{
  const [vmax,km]=example.params, fraction=doses[dose]/(km+doses[dose]);
  byId('result').textContent=doses[dose]+' ppm · observed '+example.rates[dose].toFixed(1)+' counts/min/min · predicted '+families[example.decoded[choice]]+' · generating family '+families[example.family];
  byId('mechanism').textContent='The generating model gives Km '+km.toFixed(3)+' ppm and Vmax '+vmax.toFixed(1)+' counts/min/min. At this concentration it reaches '+(100*fraction).toFixed(1)+'% of Vmax, for a noiseless rate of '+(fraction*vmax).toFixed(1)+' counts/min/min.';
+ byId('save-evidence').disabled=false;
+ byId('save-evidence').onclick=()=>{
+   const episode=Number(byId('episode').value)+1;
+   try{
+     evidenceRecords.capture({
+       kind:'simulated', title:'Assay '+episode+' · '+doses[dose]+' ppm', dataset:'Synthetic Michaelis–Menten task',
+       method:'Two-measurement Gaussian decoder', metric:'Observed second rate', unit:'counts/min/min',
+       value:example.rates[dose], source:'https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py',
+       details:{comparisonKey:'episode-'+episode+'-dose-'+doses[dose], episode,
+         firstConcentrationPpm:doses[anchor], firstRate:example.rates[anchor], secondConcentrationPpm:doses[dose],
+         predictedFamily:families[example.decoded[choice]], generatingFamily:families[example.family],
+         generatingParameters:{vmax,km}, estimatedPolicyReward:current().values[choice]},
+     });
+     byId('save-status').textContent='Saved the simulated measurement and family prediction.';
+   }catch(error){byId('save-status').textContent='Could not save the run. '+error.message;}
+ };
  byId('measure').disabled=byId('policy').disabled=byId('dose').disabled=true;
 };
 table('ml',Object.entries(metrics).map(([name,[vmax,km]])=>[name,vmax.toFixed(2),km.toFixed(4)]));
