@@ -77,6 +77,7 @@ function select(index){
  renderMap();
 }
 function updateProgress(){
+ get('progress-meter').value=completed.size;
  get('progress').textContent=completed.size+' of '+stations.length+' checkpoints completed';
  Array.from(get('stations').children).forEach((b,i)=>{
    b.textContent=stations[i].short+(completed.has(stations[i].id)?' ✓':'');
@@ -136,5 +137,11 @@ for(const [title,summary] of [
 ]){
  const tile=document.createElement('article'),h=document.createElement('h3'),p=document.createElement('p');
  h.textContent=title;p.textContent=summary;tile.append(h,p);get('tracks').append(tile);
+}
+if (location.protocol==='file:' || ['localhost','127.0.0.1','[::1]'].includes(location.hostname)) {
+ const download=get('download-studio');
+ download.href='https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip';
+ download.removeAttribute('download');
+ download.textContent='Get the complete source ZIP';
 }
 select(active);

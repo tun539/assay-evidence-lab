@@ -20,7 +20,7 @@
 <section class="hero">
   <h1>Assay <em>Evidence Studio</em></h1>
   <p class="intro">Fit enzyme data, audit model predictions and inspect protein structures. Follow each result back to its measurements, assumptions and sources.</p>
-  <a class="hero-link" href="atlas.html">Enter the 3D research atlas</a> <a href="#explorer">Compare models and results</a>
+  <a class="hero-link" href="atlas.html">Enter the 3D research atlas</a> <a href="#explorer">Compare models and results</a> <a id="offline-download" href="assay-evidence-studio.zip" download>Download to play locally</a>
 </section>
 <section class="labs" aria-labelledby="labs-title">
   <h2 id="labs-title">Explore the labs</h2>
@@ -45,4 +45,10 @@
 <div style="overflow-x:auto"><table style="width:100%;text-align:left;border-spacing:0 .45rem"><thead><tr><th>Observation</th><th>Condition</th><th>Measured</th><th>Predicted</th><th>Residual</th></tr></thead><tbody id="validationRows"></tbody></table></div>
 <p><a href="kinetics.html">Open fitted curves and residual plots in the Kinetics Workbench</a></p>
 </section><div class="details"><section><h2>How to read this result</h2><p id="meaning"></p></section><section><h2>What would strengthen the claim?</h2><p id="limit"></p></section></div></section></main><footer><a href="methods.html">Methods and sources</a> · <a href="https://github.com/tun539/assay-evidence-lab#reproduce-or-use-your-own-assay">Reproduce the analysis</a></footer>
-<script src="results.js"></script><script src="kinetics-data.js"></script><script src="app.js"></script><script src="validation.js"></script><script>setStudy()</script></html>
+<script src="results.js"></script><script src="kinetics-data.js"></script><script src="app.js"></script><script src="validation.js"></script><script>setStudy()
+if (location.protocol==='file:' || ['localhost','127.0.0.1','[::1]'].includes(location.hostname)) {
+  const download=document.getElementById('offline-download');
+  download.href='https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip';
+  download.removeAttribute('download');
+}
+</script></html>

@@ -1,0 +1,27 @@
+# Play and modify Assay Evidence Studio
+
+## Start the Biology missions
+
+1. Extract the complete ZIP to a folder. Keep the files and folders together.
+2. Open `studio/atlas.html` in a desktop browser.
+3. Orbit the map with the mouse or arrow keys. Select a station, run its experiment, and return to answer its evidence checkpoint.
+
+The labs use bundled assets and run in the browser. The original references and GitHub links open online. For browser features tied to an HTTP origin, or to keep checkpoint progress on a stable localhost address, run `python scripts/play_studio.py` from the extracted folder. On Windows, use `py scripts/play_studio.py` if Python is installed under the `py` launcher. No packages are needed for this launcher.
+
+## Make it yours
+
+| File | What to change |
+| --- | --- |
+| `studio/atlas.js` | Mission tasks, station labels, checkpoint questions and evidence feedback |
+| `studio/atlas.css` | Atlas palette, layout, controls and mobile styles |
+| `studio/index.html` | Studio landing page and links |
+| `studio/molecular.html`, `studio/molecular-scene.js` | Enzyme simulator controls and rendering |
+| `ml/MolecularLearning.ipynb` | Reproduce the CPU training and compare supervised and RL approaches |
+
+After editing a page, reload the browser. Checkpoint progress is stored locally per browser and site address. Browser restrictions can affect progress when opening files directly.
+
+For training, create a Python environment and install `ml/requirements.txt` plus SciPy. Open notebooks from the `ml` directory. Running `python ml/molecular.py` from the project folder regenerates the molecular benchmark data consumed by the UI. The complete GitHub project also includes the primary assay fits, research scripts, tests, and teaching guides. See the in-app methods page for dataset and model provenance.
+
+[Complete project on GitHub](https://github.com/tun539/assay-evidence-lab)
+
+To rebuild the downloadable package from the complete source, run `python scripts/package_studio.py assay-evidence-studio.zip` from the repository root.
