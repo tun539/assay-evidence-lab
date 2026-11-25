@@ -4,3 +4,4 @@ matplotlib
 torch
 tensorflow
 jupyterlab
+scikit-learn
