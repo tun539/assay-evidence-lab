@@ -1,18 +1,62 @@
-# Assay Evidence Lab
+# Assay Evidence Studio
 
-**Does a treatment change the plateau of an enzyme response, the substrate concentration at half-maximum, or both?** Explore 23 measured rates from a galactosyltransferase experiment, inspect four competing explanations, and trace each prediction to the observations used to test it.
+![Assay Evidence Studio · Biology, machine learning, and interactive experiments](docs/assets/assay-evidence-banner.svg)
 
-[**Play online**](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/atlas) · [**Download the offline app**](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/assay-evidence-studio.zip) · [Download the full source ZIP](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip) · [Methods and sources](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/methods)
+**A playable biology lab for exploring molecular structures, comparing models, and tracing predictions back to evidence.** Orbit the 3D atlas, run an experiment, and test your reasoning at one of nine research stations.
+
+[![Play the 3D atlas](https://img.shields.io/badge/PLAY-3D%20ATLAS-176953?style=for-the-badge)](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/atlas)
+[![Download the offline app](https://img.shields.io/badge/DOWNLOAD-OFFLINE%20APP-b86c2f?style=for-the-badge)](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/assay-evidence-studio.zip)
+[![Download full source](https://img.shields.io/badge/GET-FULL%20SOURCE-334c56?style=for-the-badge)](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip)
+
+[Local play and editing guide](PLAY.md) · [Methods and data sources](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/methods) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)
+
+## Tools used
+
+[![Python](https://img.shields.io/badge/Python-356da0?style=flat-square&logo=python&logoColor=white)](ml/molecular.py)
+[![Pandas](https://img.shields.io/badge/Pandas-59417d?style=flat-square&logo=pandas&logoColor=white)](ml/MultilingualTraining.ipynb)
+[![NumPy](https://img.shields.io/badge/NumPy-386280?style=flat-square&logo=numpy&logoColor=white)](ml/molecular.py)
+[![SciPy](https://img.shields.io/badge/SciPy-32658b?style=flat-square&logo=scipy&logoColor=white)](kinetics/model.py)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-965529?style=flat-square&logo=scikitlearn&logoColor=white)](research/benchmark.py)
+[![PyTorch](https://img.shields.io/badge/PyTorch-b04437?style=flat-square&logo=pytorch&logoColor=white)](ml/MolecularLearning.ipynb)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-9b510e?style=flat-square&logo=tensorflow&logoColor=white)](ml/MultilingualTraining.ipynb)
+[![Jupyter](https://img.shields.io/badge/Jupyter-9b510e?style=flat-square&logo=jupyter&logoColor=white)](ml/MolecularLearning.ipynb)
+[![JavaScript + Canvas](https://img.shields.io/badge/JavaScript%20%2B%20Canvas-266454?style=flat-square&logo=javascript&logoColor=white)](studio/molecular-scene.js)
+[![Cellpose](https://img.shields.io/badge/Cellpose-32658b?style=flat-square)](evidence/README.md)
+[![AlphaFold DB](https://img.shields.io/badge/AlphaFold%20DB-266454?style=flat-square)](studio/folds)
+[![Lovable](https://img.shields.io/badge/Lovable-6c4380?style=flat-square)](https://lovable.dev/projects/a7c9db51-fe59-46af-bd6a-52c1b9d893ce)
+
+| Area | What the tools do here |
+| --- | --- |
+| Scientific computing | **NumPy** generates synthetic assays and computes metrics. **Pandas** prepares training data in the notebooks. **SciPy** fits Michaelis–Menten curves. |
+| Model training | **scikit-learn** supplies classical baselines. **PyTorch** trains the molecular estimator. **TensorFlow**, PyTorch, and NumPy implement the same bilingual classifier in the companion notebook. The assay simulator implements tabular Q-learning for selecting a second measurement. |
+| Structure and prediction audits | The **Cellpose** metric routines score segmentation overlap. **AlphaFold DB** supplies predicted structures for the 3D explorer. The audit also includes upstream routines for residue confidence. |
+| App and design | **HTML, CSS, JavaScript, and Canvas** power the offline labs and 3D playback. **Lovable** was used for a separate mission-control UI prototype. |
+
+## Explore the studio
+
+| Research area | Open a lab | What to try |
+| --- | --- | --- |
+| Molecular structure | [Protein 3D](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/structure) · [Linked residue explorer](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/linked) | Rotate a chain and measure a Cα distance from the contact map. |
+| Imaging and transport | [Tomography](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/tomography) · [Transport in 3D](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/transport) | Reconstruct a protein-derived slice or compare moving tracers with theory. |
+| Enzyme kinetics | [Kinetics workbench](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/kinetics) · [Molecular Learning Lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/molecular) | Hold out a concentration in the measured assay, then test a learned measurement policy on simulated assays. |
+| Genomics | [Expression atlas](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/expression) · [DNA strand lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/dna) | Compare microarray cohorts, inspect complementary strands, or assemble two reads. |
+| Model evaluation | [Prediction audit](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/audit) · [Research benchmark](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/research) · [Simulation lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/simulation) | Inspect object matches, change decision thresholds, or test a learned force law outside its training interval. |
 
 ## Play, edit, and remix
 
-1. Extract the offline ZIP and open `studio/atlas.html` to start the nine Biology missions.
-2. Edit `studio/atlas.js` to change missions, `studio/atlas.css` to style the atlas, or individual pages in `studio/` to change a lab. Reload your browser to see edits.
-3. Fork this repository to share your own version. The [local play guide](PLAY.md) covers the optional Python launcher, training notebooks, and rebuilding the ZIP.
+1. [Download and extract the offline app](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/assay-evidence-studio.zip). Open `studio/atlas.html` in a browser to start the missions.
+2. Edit `studio/atlas.js` to change missions, `studio/atlas.css` to style the map, or individual pages in `studio/` to customize a lab.
+3. For a local HTTP server, run `python scripts/play_studio.py`. See [PLAY.md](PLAY.md) for platform notes and packaging instructions.
 
-The studio is a static site. For a local preview, run `python -m http.server 8000 --directory studio` from the repository root and open http://localhost:8000/. The interactive labs and bundled examples also work by opening `studio/index.html` directly. Source links open their original records on the web.
+Fork the repository to share your own version. Start with the [executed molecular training notebook](ml/MolecularLearning.ipynb) to reproduce the random forest, neural network, and RL comparison.
 
-![Measured reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
+## Featured experiment
+
+**Does a treatment change the plateau of an enzyme response, its half-saturation concentration, or both?** Explore 23 measured rates from a galactosyltransferase assay and compare four explanations using concentration-level holdouts.
+
+![Measured galactosyltransferase reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
+
+[Open the enzyme practical](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/practical) · [Inspect measured rates](kinetics/puromycin.csv) · [Review held-out predictions](kinetics/predictions.csv)
 
 ## DNA sequence and strand practical
 

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">Assay Evidence Studio</title>
+  <desc id="desc">A dark green studio banner with a stylized molecular network and the subtitle Biology, machine learning, and interactive experiments.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#102f32"/>
+      <stop offset="1" stop-color="#0a2027"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#90cbb4" stroke-opacity=".12"/>
+    </pattern>
+    <radialGradient id="node" cx=".34" cy=".3" r=".7">
+      <stop stop-color="#d9f5de"/>
+      <stop offset=".42" stop-color="#83d4b3"/>
+      <stop offset="1" stop-color="#347e72"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="330" rx="24" fill="url(#background)"/>
+  <rect x="615" width="585" height="330" rx="24" fill="url(#grid)"/>
+  <circle cx="944" cy="164" r="120" fill="#14383a" stroke="#3d6763"/>
+  <circle cx="944" cy="164" r="145" fill="none" stroke="#628a7d" stroke-opacity=".52" stroke-dasharray="3 9"/>
+  <g stroke="#80bda9" stroke-width="3" fill="none">
+    <path d="M800 192l82 46 90-44 95 20 40-92-90-38-90 21-66-32-61 119z"/>
+    <path d="M800 192l127-87 45 89 45-110M882 238l45-133m45 89 135-72m-90-38 50 130m-95-20-20 87 115-67"/>
+  </g>
+  <g fill="url(#node)">
+    <circle cx="800" cy="192" r="13"/><circle cx="882" cy="238" r="18"/>
+    <circle cx="972" cy="194" r="28"/><circle cx="1067" cy="214" r="15"/>
+    <circle cx="1017" cy="84" r="17"/><circle cx="927" cy="105" r="23"/>
+    <circle cx="861" cy="73" r="12"/><circle cx="952" cy="281" r="12"/>
+  </g>
+  <circle cx="1107" cy="122" r="18" fill="#edbd75"/>
+  <path d="M57 249h73" stroke="#edbd75" stroke-width="4" stroke-linecap="round"/>
+  <text x="55" y="136" fill="#fbfcf1" font-family="Georgia,serif" font-size="65">Assay Evidence</text>
+  <text x="57" y="212" fill="#a9e6ca" font-family="Georgia,serif" font-size="65" font-style="italic">Studio</text>
+  <text x="56" y="285" fill="#deeee3" font-family="Arial,sans-serif" font-size="23">Biology · Machine learning · Interactive experiments</text>
+</svg>
