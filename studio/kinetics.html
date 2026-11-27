@@ -2,44 +2,274 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kinetics workbench · Assay Evidence Studio</title>
-<link rel="stylesheet" href="research.css">
-<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="studio-nav.css"><style>
-.kinetics-plot{width:100%;display:block;background:#f6faf6;border-radius:12px}
-.kinetics-plot text{fill:#173c34;font:13px system-ui,sans-serif}
-.kinetics-key{display:flex;gap:1rem;flex-wrap:wrap}
-.signal{color:#096b54}.control{color:#884627}
-tr.held{background:#f4e9d3}
-</style>
-<script defer src="kinetics-data.js"></script><script defer src="evidence-records.js"></script><script defer src="kinetics-workbench.js"></script>
-<script defer src="studio-nav.js"></script></head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Publication-grade Enzyme Kinetics & Molecular OOD Benchmark Workbench: 9 interactive diagnostic graph views, Lineweaver–Burk / Eadie–Hofstee / Hanes–Woolf linearizations, OOD extrapolation cliffs, AICc selection, 2D SSE confidence contours, and Fisher active-learning dose design.">
+<title>Kinetics &amp; OOD Benchmark Workbench · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="kinetics.css">
+<script defer src="kinetics-data.js"></script>
+<script defer src="fit.js"></script>
+<script defer src="kinetics-analytics.js"></script>
+<script defer src="evidence-records.js"></script>
+<script defer src="kinetics-workbench.js"></script>
+<script defer src="studio-nav.js"></script>
+</head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="kinetics.html" data-methods="kinetics" data-related-href="molecular.html" data-related-label="Molecular learning lab →"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header>
-<main id="main">
-<h1>Kinetics workbench</h1>
-<p class="intro">Can an enzyme model predict the initial reaction rate at a substrate concentration it has never seen?</p>
-<section>
-<h2>Hide a concentration</h2>
-<p>Each fold excludes every replicate at that concentration in both conditions. All four models fit the remaining observations using positive-parameter least squares.</p>
-<div class="controls"><label>Held-out concentration (ppm) <select id="concentration"></select></label><label>Model shown in plots <select id="model"></select></label></div>
-<p id="fold-summary" role="status"></p>
-<p class="kinetics-key"><span class="signal">Green · treated</span><span class="control">Brown · untreated</span><span>Filled circles · fitted observations</span><span>Crosses · held-out observations</span></p>
-<svg class="kinetics-plot" id="curves" viewBox="0 0 700 270" role="img" aria-label="Measured rates and fitted curves by concentration"></svg>
-<p id="parameters"></p><button id="save-evidence">Save to evidence workspace</button> <a href="workspace.html">Open workspace</a><p id="save-status" role="status"></p>
-</section>
-<section>
-<h2>Where does the model miss?</h2>
-<p>Residual = observed minus predicted. A point above zero means the model underpredicted the measured rate. Switch models to see which misses persist.</p>
-<svg class="kinetics-plot" id="residuals" viewBox="0 0 700 270" role="img" aria-label="Signed residuals by substrate concentration"></svg>
-<div class="table-wrap"><table><caption>Held-out replicates for the selected model</caption><thead><tr><th>Observation</th><th>Condition</th><th>Measured</th><th>Predicted</th><th>Residual</th></tr></thead><tbody id="replicates"></tbody></table></div>
-</section>
-<section>
-<h2>Compare models on the same holdout</h2>
-<p>Fold MAE and RMSE are in counts/min/min. Pooled RMSE combines the held-out predictions from every concentration and weights each observation equally.</p>
-<div class="table-wrap"><table><thead><tr><th>Model</th><th>Fold MAE</th><th>Fold RMSE</th><th>Pooled RMSE</th></tr></thead><tbody id="comparison"></tbody></table></div>
-<button id="download">Download all held-out predictions (CSV)</button>
-</section>
-<section><h2>Data and assumptions</h2><p>The 23 initial-rate measurements come from the R Puromycin dataset. The curves use v = Vmax × S / (Km + S). At the lowest and highest holdouts the curve must extrapolate beyond the training concentrations. These are apparent parameters fitted to the rate data.</p><a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html">Dataset and units</a></section>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="kinetics.html" data-methods="kinetics" data-related-href="molecular.html" data-related-label="Molecular learning lab →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+
+<main class="kw-main" id="main">
+  <!-- Executive Header -->
+  <section class="kw-topbar" aria-label="Workbench overview">
+    <div class="kw-title-wrap">
+      <p class="kw-eyebrow" id="dataset-eyebrow">Mechanistic &amp; Out-of-Distribution Assay Benchmark · Inspired by molML</p>
+      <h1 id="workbench-heading">Enzyme Kinetics &amp; Model Audit Workbench</h1>
+      <p class="kw-subtitle" id="dataset-subtitle">Test whether mechanistic rate laws generalize to unseen substrate concentrations—separating in-domain interpolation from out-of-distribution (OOD) endpoint extrapolation across 9 interactive diagnostic views.</p>
+    </div>
+    <div class="kw-top-actions">
+      <button class="kw-btn" id="toggle-csv-drawer" type="button" aria-expanded="false">Load / Edit CSV</button>
+      <button class="kw-btn" id="export-md" type="button">Export Audit (.md)</button>
+      <button class="kw-btn" id="download" type="button">Holdout CSV</button>
+      <button class="kw-btn primary" id="save-evidence" type="button">Save to workspace</button>
+    </div>
+  </section>
+
+  <p id="save-status" role="status" style="margin:0 0 10px;font-weight:650;color:#15533e"></p>
+
+  <!-- Custom CSV Upload / Live Paste Drawer -->
+  <section class="kw-drawer" id="csv-drawer" hidden aria-label="Custom assay CSV input">
+    <div class="kw-drawer-grid">
+      <div>
+        <label for="custom-csv" style="font-weight:700;font-size:13px;display:block;margin-bottom:4px">Paste or edit `conc,rate,state` CSV (3–20 shared concentrations in `treated` and `untreated`)</label>
+        <textarea id="custom-csv" spellcheck="false"></textarea>
+      </div>
+      <div style="display:grid;gap:8px">
+        <label class="kw-field"><span>Upload local `.csv` file</span><input id="custom-file" type="file" accept=".csv,text/csv"></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <label class="kw-field"><span>Concentration unit</span><input id="custom-conc-unit" type="text" value="mM"></label>
+          <label class="kw-field"><span>Initial-rate unit</span><input id="custom-rate-unit" type="text" value="µmol/min/mg"></label>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+          <button class="kw-btn primary" id="apply-csv" type="button">Fit all 5 models on CSV</button>
+          <button class="kw-btn" id="reset-puromycin" type="button">Reset to Puromycin</button>
+        </div>
+        <p id="csv-status" role="status" style="margin:0;font-size:13px;font-weight:600;color:#991b1b"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Primary Selectors -->
+  <section class="kw-control-bar" aria-label="Benchmark dataset, validation split, and kinetic hypothesis">
+    <div class="kw-field">
+      <label for="dataset">Benchmark dataset (4 curated + custom CSV)</label>
+      <select id="dataset"></select>
+    </div>
+    <div class="kw-field">
+      <label for="concentration">Held-out concentration split</label>
+      <select id="concentration"></select>
+    </div>
+    <div class="kw-field">
+      <label for="model">Active mechanistic hypothesis (5 models)</label>
+      <select id="model"></select>
+    </div>
+    <div class="kw-field">
+      <label>Workspace</label>
+      <a class="kw-btn" href="workspace.html" style="justify-content:center">Open workspace →</a>
+    </div>
+  </section>
+
+  <!-- Audience Tier & Plot Overlay Controls -->
+  <div class="kw-toggles-row" aria-label="Explanation depth and visual overlays">
+    <div class="kw-segmented" role="group" aria-label="Explanation audience level">
+      <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+      <button type="button" data-audience="student" aria-pressed="true">Student</button>
+      <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+    </div>
+    <div class="kw-chip-group">
+      <button type="button" class="kw-chip" id="toggle-ci" aria-pressed="true">95% Confidence bands</button>
+      <button type="button" class="kw-chip" id="toggle-all-models" aria-pressed="false">Overlay all 5 models</button>
+      <button type="button" class="kw-chip" id="toggle-cb" aria-pressed="false">Colorblind palette</button>
+    </div>
+  </div>
+
+  <!-- 6-Card Quantitative Telemetry Strip -->
+  <section class="kw-kpi-grid" id="kpi-strip" aria-label="Quantitative model telemetry"></section>
+  <p id="fold-summary" role="status" class="visually-hidden" style="position:absolute;left:-9999px"></p>
+  <p id="parameters" style="position:absolute;left:-9999px"></p>
+
+  <!-- Primary Dual-Stage Multi-Graph Workbench -->
+  <div class="kw-dual-grid">
+    <!-- Left Stage: Kinetic Curves & Classical Linearizations (5 Graph Types) -->
+    <section class="kw-card" aria-labelledby="curve-stage-title">
+      <div class="kw-card-head">
+        <h2 id="curve-stage-title">Rate Law &amp; Coordinate Transforms</h2>
+        <div class="kw-tabs" id="curve-tabs" role="group" aria-label="Curve graph type">
+          <button type="button" data-curve="mm" aria-pressed="true">Saturation</button>
+          <button type="button" data-curve="log" aria-pressed="false">Log₁₀[S]</button>
+          <button type="button" data-curve="lb" aria-pressed="false">Lineweaver–Burk</button>
+          <button type="button" data-curve="eh" aria-pressed="false">Eadie–Hofstee</button>
+          <button type="button" data-curve="hw" aria-pressed="false">Hanes–Woolf</button>
+        </div>
+      </div>
+
+      <div class="kw-plot-stage">
+        <svg class="kinetics-plot" id="curves" viewBox="0 0 680 320" role="img" aria-label="Interactive kinetic curve and coordinate transformation plot"></svg>
+      </div>
+
+      <div class="kw-legend-row">
+        <div class="kw-legend-items" id="curve-legend"></div>
+        <button type="button" class="kw-mini-btn" id="export-curve-svg">Export SVG</button>
+      </div>
+
+      <!-- Dynamic Analytical Explanation Underneath Left Graph -->
+      <div class="kw-explain" id="curve-analysis" aria-live="polite"></div>
+    </section>
+
+    <!-- Right Stage: Residuals, Parity, Q-Q & Active-Learning Dose Design (4 Graph Types) -->
+    <section class="kw-card" aria-labelledby="diag-stage-title">
+      <div class="kw-card-head">
+        <h2 id="diag-stage-title">Error, Parity &amp; Active-Learning Diagnostics</h2>
+        <div class="kw-tabs" id="diag-tabs" role="group" aria-label="Diagnostic graph type">
+          <button type="button" data-diag="residual" aria-pressed="true">Residuals</button>
+          <button type="button" data-diag="parity" aria-pressed="false">Parity (ŷ vs y)</button>
+          <button type="button" data-diag="qq" aria-pressed="false">Normal Q–Q</button>
+          <button type="button" data-diag="active" aria-pressed="false">Next-Dose Info</button>
+        </div>
+      </div>
+
+      <div class="kw-plot-stage">
+        <svg class="kinetics-plot" id="residuals" viewBox="0 0 680 320" role="img" aria-label="Interactive diagnostic plot for residuals, parity, Q-Q normality, or Fisher sensitivity"></svg>
+      </div>
+
+      <div class="kw-legend-row">
+        <div class="kw-legend-items" id="diag-legend"></div>
+        <button type="button" class="kw-mini-btn" id="export-diag-svg">Export SVG</button>
+      </div>
+
+      <!-- Dynamic Analytical Explanation Underneath Right Graph -->
+      <div class="kw-explain" id="diag-analysis" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- Deep Diagnostics Row: Holdout Regime Heatmap + 2D Parameter SSE Contour Landscape -->
+  <div class="kw-deep-grid">
+    <!-- Left: 5 Models x 6 Folds Holdout Matrix & OOD vs In-Domain Bar Chart -->
+    <section class="kw-card" aria-labelledby="regime-title">
+      <div class="kw-card-head">
+        <h2 id="regime-title">Concentration Holdout Matrix &amp; OOD Cliff Profile</h2>
+        <span class="kw-eq-pill">Click any cell to inspect fold</span>
+      </div>
+      <div class="kw-heatmap-wrap">
+        <table class="kw-heatmap-table" id="fold-heatmap" aria-label="Holdout RMSE across models and substrate concentrations"></table>
+      </div>
+      <div class="kw-plot-stage" style="padding-top:2px">
+        <svg class="kinetics-plot" id="regime-bars" viewBox="0 0 620 185" role="img" aria-label="Comparison of In-Domain Interpolation RMSE, Out-of-Distribution Extrapolation RMSE, and Pure Replicate Noise"></svg>
+      </div>
+      <div class="kw-explain" id="regime-analysis"></div>
+    </section>
+
+    <!-- Right: 2D Parameter SSE Landscape & Exact F-Ratio 95% Confidence Contours -->
+    <section class="kw-card" aria-labelledby="contour-title">
+      <div class="kw-card-head">
+        <h2 id="contour-title">Parameter Loss Landscape &amp; 95% Joint Confidence</h2>
+        <button type="button" class="kw-mini-btn" id="export-contour-png">Snapshot PNG</button>
+      </div>
+      <div class="kw-contour-stage">
+        <canvas id="contour-canvas" width="640" height="420" role="img" aria-label="2D log-SSE contour landscape over Vmax and Km with exact 95% F-ratio joint confidence regions for untreated and treated conditions"></canvas>
+      </div>
+      <div class="kw-explain" id="landscape-analysis"></div>
+    </section>
+  </div>
+
+  <!-- 5-Model Statistical & OOD Leaderboard -->
+  <section class="kw-section-card" aria-labelledby="leaderboard-title">
+    <div class="kw-section-head">
+      <h2 id="leaderboard-title">Hypothesis Leaderboard · Holdout Generalization vs. Information Criteria</h2>
+      <p>Click any model row to inspect its curves, residuals, and parameter confidence contours above.</p>
+    </div>
+    <div class="kw-table-wrap">
+      <table class="kw-table">
+        <thead>
+          <tr>
+            <th>Hypothesis Model</th>
+            <th>k</th>
+            <th>Split MAE</th>
+            <th>Split RMSE</th>
+            <th>In-Domain RMSE</th>
+            <th>OOD Extrap RMSE</th>
+            <th>Pooled LOO RMSE</th>
+            <th>AICc (ΔAICc)</th>
+            <th>Akaike Weight</th>
+            <th>Lin’s CCC</th>
+            <th>Audit Verdict</th>
+          </tr>
+        </thead>
+        <tbody id="comparison"></tbody>
+      </table>
+    </div>
+    <div class="kw-synthesis-callout" id="leaderboard-synthesis"></div>
+  </section>
+
+  <!-- Replicate-Level Observation & Leverage Inspector -->
+  <section class="kw-section-card" aria-labelledby="replicates-title">
+    <div class="kw-section-head">
+      <div>
+        <h2 id="replicates-title">Observation &amp; Leverage Inspector</h2>
+        <p id="replicates-subtitle">Held-out predictions, standardized residuals, and Km-sensitivity leverage.</p>
+      </div>
+      <div class="kw-segmented" role="group" aria-label="Observation table filter">
+        <button type="button" id="rep-filter-held" aria-pressed="true">Held-out split only</button>
+        <button type="button" id="rep-filter-all" aria-pressed="false">All observations</button>
+      </div>
+    </div>
+    <div class="kw-table-wrap">
+      <table class="kw-table">
+        <thead>
+          <tr>
+            <th>Obs #</th>
+            <th>Condition</th>
+            <th>[S]</th>
+            <th>Regime</th>
+            <th>Measured</th>
+            <th>Predicted</th>
+            <th>Residual (y − ŷ)</th>
+            <th>Std. Residual (z)</th>
+            <th>Km Leverage</th>
+          </tr>
+        </thead>
+        <tbody id="replicates"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Scientific Methodology & molML Benchmark Guide -->
+  <section class="kw-section-card" aria-labelledby="methodology-title">
+    <div class="kw-section-head">
+      <h2 id="methodology-title">Assumptions, Identifiability &amp; Molecular ML Benchmark Framing</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;font-size:13.8px;color:#2c4a40">
+      <div>
+        <h3 style="margin:0 0 6px;font-size:15px;color:#13312a">1. Out-of-Distribution (OOD) Concentration Splits</h3>
+        <p style="margin:0">Inspired by activity-cliff and OOD evaluation frameworks from <a href="https://github.com/molML" target="_blank" rel="noopener noreferrer">molML (TU Eindhoven)</a>, this workbench separates <strong>interior interpolation folds</strong> from <strong>boundary extrapolation folds</strong> (lowest and highest <code>[S]</code>). Holding out every replicate at a concentration tests whether a rate law generalizes across saturation regimes rather than memorizing replicate averages.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px;font-size:15px;color:#13312a">2. Apparent vs. Microscopic Parameters</h3>
+        <p style="margin:0">Fitting <code>v = Vmax·[S]/(Km + [S])</code> estimates <em>apparent</em> steady-state parameters. Without independent active-site titration (<code>[E]total</code>) and pre-steady-state binding rates, apparent <code>Km</code> cannot be equated to an equilibrium dissociation constant <code>Kd</code>, and treatment-by-run confounding in single-batch assays requires independent biological preparations to confirm.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 6px;font-size:15px;color:#13312a">3. Why Nonlinear Fitting Beats Linearization</h3>
+        <p style="margin:0">Double-reciprocal Lineweaver–Burk plots remain valuable visual diagnostics for distinguishing competitive (<code>Km</code>) from non-competitive (<code>Vmax</code>) shifts, yet unweighted linear regression on <code>1/v</code> magnifies low-<code>[S]</code> experimental noise as <code>1/v²</code>. All parameters here are estimated by exact positive-parameter nonlinear least squares directly on the measured velocity scale.</p>
+      </div>
+    </div>
+    <p style="margin:12px 0 0;font-size:13.2px;color:#496359">
+      Primary dataset: <a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html" target="_blank" rel="noopener noreferrer">R datasets · Puromycin (Treloar, 1974)</a> · Companion labs: <a href="molecular.html">Molecular Learning Lab (RF, PyTorch MLP &amp; RL) →</a> · <a href="practical.html">Classroom Kinetics Practical →</a>
+    </p>
+  </section>
 </main>
-</body></html>
+
+<div id="kw-tooltip" class="kw-tooltip" hidden></div>
+</body>
+</html>

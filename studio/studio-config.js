@@ -30,7 +30,7 @@ globalThis.STUDIO_CONFIG = {
   labs: [
     { id: 'structure', title: '3D Molecular & Gene Structure Studio', href: 'structure.html', description: 'AlphaFold-style 3D cartoon workbench with PDB 8AW3, 10 KEGG gene folds, real PAE maps, audience modes, and local .PDB upload.', savesToWorkspace: true },
     { id: 'dna', title: '3D Gene & DNA Lab (10 genes)', href: 'dna.html', description: 'Explore 10 KEGG genes in shaded 3D duplexes, jump from any codon straight into its AlphaFold residue, export FASTA, and assemble reads.', savesToWorkspace: false },
-    { id: 'kinetics', title: 'Kinetics workbench', href: 'kinetics.html', description: 'Hide a substrate concentration, inspect signed residuals, and compare four Michaelis–Menten models.', savesToWorkspace: true },
+    { id: 'kinetics', title: 'Kinetics & OOD benchmark workbench', href: 'kinetics.html', description: 'Audit 5 rate laws across 9 diagnostic graphs (Log₁₀[S], Lineweaver–Burk, Parity, Q–Q, 2D SSE contours, Active Learning) and OOD holdouts.', savesToWorkspace: true },
     { id: 'molecular', title: 'Molecular learning lab', href: 'molecular.html', description: 'Compare random forest, PyTorch MLP, and RL second-dose selection in synchronized 3D playback.', savesToWorkspace: true },
     { id: 'tomography', title: 'Inside the specimen', href: 'tomography.html', description: 'Reconstruct hidden slices across 10 AlphaFold gene proteins from parallel-beam projections across 4–48 angles.', savesToWorkspace: true },
     { id: 'transport', title: 'Molecular transport in 3D', href: 'transport.html', description: 'Follow moving tracers and test five physical models against theory and held-out NLL.', savesToWorkspace: true },
