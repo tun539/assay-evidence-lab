@@ -64,7 +64,7 @@
 
 ## 3D Gene & DNA Lab (10 linked KEGG genes)
 
-Open `studio/dna.html` online or offline. **Ten linked KEGG coding sequences** (`MT-ATP6`, `rplJ`, `TDH3`, `rbcL`, `AT4G14320`, `TP53`, `HBB`, `INS`, `recA`, and `SOD1`) provide shaded 3D full-CDS double helices with Watson–Crick hydrogen-bond rungs, live mitochondrial/standard codon translation directly linking into each residue of the paired AlphaFold 3D fold, 12-base antiparallel window exploration, FASTA export, and simulated read-assembly exercises.
+Open `studio/dna.html` online or offline. **Ten linked KEGG coding sequences** (`MT-ATP6`, `rplJ`, `TDH3`, `rbcL`, `AT4G14320`, `TP53`, `HBB`, `INS`, `recA`, and `SOD1`) render in **AlphaFold 3 / Mol\*-style 3D right-handed B-DNA** (3.38 Å/bp, asymmetric 22 Å major / 12 Å minor grooves, Catmull–Rom sugar–phosphate ribbons, deoxyribose pentoses, fused 5+6 purine & 6-ring pyrimidine slabs, All-Atom CPK Ball & Stick, Groove Spacefill VdW, and 2/3 dashed Watson–Crick H-bonds), with live mitochondrial/standard codon translation directly linking into each residue of the paired AlphaFold 3D protein fold, FASTA export, and simulated read-assembly exercises.
 
 ## AlphaFold-Style 3D Molecular Studio (18 models)
 

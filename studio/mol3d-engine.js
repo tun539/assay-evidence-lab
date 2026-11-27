@@ -705,32 +705,145 @@ const Mol3D = (() => {
             segStart = segEnd;
           }
 
-          // Nucleic acid nucleobase ladder rungs (RNA in 8AW3, B-DNA in 1BNA!)
+          // AlphaFold 3 / Mol*-style 3D nucleic acid nucleobase slabs (purine 5+6 bicyclic, pyrimidine 6-ring) + pentose
           if (isNuc) {
+            const CB_BASES = {
+              A:[0,158,115], DA:[0,158,115],
+              U:[230,159,0], T:[230,159,0], DT:[230,159,0],
+              C:[86,180,233], DC:[86,180,233],
+              G:[204,121,167], DG:[204,121,167],
+            };
+            const pushSlab = (verts3D, slabRgb, norm3D, strokeAlpha = 0.65) => {
+              const pts = verts3D.map(v => projectWorld(v));
+              const zAvg = pts.reduce((s, p) => s + p.z, 0) / pts.length;
+              const fog = pts.reduce((s, p) => s + p.fog, 0) / pts.length;
+              const rotN = vNorm(rotateVec(norm3D));
+              const nView = rotN[2] < 0 ? vScale(rotN, -1) : rotN;
+              const ndotl = vDot(nView, LIGHT_DIR);
+              const spec = Math.pow(Math.max(0, vDot(nView, HALF_VEC)), 24);
+              const lit = shadeRGB(slabRgb, ndotl, spec, fog, bgRGB);
+              const edge = lit.map(v => Math.max(0, Math.round(v * (isDark ? 0.58 : 0.62))));
+              drawList.push({
+                kind: 'poly',
+                z: zAvg,
+                pts,
+                fill: rgbStr(lit),
+                stroke: rgbStr(edge, strokeAlpha),
+              });
+            };
+
             for (let k = 0; k < ch.length; k++) {
               const r = m.residues[ch.start + k];
               if (!r.tipPos) continue;
+              const prevR = m.residues[ch.start + Math.max(0, k - 1)];
+              const nextR = m.residues[ch.start + Math.min(ch.length - 1, k + 1)];
+              const tipVec = vSub(r.tipPos, r.pos);
+              const tipLen = vLen(tipVec);
+              if (tipLen < 0.8) continue;
+              const axis = vScale(tipVec, 1 / tipLen);
+              let sTan = vSub(nextR.pos, prevR.pos);
+              if (vLen(sTan) < 0.2) sTan = [0, 0, 1];
+              sTan = vNorm(sTan);
+              let inPlane = vCross(sTan, axis);
+              if (vLen(inPlane) < 0.15) inPlane = vCross([1, 0, 0], axis);
+              inPlane = vNorm(inPlane);
+              const planeNorm = vNorm(vCross(axis, inPlane));
+
+              const baseRgb = (state.colorMode === 'colorblind' ? CB_BASES[r.resName] : BASE_COLORS[r.resName]) || residueColor(r);
+              const sugarRgb = isDark ? [214, 224, 219] : [224, 232, 228];
+
+              // Deoxyribose / ribose pentose ring near C4'
+              const sugarCenter = vAdd(r.pos, vScale(axis, Math.min(1.5, tipLen * 0.22)));
+              const sugarVerts = [];
+              for (let s = 0; s < 5; s++) {
+                const a = (s * 2 * Math.PI) / 5 + 0.3;
+                sugarVerts.push(vAdd(sugarCenter, vAdd(vScale(axis, 0.85 * Math.cos(a)), vScale(inPlane, 0.85 * Math.sin(a)))));
+              }
+              pushSlab(sugarVerts, sugarRgb, planeNorm, 0.55);
+
+              // Glycosidic connector from C4' to base ring
               const p0 = projRes[r.index];
-              const p1 = projectWorld(r.tipPos);
-              const baseRgb = BASE_COLORS[r.resName] || residueColor(r);
+              const pBaseStart = projectWorld(vAdd(r.pos, vScale(axis, tipLen * 0.38)));
               drawList.push({
                 kind: 'tube',
-                z: (p0.z + p1.z) * 0.5 - 0.1,
-                p0, p1,
-                width: Math.max(2.4, 0.55 * p0.scale),
-                rgb: baseRgb,
-                fog: (p0.fog + p1.fog) * 0.5,
+                z: (p0.z + pBaseStart.z) * 0.5 - 0.12,
+                p0, p1: pBaseStart,
+                width: Math.max(2.0, 0.36 * p0.scale),
+                rgb: sugarRgb,
+                fog: (p0.fog + pBaseStart.fog) * 0.5,
               });
-              drawList.push({
-                kind: 'sphere',
-                z: p1.z,
-                x: p1.x,
-                y: p1.y,
-                radius: Math.max(2.5, 0.68 * p1.scale),
-                rgb: baseRgb,
-                fog: p1.fog,
-                gloss: 0.5,
-              });
+
+              const isPurine = ['A', 'DA', 'G', 'DG'].includes(r.resName);
+              if (isPurine) {
+                // Fused bicyclic Purine: 5-ring (proximal) + 6-ring (distal projecting toward helix axis)
+                const c5 = vAdd(r.pos, vScale(axis, tipLen * 0.54));
+                const r5 = Math.min(1.18, tipLen * 0.24);
+                const pent = [];
+                for (let s = 0; s < 5; s++) {
+                  const a = (s * 2 * Math.PI) / 5;
+                  pent.push(vAdd(c5, vAdd(vScale(axis, r5 * Math.cos(a)), vScale(inPlane, r5 * Math.sin(a)))));
+                }
+                pushSlab(pent, baseRgb, planeNorm, 0.72);
+
+                const c6 = vAdd(r.pos, vScale(axis, tipLen * 0.84));
+                const r6 = Math.min(1.42, tipLen * 0.29);
+                const hex = [];
+                for (let s = 0; s < 6; s++) {
+                  const a = (s * Math.PI) / 3 + Math.PI / 6;
+                  hex.push(vAdd(c6, vAdd(vScale(axis, r6 * Math.cos(a)), vScale(inPlane, r6 * Math.sin(a)))));
+                }
+                pushSlab(hex, baseRgb, planeNorm, 0.78);
+              } else {
+                // Compact single 6-ring Pyrimidine slab
+                const c6 = vAdd(r.pos, vScale(axis, tipLen * 0.72));
+                const r6 = Math.min(1.38, tipLen * 0.29);
+                const hex = [];
+                for (let s = 0; s < 6; s++) {
+                  const a = (s * Math.PI) / 3 + Math.PI / 6;
+                  hex.push(vAdd(c6, vAdd(vScale(axis, r6 * Math.cos(a)), vScale(inPlane, r6 * Math.sin(a)))));
+                }
+                pushSlab(hex, baseRgb, planeNorm, 0.78);
+              }
+            }
+          }
+        }
+
+        // Automatic Watson-Crick Hydrogen Bonds across antiparallel DNA duplexes & RNA stems
+        const nucRes = m.residues.filter(r => r.tipPos && (r.chainType === 'dna' || r.chainType === 'rna'));
+        if (nucRes.length >= 4) {
+          const compMap = { A: 'TU', DA: 'DT', T: 'A', DT: 'DA', U: 'A', G: 'C', DG: 'DC', C: 'G', DC: 'DG' };
+          const paired = new Set();
+          for (let i = 0; i < nucRes.length; i++) {
+            const ri = nucRes[i];
+            if (paired.has(ri.index)) continue;
+            const target = compMap[ri.resName];
+            if (!target) continue;
+            let bestJ = null, bestD = 7.8;
+            for (let j = i + 1; j < nucRes.length; j++) {
+              const rj = nucRes[j];
+              if (paired.has(rj.index)) continue;
+              if (ri.chainId === rj.chainId && Math.abs(ri.index - rj.index) < 4) continue;
+              if (!target.includes(rj.resName)) continue;
+              const d = vDist(ri.tipPos, rj.tipPos);
+              if (d < bestD) { bestD = d; bestJ = rj; }
+            }
+            if (bestJ) {
+              paired.add(ri.index);
+              paired.add(bestJ.index);
+              const isGC = ['G', 'DG', 'C', 'DC'].includes(ri.resName);
+              const nBonds = isGC ? 3 : 2;
+              const axis = vNorm(vSub(bestJ.tipPos, ri.tipPos));
+              let perp = vCross(axis, [0, 0, 1]);
+              if (vLen(perp) < 0.2) perp = vCross(axis, [1, 0, 0]);
+              perp = vNorm(perp);
+              const hbColor = isDark ? 'rgba(130, 232, 255, 0.85)' : 'rgba(18, 118, 152, 0.82)';
+              for (let b = 0; b < nBonds; b++) {
+                const off = (b - (nBonds - 1) / 2) * 0.92;
+                const a3 = vAdd(vAdd(ri.tipPos, vScale(axis, 0.35)), vScale(perp, off));
+                const b3 = vAdd(vSub(bestJ.tipPos, vScale(axis, 0.35)), vScale(perp, off));
+                const pa = projectWorld(a3), pb = projectWorld(b3);
+                drawList.push({ kind: 'dash', z: (pa.z + pb.z) * 0.5, p0: pa, p1: pb, color: hbColor });
+              }
             }
           }
         }
@@ -781,18 +894,17 @@ const Mol3D = (() => {
       ctx.lineJoin = 'round';
 
       for (const item of drawList) {
-        if (item.kind === 'quad') {
-          const [p0, p1, p2, p3] = item.pts;
+        if (item.kind === 'quad' || item.kind === 'poly') {
+          const pts = item.pts;
+          if (!pts || pts.length < 3) continue;
           ctx.beginPath();
-          ctx.moveTo(p0.x, p0.y);
-          ctx.lineTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.lineTo(p3.x, p3.y);
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let pi = 1; pi < pts.length; pi++) ctx.lineTo(pts[pi].x, pts[pi].y);
           ctx.closePath();
           ctx.fillStyle = item.fill;
           ctx.fill();
           ctx.strokeStyle = item.stroke;
-          ctx.lineWidth = 0.75;
+          ctx.lineWidth = item.kind === 'poly' ? 0.95 : 0.75;
           ctx.stroke();
         } else if (item.kind === 'tube') {
           const darkEdge = item.rgb.map(v => Math.max(0, Math.round(v * 0.58 * (1 - item.fog) + bgRGB[0] * item.fog * 0.5)));
