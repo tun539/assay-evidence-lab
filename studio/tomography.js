@@ -14,7 +14,12 @@ const studies = [
   ['Large ribosomal subunit protein L10', 'Protein synthesis', 'Follow the protruding part of the backbone. Move the slice through it. Does a narrow extension remain visible when the scan is limited to 90°?'],
   ['Glyceraldehyde-3-phosphate dehydrogenase (Tdh3)', 'Sugar metabolism', 'Find a slice containing adjacent dense regions. How many views do you need before the gap between them reappears?'],
   ['RuBisCO large subunit', 'Photosynthetic carbon fixation', 'Compare the crowded core with a slice near the edge. Which small features disappear first when you reduce the number of views?'],
-  ['Zinc-binding ribosomal protein', 'Plant protein synthesis', 'Compare this plant chain with bacterial L10. Use the dimensions in ångströms to distinguish physical size from the automatic zoom.']
+  ['Zinc-binding ribosomal protein', 'Plant protein synthesis', 'Compare this plant chain with bacterial L10. Use the dimensions in ångströms to distinguish physical size from the automatic zoom.'],
+  ['Tumor suppressor p53 (TP53)', 'Cell-cycle checkpoint & DNA repair', 'Slice through the dense DNA-binding domain versus the extended low-pLDDT tails. How does a sparse disordered tail distort limited-angle recovery?'],
+  ['Hemoglobin subunit beta (HBB)', 'Oxygen transport', 'Locate the central heme-binding pocket surrounded by eight α-helices. How many projection angles are needed to keep the hollow interior resolved?'],
+  ['Preproinsulin (INS)', 'Glucose hormone signaling', 'Notice the wide image span created by extended flexible precursor loops. Compare central slice RMSE at 8 vs 24 views.'],
+  ['Recombinase RecA', 'Homologous DNA recombination', 'Trace the compact α/β ATPase core and projecting C-terminal lobe. Does a 90° missing-wedge scan smear the lobe boundary?'],
+  ['Cu/Zn Superoxide dismutase (SOD1)', 'Antioxidant defense', 'Inspect a cross-section through the tight eight-strand β-barrel. Does the compact Greek-key ring survive with just 8 projections?']
 ];
 function choose(){
   const id=get('specimen').value, index=foldIds.indexOf(id);
