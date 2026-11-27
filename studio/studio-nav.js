@@ -88,7 +88,8 @@
       ['kinetics.html', 'Kinetics workbench'],
       ['molecular.html', 'Molecular learning lab'],
       ['linked.html', 'Linked protein explorer'],
-      ['methods.html', 'Methods and sources', true],
+      ['customize.html', 'Customize & deploy', true],
+      ['methods.html', 'Methods and sources'],
       [REPO_URL, 'GitHub repository', false, true],
     ];
     for (const [href, label, divider, external] of resources) {

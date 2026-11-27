@@ -7,7 +7,7 @@ const vm = require('node:vm');
 
 const studioDir = __dirname;
 const htmlFiles = fs.readdirSync(studioDir).filter(f => f.endsWith('.html')).sort();
-assert.equal(htmlFiles.length, 17, `Expected 17 Studio HTML pages, found ${htmlFiles.length}`);
+assert.equal(htmlFiles.length, 18, `Expected 18 Studio HTML pages, found ${htmlFiles.length}`);
 
 for (const file of htmlFiles) {
   const html = fs.readFileSync(path.join(studioDir, file), 'utf8');
