@@ -1,8 +1,71 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Research missions · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><link rel="stylesheet" href="atlas.css"></head>
-<body><header><a href="index.html">Assay Evidence Studio</a><a id="workspace-nav" href="workspace.html">Evidence workspace</a><a href="methods.html">Methods and sources</a></header>
-<main><section class="atlas-intro"><div><h1>Research missions</h1><p class="intro">Enter the Biology studio. Choose an experiment, collect evidence, and test your reasoning at each of nine stations.</p></div><div class="atlas-actions"><a class="filled" href="#atlas-map">Choose a mission</a><a id="download-studio" href="assay-evidence-studio.zip" download>Download to play locally</a><a href="https://github.com/tun539/assay-evidence-lab">Edit the source on GitHub</a></div></section>
-<div class="atlas-layout"><section class="map-panel" aria-label="3D laboratory map"><canvas id="atlas-map" width="820" height="550" tabindex="0" aria-label="Rotatable lab map. Arrow keys orbit. Choose a destination from the list."></canvas><div class="map-tools"><button id="spin" aria-pressed="false">Auto-orbit</button><button id="home-view">Reset camera</button><span>Drag to orbit · select a station to inspect it</span></div><nav id="stations" aria-label="Select a lab"></nav></section>
-<section class="mission"><p id="progress" role="status"></p><progress id="progress-meter" max="9" value="0" aria-label="Evidence checkpoints completed"></progress><h2 id="station-title"></h2><p id="objective"></p><a id="launch" class="filled">Open experiment</a><h3>Evidence checkpoint</h3><form id="challenge"><fieldset><legend id="question"></legend><div id="choices"></div></fieldset><button>Check reasoning</button></form><p id="answer" role="status"></p></section></div>
-<section class="learning"><h2>Train, test, and watch the predictions</h2><p>The enzyme benchmark compares supervised regression and a measurement-selection policy on held-out simulated assays. The linked notebook reproduces the CPU runs.</p><div class="tracks" id="tracks"></div><p>Rotate and play the enzyme scenes to see how a predicted rate changes turnover. Then check which model actually has lower held-out error.</p><a href="molecular.html">Open the 3D Molecular Learning Lab</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed training notebook</a></section>
-</main><script src="molecular-data.js"></script><script src="evidence-records.js"></script><script src="atlas.js"></script><script>evidenceRecords.bindBadge(document.getElementById('workspace-nav'));</script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Orbit the interactive 3D research atlas and complete evidence checkpoints across nine biology labs.">
+<title>Research missions · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="research.css">
+<link rel="stylesheet" href="atlas.css">
+<link rel="stylesheet" href="studio-nav.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="atlas.html">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+<main id="main">
+  <section class="atlas-intro">
+    <div>
+      <h1>Research missions</h1>
+      <p class="intro">Enter the Biology studio. Choose an experiment, collect evidence into your workspace, and test your reasoning at each of nine stations.</p>
+    </div>
+    <div class="atlas-actions">
+      <a class="filled" href="#atlas-map">Choose a mission</a>
+      <a id="download-studio" href="assay-evidence-studio.zip" download>Download to play locally</a>
+      <a href="https://github.com/tun539/assay-evidence-lab">Edit the source on GitHub</a>
+    </div>
+  </section>
+  <div class="atlas-layout">
+    <section class="map-panel" aria-label="3D laboratory map">
+      <canvas id="atlas-map" width="820" height="550" tabindex="0" aria-label="Rotatable lab map. Arrow keys orbit. Choose a destination from the list."></canvas>
+      <div class="map-tools">
+        <button id="spin" type="button" aria-pressed="false">Auto-orbit</button>
+        <button id="home-view" type="button">Reset camera</button>
+        <span>Drag to orbit · select a station to inspect it</span>
+      </div>
+      <nav id="stations" aria-label="Select a lab"></nav>
+    </section>
+    <section class="mission">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px">
+        <p id="progress" role="status" style="margin:0"></p>
+        <button id="reset-progress" type="button" style="font-size:13px;padding:4px 9px">Reset checkpoints</button>
+      </div>
+      <progress id="progress-meter" max="9" value="0" aria-label="Evidence checkpoints completed"></progress>
+      <p id="workspace-summary" style="font-size:14px;color:#3d5e52;margin:6px 0 12px"></p>
+      <h2 id="station-title"></h2>
+      <p id="objective"></p>
+      <a id="launch" class="filled">Open experiment</a>
+      <h3>Evidence checkpoint</h3>
+      <form id="challenge">
+        <fieldset><legend id="question"></legend><div id="choices"></div></fieldset>
+        <button>Check reasoning</button>
+      </form>
+      <p id="answer" role="status"></p>
+    </section>
+  </div>
+  <section class="learning">
+    <h2>Train, test, and watch the predictions</h2>
+    <p>The enzyme benchmark compares supervised regression and a measurement-selection policy on held-out simulated assays. The linked notebook reproduces the CPU runs.</p>
+    <div class="tracks" id="tracks"></div>
+    <p>Rotate and play the enzyme scenes to see how a predicted rate changes turnover. Then check which model actually has lower held-out error.</p>
+    <a href="molecular.html">Open the 3D Molecular Learning Lab</a> · <a href="workspace.html">Review collected evidence</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed training notebook</a>
+  </section>
+</main>
+<script src="molecular-data.js"></script>
+<script src="evidence-records.js"></script>
+<script src="studio-nav.js"></script>
+<script src="atlas.js"></script>
+</body>
+</html>

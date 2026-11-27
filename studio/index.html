@@ -1,72 +1,32 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Assay Evidence Studio · Scientific model explorer</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Assay Evidence Studio: interactive biology labs for enzyme kinetics, molecular ML, protein 3D structure, genomics, tomography, and reproducible evidence packets.">
+<title>Assay Evidence Studio · Scientific model explorer</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
 <style>
 :root{--studio-primary:#18493c;--studio-primary-hover:#22624f;--studio-accent:#337953;--studio-bg:#f5f7f2;--studio-surface-tint:#edf5ec}
-*{box-sizing:border-box}body{margin:0;color:#173b33;background:var(--studio-bg);font:16px/1.5 "Inter",Arial,sans-serif}header,main,footer{max-width:1230px;margin:auto;padding:0 5%}a{color:#205b47}header a,footer a{font-weight:650}h1{font:normal clamp(44px,6.4vw,84px)/1 Georgia,serif;letter-spacing:-.065em;margin:35px 0 12px}h1 em{color:var(--studio-accent)}p{margin:8px 0 16px}.intro{max-width:700px;color:#4c6259;font-size:18px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 295px;gap:18px;margin:22px 0}button,select,input{font:inherit}button,select{cursor:pointer}button{border:1px solid #a9bfae;border-radius:8px;padding:8px 14px;background:white;color:#193f32}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #b46510;outline-offset:2px}.panel,aside{background:white;border:1px solid #cdd8cf;border-radius:16px;overflow:hidden}.bar{padding:14px 20px;display:flex;align-items:center;gap:10px;justify-content:space-between;border-bottom:1px solid #d8e1da}.bar strong{font-size:15px}.bar button{font-size:14px}#canvas{background-color:#f3f8ed;background-image:radial-gradient(#c5d4bc 1px,transparent 1px);background-size:15px 15px}svg{width:100%;height:auto;display:block}aside{padding:20px}label,h2,h3{font-weight:650}label{display:block;font-size:14px;margin:16px 0 5px}select,input{width:100%;background:#fff;color:#173b33;padding:9px;border-radius:7px;border:1px solid #a9bfae}h2{font:normal 27px/1.15 Georgia,serif;margin:0 0 12px}#metric{font:normal 46px/1.2 Georgia,serif;letter-spacing:-2px;margin:10px 0 0}#unit{font-size:14px;color:#476050}.caption{padding:15px 20px;margin:0;font-size:15px}.ask{display:flex;gap:8px;max-width:830px}.ask button{background:var(--studio-primary);color:#fff}.ask input{min-width:0}.details{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0 40px}.details>section{border-top:1px solid #b9cbbd;padding-top:18px}.details p{color:#3d574a}footer{padding-bottom:32px}#status{min-height:1.5em;color:#515f52;font-size:14px;margin:4px 0}.micro{font:600 12px/1.5 monospace;letter-spacing:.09em;text-transform:uppercase;color:#406f58}a:hover{text-decoration-thickness:2px}@media(max-width:800px){.layout,.details{grid-template-columns:1fr}.layout{gap:10px}.bar{padding:10px}.intro{font-size:16px}.details{gap:5px}.ask button{padding:8px}h1{margin-top:25px}.panel{overflow:auto}#canvas{min-width:410px}}
-
-.skip-link{position:absolute;top:-80px;left:12px;background:white;padding:9px;z-index:2}.skip-link:focus{top:8px}
+*{box-sizing:border-box}body{margin:0;color:#173b33;background:var(--studio-bg);font:16px/1.5 "Inter",Arial,sans-serif}main,footer{max-width:1230px;margin:auto;padding:0 clamp(16px,4vw,44px)}a{color:#205b47}footer a{font-weight:650}h1{font:normal clamp(44px,6.4vw,84px)/1 Georgia,serif;letter-spacing:-.065em;margin:35px 0 12px}h1 em{color:var(--studio-accent)}p{margin:8px 0 16px}.intro{max-width:700px;color:#4c6259;font-size:18px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 295px;gap:18px;margin:22px 0}button,select,input{font:inherit}button,select{cursor:pointer}button{border:1px solid #a9bfae;border-radius:8px;padding:8px 14px;background:white;color:#193f32}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #b46510;outline-offset:2px}.panel,aside{background:white;border:1px solid #cdd8cf;border-radius:16px;overflow:hidden}.bar{padding:14px 20px;display:flex;align-items:center;gap:10px;justify-content:space-between;border-bottom:1px solid #d8e1da}.bar strong{font-size:15px}.bar button{font-size:14px}#canvas{background-color:#f3f8ed;background-image:radial-gradient(#c5d4bc 1px,transparent 1px);background-size:15px 15px}svg{width:100%;height:auto;display:block}aside{padding:20px}label,h2,h3{font-weight:650}label{display:block;font-size:14px;margin:16px 0 5px}select,input{width:100%;background:#fff;color:#173b33;padding:9px;border-radius:7px;border:1px solid #a9bfae}h2{font:normal 27px/1.15 Georgia,serif;margin:0 0 12px}#metric{font:normal 46px/1.2 Georgia,serif;letter-spacing:-2px;margin:10px 0 0}#unit{font-size:14px;color:#476050}.caption{padding:15px 20px;margin:0;font-size:15px}.ask{display:flex;gap:8px;max-width:830px}.ask button{background:var(--studio-primary);color:#fff}.ask input{min-width:0}.details{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0 40px}.details>section{border-top:1px solid #b9cbbd;padding-top:18px}.details p{color:#3d574a}footer{padding-bottom:32px}#status{min-height:1.5em;color:#515f52;font-size:14px;margin:4px 0}.micro{font:600 12px/1.5 monospace;letter-spacing:.09em;text-transform:uppercase;color:#406f58}a:hover{text-decoration-thickness:2px}@media(max-width:800px){.layout,.details{grid-template-columns:1fr}.layout{gap:10px}.bar{padding:10px}.intro{font-size:16px}.details{gap:5px}.ask button{padding:8px}h1{margin-top:25px}.panel{overflow:auto}#canvas{min-width:410px}}
 .preview-bar{background:#f7e4d4;border-bottom:1px solid #d9b597;color:#5c2d0d;font-size:14px;padding:8px 5%;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px}.preview-bar[hidden]{display:none}.preview-bar button{padding:4px 10px;font-size:13px}
 .hero{padding-bottom:24px;border-bottom:1px solid #cad6c9}.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:16px}.hero-link{display:inline-flex;align-items:center;min-height:44px;background:var(--studio-primary);color:white;border-radius:8px;padding:9px 15px;text-decoration:none;font-weight:650}.hero-link:hover{background:var(--studio-primary-hover)}
 .workspace-banner{margin-top:20px;padding:14px 18px;border-radius:12px;background:var(--studio-surface-tint);border:1px solid #bfd3c3;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}.workspace-banner[hidden]{display:none}.workspace-banner p{margin:0;font-size:15px;color:#274d3e}.workspace-banner-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.workspace-banner a{display:inline-flex;align-items:center;min-height:38px;padding:6px 12px;border-radius:8px;background:var(--studio-primary);color:#fff;text-decoration:none;font-size:14px;font-weight:600}.workspace-banner a:hover{background:var(--studio-primary-hover)}.workspace-banner button{min-height:38px;font-size:14px}
 .labs{margin-block:28px}.lab-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lab-grid li{display:flex}.lab-grid a{display:flex;flex-direction:column;gap:4px;width:100%;background:#fff;border:1px solid #cdd8cf;border-radius:12px;padding:15px;text-decoration:none}.lab-grid a:hover{background:var(--studio-surface-tint);border-color:#6b9781}.lab-grid strong{display:block}.lab-grid span{color:#4c6259;font-size:14px}.lab-tag{align-self:flex-start;margin-top:auto;padding:2px 8px;border-radius:999px;background:#e4f0e6;color:#1b5542;font-size:12px;font-weight:600}.explorer{padding:20px 0;border-top:1px solid #cad6c9}.inspector-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px}.inspector-actions button{background:var(--studio-primary);color:#fff;border-color:var(--studio-primary)}.inspector-actions button:hover{background:var(--studio-primary-hover)}#explorer-save-status{font-size:13px;color:#265b46;margin:4px 0 0;min-height:1.2em}
 @media(max-width:800px){.lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.lab-grid{grid-template-columns:1fr}}
-
-.studio-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:clamp(10px,2vw,26px);min-height:76px;padding-block:12px;border-bottom:1px solid #cad6c9}
-.studio-header a{text-decoration:none}
-.studio-brand{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;color:#183b32;font-size:18px;font-weight:750;letter-spacing:-.035em}
-.studio-brand-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--studio-primary);color:#e2f5bc;font:700 21px/1 Georgia,serif}
-.site-nav{display:flex;justify-content:flex-end;align-items:center;gap:clamp(4px,1vw,14px)}
-.site-nav a,.studio-menu summary{display:flex;min-height:44px;align-items:center;padding:0 10px;border-radius:8px;color:#214c3e;font-size:14px;white-space:nowrap}
-.site-nav a:hover,.studio-menu summary:hover,.studio-menu[open] summary{background:#e7efe6}
-.site-nav .workspace-link{background:var(--studio-primary);color:#fff;padding-inline:14px}
-.site-nav .workspace-link:hover{background:var(--studio-primary-hover)}
-.studio-menu{position:relative}
-.studio-menu summary{cursor:pointer;gap:8px;list-style:none;border:1px solid #bdcfc0}
-.studio-menu summary::-webkit-details-marker{display:none}
-.studio-menu summary::after{content:'';width:6px;height:6px;border-right:2px solid;border-bottom:2px solid;transform:rotate(45deg);margin-top:-3px}
-.studio-menu[open] summary::after{transform:rotate(225deg);margin-top:3px}
-.studio-menu summary:focus-visible{outline:3px solid #b46510;outline-offset:2px}
-.studio-menu-panel{position:absolute;z-index:2;right:0;top:calc(100% + 8px);width:min(254px,calc(100vw - 32px));padding:6px;background:#fff;border:1px solid #c7d9ca;border-radius:12px;box-shadow:0 10px 28px #183b3220}
-.studio-menu-panel a{display:flex;align-items:center;min-height:44px;padding:4px 10px;border-radius:7px;font-size:14px}
-.studio-menu-panel a:hover{background:#edf5e9}
-.studio-menu-panel a:nth-child(4){border-top:1px solid #dce6dc;border-top-left-radius:0;border-top-right-radius:0}
-@media(max-width:750px){
- .studio-header{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
- .studio-brand{grid-column:1;grid-row:1}
- .studio-menu{grid-column:2;grid-row:1}
- .site-nav{grid-column:1/-1;grid-row:2;justify-content:flex-start;border-top:1px solid #dce5dc;padding-top:6px}
-}
-@media(max-width:360px){
- .studio-brand{font-size:16px;gap:7px}
- .studio-brand-mark{width:31px;height:31px}
- .site-nav a,.studio-menu summary{padding-inline:7px;font-size:13px}
- .site-nav .workspace-link{padding-inline:9px}
-}
 </style>
+</head>
+<body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div id="preview-bar" class="preview-bar" hidden>
   <span><strong>Browser preview active</strong> — these customizations are local until published to <code>studio/studio-config.js</code>.</span>
   <a href="customize.html">Edit in Customizer</a>
   <button id="exit-preview" type="button">Exit preview</button>
 </div>
-<header class="studio-header">
+<header class="studio-header" data-page="index.html">
   <a class="studio-brand" href="index.html"><span id="brand-mark" class="studio-brand-mark" aria-hidden="true">∿</span><span id="brand-name">Assay Evidence Studio</span></a>
-  <nav class="site-nav" aria-label="Main navigation">
-    <a href="atlas.html">3D atlas</a>
-    <a href="#labs-title">Labs</a>
-    <a class="workspace-link" href="workspace.html">Evidence workspace</a>
-  </nav>
-  <details class="studio-menu">
-    <summary>Resources</summary>
-    <nav class="studio-menu-panel" aria-label="Resources">
-      <a href="linked.html">Linked protein explorer</a>
-      <a href="kinetics.html">Kinetics workbench</a>
-      <a href="molecular.html">Molecular learning lab</a>
-      <a href="customize.html">Customize &amp; deploy</a>
-      <a href="methods.html">Methods and sources</a>
-      <a id="header-github-link" href="https://github.com/tun539/assay-evidence-lab">GitHub</a>
-    </nav>
-  </details>
 </header>
 <main id="main">
 <section class="hero">
@@ -89,17 +49,6 @@
   <h2 id="labs-title">Explore the labs</h2>
   <ul id="lab-grid" class="lab-grid">
     <li><a href="kinetics.html"><strong>Kinetics workbench</strong><span>Hide a substrate concentration, inspect signed residuals, and compare four Michaelis–Menten models.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="molecular.html"><strong>Molecular learning lab</strong><span>Compare random forest, PyTorch MLP, and RL second-dose selection in synchronized 3D playback.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="tomography.html"><strong>Inside the specimen</strong><span>Reconstruct a hidden protein slice from parallel-beam projections across 4–48 angles.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="transport.html"><strong>Molecular transport in 3D</strong><span>Follow moving tracers and test five physical models against theory and held-out NLL.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="expression.html"><strong>Gene expression atlas</strong><span>Explore 7,129 microarray probes and three classifiers across two Golub cohorts.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="research.html"><strong>Research benchmark</strong><span>Compare model families, probability reliability, and decision thresholds on 569 specimens.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="practical.html"><strong>Enzyme kinetics practical</strong><span>Fit four hypotheses on the published assay or your own CSV and export held-out predictions.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="audit.html"><strong>Cellpose and AlphaFold audit</strong><span>Inspect one-to-one instance matching and per-residue pLDDT confidence distributions.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="structure.html"><strong>Ubiquitin and gene products in 3D</strong><span>Rotate PDB and AlphaFold Cα traces, inspect contact maps, and measure residue distances.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="simulation.html"><strong>Simulation lab</strong><span>Fit a force law, sample a two-state ensemble, and inspect accuracy sweeps.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="dna.html"><strong>DNA strand lab</strong><span>Explore five species, rotate a duplex, export FASTA, and assemble two simulated reads.</span></a></li>
-    <li><a href="language.html"><strong>Language and physics lab</strong><span>Trace a bilingual command from trained token weights to a 3D scene.</span></a></li>
   </ul>
 </section>
 <section class="explorer" id="explorer" aria-labelledby="explorer-title">
@@ -113,28 +62,13 @@
 <div style="overflow-x:auto"><table style="width:100%;text-align:left;border-spacing:0 .45rem"><thead><tr><th>Observation</th><th>Condition</th><th>Measured</th><th>Predicted</th><th>Residual</th></tr></thead><tbody id="validationRows"></tbody></table></div>
 <p><a href="kinetics.html">Open fitted curves and residual plots in the Kinetics Workbench</a></p>
 </section><div class="details"><section><h2>How to read this result</h2><p id="meaning"></p></section><section><h2>What would strengthen the claim?</h2><p id="limit"></p></section></div></section></main><footer><a href="methods.html">Methods and sources</a> · <a href="workspace.html">Evidence workspace</a> · <a href="customize.html">Customize &amp; deploy</a> · <a id="footer-github-link" href="https://github.com/tun539/assay-evidence-lab#reproduce-or-use-your-own-assay">Reproduce the analysis</a></footer>
-<script>
-const studioMenu = document.querySelector('.studio-menu');
-document.addEventListener('click', event => {
-  if (studioMenu.open && !studioMenu.contains(event.target)) studioMenu.open = false;
-});
-studioMenu.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && studioMenu.open) {
-    studioMenu.open = false;
-    studioMenu.querySelector('summary').focus();
-  }
-});
-</script>
-<script src="studio-config.js"></script><script src="studio-runtime.js"></script><script src="results.js"></script><script src="kinetics-data.js"></script><script src="evidence-records.js"></script><script src="app.js"></script><script src="validation.js"></script><script>
+<script src="studio-config.js"></script><script src="studio-runtime.js"></script><script src="results.js"></script><script src="kinetics-data.js"></script><script src="evidence-records.js"></script><script src="studio-nav.js"></script><script src="app.js"></script><script src="validation.js"></script><script>
 const activeCfg = studioRuntime.get();
 studioRuntime.applyTheme(activeCfg);
 document.title = activeCfg.brandName + ' · Scientific model explorer';
-document.getElementById('brand-name').textContent = activeCfg.brandName;
-document.getElementById('brand-mark').textContent = activeCfg.brandMark;
 const heroTitle = document.getElementById('hero-title');
 heroTitle.replaceChildren(activeCfg.heroTitlePrefix + ' ', Object.assign(document.createElement('em'), { textContent: activeCfg.heroTitleAccent }));
 document.getElementById('hero-intro').textContent = activeCfg.heroIntro;
-document.getElementById('header-github-link').href = activeCfg.repoUrl;
 document.getElementById('footer-github-link').href = activeCfg.repoUrl + '#reproduce-or-use-your-own-assay';
 if (activeCfg.labs.length) {
   const grid = document.getElementById('lab-grid');
@@ -156,9 +90,7 @@ if (activeCfg.labs.length) {
 document.getElementById('workspace-banner').hidden = !activeCfg.workspaceBanner.enabled;
 document.getElementById('preview-bar').hidden = !studioRuntime.hasPreview();
 document.getElementById('exit-preview').onclick = () => { studioRuntime.clearPreview(); location.reload(); };
-
 setStudy()
-const refreshWorkspaceBadge = evidenceRecords.bindBadge(document.querySelector('.workspace-link'));
 const updateBanner = () => {
   const n = evidenceRecords.count();
   const elBanner = document.getElementById('workspace-banner-text');
@@ -170,12 +102,12 @@ const updateBanner = () => {
     : activeCfg.workspaceBanner.emptyText);
 };
 updateBanner();
+window.addEventListener('assay-evidence-change', updateBanner);
 window.addEventListener('storage', updateBanner);
 document.getElementById('home-load-sample').onclick = () => {
   const packet = evidenceRecords.samplePacket();
   evidenceRecords.merge(packet);
   if (!evidenceRecords.readNote() && packet.note) evidenceRecords.saveNote(packet.note);
-  refreshWorkspaceBadge();
   updateBanner();
   location.href = 'workspace.html#compare-sample';
 };
@@ -184,4 +116,6 @@ if (location.protocol==='file:' || ['localhost','127.0.0.1','[::1]'].includes(lo
   download.href=activeCfg.repoUrl + '/archive/refs/heads/main.zip';
   download.removeAttribute('download');
 }
-</script></html>
+</script>
+</body>
+</html>

@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Evidence workspace · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="research.css">
+<link rel="stylesheet" href="studio-nav.css">
 <style>
 .work-actions{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center}
 .work-actions a,.work-actions button{min-height:40px;display:inline-flex;align-items:center;padding:.4rem .8rem;border-radius:8px;text-decoration:none}
@@ -51,12 +53,11 @@ textarea{display:block;width:100%;min-height:96px;font:inherit;padding:.65rem;bo
 </style>
 </head>
 <body>
-<header>
-  <a href="index.html">Assay Evidence Studio</a>
-  <a href="atlas.html">3D atlas</a>
-  <a href="methods.html">Methods and sources</a>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="workspace.html" data-methods="workspace">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
 </header>
-<main>
+<main id="main">
 <h1>Evidence workspace</h1>
 <p class="intro">Collect measured assays, structural distances, model benchmarks, and simulations across all ten labs. Compare compatible runs visually and export a portable packet for independent review.</p>
 
@@ -133,6 +134,7 @@ textarea{display:block;width:100%;min-height:96px;font:inherit;padding:.65rem;bo
 </section>
 </main>
 <script src="evidence-records.js"></script>
+<script src="studio-nav.js"></script>
 <script src="workspace.js"></script>
 </body>
 </html>

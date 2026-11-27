@@ -30,6 +30,12 @@ const evidenceRecords = (() => {
     }
   }
 
+  function notify(total) {
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('assay-evidence-change', { detail: { count: total } }));
+    }
+  }
+
   function replace(runs) {
     if (runs.length > 100 || new Set(runs.map(run => run.id)).size !== runs.length || !runs.every(validRun)) {
       throw Error('Expected up to 100 valid and distinct evidence records.');
@@ -37,6 +43,7 @@ const evidenceRecords = (() => {
     const data = JSON.stringify(runs);
     if (data.length > 1_000_000) throw Error('The workspace is full. Export your records before clearing space.');
     localStorage.setItem(key, data);
+    notify(runs.length);
   }
 
   function capture(run) {
@@ -67,6 +74,7 @@ const evidenceRecords = (() => {
 
   function clear() {
     localStorage.removeItem(key);
+    notify(0);
   }
 
   function readNote() {

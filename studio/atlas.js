@@ -79,11 +79,32 @@ function select(index){
 function updateProgress(){
  get('progress-meter').value=completed.size;
  get('progress').textContent=completed.size+' of '+stations.length+' checkpoints completed';
+ const resetBtn=get('reset-progress');
+ if(resetBtn) resetBtn.disabled=completed.size===0;
+ const summary=get('workspace-summary');
+ if(summary && typeof evidenceRecords!=='undefined'){
+   const saved=evidenceRecords.count();
+   summary.textContent=saved
+     ? saved+' evidence '+(saved===1?'record':'records')+' saved in this browser workspace.'
+     : 'Tip: save results from any mission lab to build a reviewable Evidence Workspace packet.';
+ }
  Array.from(get('stations').children).forEach((b,i)=>{
    b.textContent=stations[i].short+(completed.has(stations[i].id)?' ✓':'');
    b.setAttribute('aria-pressed',String(active===i));
  });
 }
+const resetBtn=get('reset-progress');
+if(resetBtn){
+ resetBtn.onclick=()=>{
+   if(!confirm('Reset all completed mission checkpoints in this browser?'))return;
+   completed.clear();
+   try{localStorage.removeItem(progressKey);}catch{}
+   get('answer').textContent='Checkpoint progress reset.';
+   updateProgress();
+ };
+}
+window.addEventListener('assay-evidence-change', updateProgress);
+window.addEventListener('storage', updateProgress);
 get('challenge').onsubmit=e=>{
  e.preventDefault();
  const selected=get('choices').querySelector('input:checked');

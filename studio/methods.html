@@ -1,12 +1,146 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Methods and sources · Assay Evidence Studio</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f4f6f1;color:#183c35;font:16px/1.6 Inter,Arial,sans-serif}header,main{max-width:960px;margin:auto;padding:20px clamp(18px,4vw,44px)}header{display:flex;justify-content:space-between;border-bottom:1px solid #bdd0c1}a{color:#205b47;text-underline-offset:.18em}a:focus-visible{outline:3px solid #c97924}h1,h2,h3{font-family:Georgia,serif;font-weight:normal;line-height:1.1}h1{font-size:clamp(40px,6vw,68px);margin:12px 0}h2{font-size:30px;margin-top:0}h3{font-size:22px;margin-bottom:4px}section{background:white;border:1px solid #cdd8cf;border-radius:14px;padding:clamp(16px,3vw,30px);margin:20px 0;scroll-margin-top:16px}p{margin:8px 0}nav{display:flex;gap:8px 18px;flex-wrap:wrap}table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:8px;text-align:left;border-bottom:1px solid #dae2db}td a{overflow-wrap:anywhere}.table-wrap{overflow:auto}ul{padding-left:22px}footer{padding:16px 0 30px}</style></head><body><header><strong>Assay Evidence Studio</strong><a href="index.html">Evidence Studio</a></header><main><h1>Methods and sources</h1><p>Trace each result to its input, calculation and original reference.</p><nav aria-label="Sections"><a href="#audit">Prediction audit</a><a href="#structure">Protein structures</a><a href="#dna">DNA and gene records</a><a href="#kinetics">Enzyme kinetics</a><a href="#expression">Gene expression</a><a href="#cytology">Cytology classifier</a><a href="#simulation">Simulations</a></nav>
-<section id="audit"><h2>Prediction audit</h2><h3>Cellpose · instance matching</h3><p>The teaching example uses synthetic label maps. The evaluator computes the intersection over union of each object pair, assigns one-to-one matches and counts true positives, false positives and false negatives at each threshold. The displayed score is TP / (TP + FP + FN).</p><p><a href="https://github.com/MouseLand/cellpose/blob/a54cb48849b7e225a81e8e43dcb042d42427f543/cellpose/metrics.py">Cellpose · exact metrics implementation</a></p><h3>AlphaFold · residue confidence</h3><p>For each residue, softmax converts synthetic confidence logits into probabilities over bins. The probability-weighted bin centers give the predicted confidence score (pLDDT) on a 0–100 scale. The mean summarizes the chain and can hide low-confidence residues.</p><p><a href="https://github.com/google-deepmind/alphafold/blob/c77e5d2a8961d1a353632c462914ff0a32a950f6/alphafold/common/confidence.py">AlphaFold · exact confidence implementation</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/evidence/README.md">Project evaluator and reproduction commands</a> · <a href="audit.html">Return to prediction audit</a></p></section>
-<section id="structure"><h2>Protein structures</h2><p>Human ubiquitin uses 76 alpha-carbon coordinates from chain A of the experimental 1.8 Å X-ray structure. The viewer measures the straight-line distance between selected Cα atoms in ångströms. The default contact cutoff is 8 Å. The cutoff and minimum sequence separation are adjustable.</p><p><a href="https://www.rcsb.org/structure/1UBQ">Vijay-Kumar, Bugg and Cook · PDB 1UBQ</a> · <a href="https://files.rcsb.org/view/1UBQ.pdb">Deposited coordinates</a></p><p>Additional experimental chain-A traces: <a href="https://www.rcsb.org/structure/1GCN">Glucagon (1GCN)</a> · <a href="https://www.rcsb.org/structure/1CRN">Crambin (1CRN)</a> · <a href="https://www.rcsb.org/structure/2RBG">ST0493 (2RBG)</a>. Radius of gyration weights each resolved Cα equally. Maximum span is the largest pairwise Euclidean distance.</p><p>The five gene products use chain-A coordinates from AlphaFold DB version 6. A distance measured in one of these models describes the predicted fold. The <a href="#dna">gene and model table</a> links to the exact model files used.</p><p><a href="https://alphafold.ebi.ac.uk/">AlphaFold Protein Structure Database</a> · <a href="https://creativecommons.org/licenses/by/4.0/">Model data license · CC BY 4.0</a> · <a href="structure.html">Open the structure viewer</a></p></section>
-<section id="dna"><h2>DNA and gene records</h2><p>The strand exercise uses the first 60 nucleotides of each oriented KEGG coding sequence. The 3D DNA view uses the full coding sequence and an idealized double helix. Read pairs in the assembly exercise are simulated from the selected window.</p><div class="table-wrap"><table><thead><tr><th>Organism</th><th>Gene sequence</th><th>Protein prediction</th><th>Coordinates</th></tr></thead><tbody><tr><td>Homo sapiens</td><td><a href="https://www.kegg.jp/entry/hsa:4508">MT-ATP6 · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/P00846">P00846</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-P00846-F1-model_v6.pdb">PDB v6 · P00846</a></td></tr>
-<tr><td>Escherichia coli K-12 MG1655</td><td><a href="https://www.kegg.jp/entry/eco:b3985">rplJ · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/P0A7J3">P0A7J3</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-P0A7J3-F1-model_v6.pdb">PDB v6 · P0A7J3</a></td></tr>
-<tr><td>Saccharomyces cerevisiae</td><td><a href="https://www.kegg.jp/entry/sce:YGR192C">TDH3 · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/P00359">P00359</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-P00359-F1-model_v6.pdb">PDB v6 · P00359</a></td></tr>
-<tr><td>Prochlorococcus marinus MIT 9312</td><td><a href="https://www.kegg.jp/entry/pmi:PMT9312_0550">rbcL · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/Q31BY4">Q31BY4</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-Q31BY4-F1-model_v6.pdb">PDB v6 · Q31BY4</a></td></tr>
-<tr><td>Arabidopsis thaliana</td><td><a href="https://www.kegg.jp/entry/ath:AT4G14320">AT4G14320 · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/O23290">O23290</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-O23290-F1-model_v6.pdb">PDB v6 · O23290</a></td></tr></tbody></table></div><p><a href="dna.html">Open the DNA strand lab</a></p></section>
-<section id="kinetics"><h2>Enzyme kinetics</h2><p>The 23 Puromycin measurements come from M. A. Treloar’s study of galactosyltransferase, distributed with R. Four Michaelis–Menten models share or separate the two kinetic parameters by condition. Each validation fold holds out one substrate concentration across both conditions and the reported RMSE pools the held-out rate errors.</p><p><a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html">R datasets · Puromycin, units and study citation</a> · <a href="https://github.com/vincentarelbundock/Rdatasets/blob/master/csv/datasets/Puromycin.csv">Rdatasets · source CSV</a> · <a href="puromycin.csv">Bundled input</a> · <a href="practical.html">Open the practical</a></p></section>
-<section id="expression"><h2>Gene expression atlas</h2><p>The Golub leukemia microarray benchmark contains 38 training specimens and 34 test specimens. Numeric sample IDs join each expression column to its diagnosis. The atlas reports class means in each cohort. Each model uses 25 ANOVA-selected training probes and training-derived scaling. The number of probes includes controls and repeated gene targets.</p><p><a href="https://doi.org/10.1126/science.286.5439.531">Golub et al., Science (1999)</a> · <a href="https://github.com/varshith-alladi/Leukemia-Cancer-Classification">Input CSV mirror</a> · <a href="expression.html">Open the atlas</a></p></section><section id="cytology"><h2>Cytology classifier</h2><p>NucleusAudit uses 569 Wisconsin Diagnostic Breast Cancer specimens. The pipeline fits standardized logistic regression using 455 training specimens and evaluates predictions on a stratified holdout of 114. Features summarize nuclei in digitized aspirates.</p><p><a href="https://doi.org/10.24432/C5DW2B">Wolberg, Street and Mangasarian · UCI dataset</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html">scikit-learn dataset loader</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/NucleusAudit/README.md">Model report and split design</a> · <a href="research.html">Nested cross-validation benchmark</a></p></section>
-<section id="tomography"><h2>Computational tomography</h2><p>Four synthetic ellipsoids define a 3D density field. Each view sums slice pixels into nearest detector bins. A simultaneous iterative solver backprojects detector residuals normalized by ray occupancy, averages across views and clips negative densities. Error is pixelwise RMSE against the known 64 × 64 slice. Export includes raw angle-major measurements, target and recovered pixels.</p><a href="tomography.html">Open reconstruction experiment</a></section><section id="transport"><h2>Molecular transport in 3D</h2><p>Each tracer starts at the origin. Free increments are independent Gaussian draws of variance 2DΔt per axis. Drift adds vΔt along x. For a harmonic trap each coordinate is multiplied by exp(−kΔt), then independent Gaussian noise of variance D(1−exp(−2kΔt))/k is added. The directional model assigns x diffusivity D(1+k). Periodic flow integrates velocity v cos(πt) along x. The inference experiment fits conditional Gaussian increments to 64 complete trajectories and evaluates log density on 32 held-out trajectories. The three spread rings use marginal coordinate standard deviations and omit cross-axis correlations. Curves compare the mean squared displacement across 96 tracers with its analytical expectation. The finite-ensemble centroid and RMS distance are calculated from the same coordinates used for rendering.</p><p><a href="transport.html">Open transport lab</a> · <a href="https://help.labxchange.org/en/articles/7239233">LabXchange virtual experiment format · teaching inspiration</a></p></section><section id="simulation"><h2>Simulations</h2><p>The force-law exercise fits a harmonic model to a synthetic one-dimensional potential. Its independent checker uses error metrics from MACE. The ensemble exercise uses a two-state Markov chain to explore finite sampling. BioEmu inspired the ensemble question. The trajectories shown here are generated by the classroom simulator.</p><p><a href="https://github.com/ACEsuit/mace/blob/1f44a4b3e81c316ae9f03a646f21c66766d1ef01/mace/tools/utils.py">MACE · pinned metric implementations</a> · <a href="https://github.com/microsoft/bioemu">BioEmu · upstream project</a> · <a href="simulation.html">Open the simulation lab</a></p></section><footer><a href="index.html">Return to Evidence Studio</a></footer></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Trace every dataset, mathematical specification, upstream metric implementation, and data source in Assay Evidence Studio.">
+<title>Methods and sources · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f1;color:#183c35;font:16px/1.6 Inter,system-ui,-apple-system,Arial,sans-serif}
+main,footer{max-width:980px;margin:auto;padding:20px clamp(18px,4vw,44px)}
+a{color:#205b47;text-underline-offset:.18em}
+a:focus-visible{outline:3px solid #c97924}
+h1,h2,h3{font-family:Georgia,serif;font-weight:normal;line-height:1.1}
+h1{font-size:clamp(38px,6vw,64px);margin:14px 0 10px}
+h2{font-size:30px;margin-top:0}
+h3{font-size:22px;margin-bottom:4px}
+section{background:white;border:1px solid #cdd8cf;border-radius:14px;padding:clamp(16px,3vw,30px);margin:20px 0;scroll-margin-top:16px}
+p{margin:8px 0}
+.toc{display:flex;gap:8px 14px;flex-wrap:wrap;margin:16px 0}
+.toc a{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:#eaf2eb;border:1px solid #cadacb;text-decoration:none;font-size:14px;font-weight:600}
+.toc a:hover{background:#dceade}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid #dae2db}
+td a{overflow-wrap:anywhere}
+.table-wrap{overflow:auto}
+ul{padding-left:22px}
+footer{padding:16px clamp(18px,4vw,44px) 32px;border-top:1px solid #d4dfd5}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="methods.html">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+<main id="main">
+<h1>Methods and sources</h1>
+<p>Trace each result in Assay Evidence Studio to its input dataset, mathematical formulation, upstream code reference, and known scope limitations.</p>
+<nav class="toc" aria-label="Sections">
+  <a href="#workspace">Evidence workspace</a>
+  <a href="#kinetics">Enzyme kinetics</a>
+  <a href="#molecular">Molecular learning</a>
+  <a href="#audit">Prediction audit</a>
+  <a href="#structure">Protein structures</a>
+  <a href="#dna">DNA &amp; genes</a>
+  <a href="#expression">Gene expression</a>
+  <a href="#cytology">Cytology classifier</a>
+  <a href="#tomography">Tomography</a>
+  <a href="#transport">Molecular transport</a>
+  <a href="#simulation">Simulations</a>
+  <a href="#language">Language &amp; physics</a>
+</nav>
+
+<section id="workspace">
+  <h2>Evidence workspace</h2>
+  <p>The portable Evidence Workspace stores structured records under schema <code>assay-evidence/1</code> in browser <code>localStorage</code>. Each record carries an evidence kind (<code>measured</code> or <code>simulated</code>), dataset name, method, metric, finite numeric value, unit, provenance URL, timestamp, and a JSON details object.</p>
+  <p>Direct metric subtraction is enabled only when two records share the same evidence type, dataset, metric, unit, and <code>comparisonKey</code>. Records with different scopes are displayed side by side without computing a misleading delta. Packets export to JSON (lossless re-import), CSV (tabular summary), and Markdown (peer-review report).</p>
+  <p><a href="workspace.html">Open the Evidence Workspace</a></p>
+</section>
+
+<section id="kinetics">
+  <h2>Enzyme kinetics</h2>
+  <p>The 23 Puromycin measurements come from M. A. Treloar’s study of galactosyltransferase, distributed with R. Four Michaelis–Menten models share or separate the two apparent kinetic parameters by condition. Each validation fold holds out one substrate concentration across both conditions and the reported RMSE pools the held-out rate errors.</p>
+  <p><a href="https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html">R datasets · Puromycin, units and study citation</a> · <a href="https://github.com/vincentarelbundock/Rdatasets/blob/master/csv/datasets/Puromycin.csv">Rdatasets · source CSV</a> · <a href="puromycin.csv">Bundled input</a> · <a href="kinetics.html">Kinetics workbench</a> · <a href="practical.html">Open the practical</a></p>
+</section>
+
+<section id="molecular">
+  <h2>Molecular learning lab</h2>
+  <p>Synthetic enzyme curves are generated from <em>v</em> = <em>V</em><sub>max</sub> · <em>S</em> / (<em>K</em><sub>m</sub> + <em>S</em>) with additive Gaussian noise across six substrate concentrations. Four parameter estimators (nonlinear Michaelis–Menten fit, ridge regression, scikit-learn random forest, and a two-hidden-layer PyTorch MLP) predict <em>V</em><sub>max</sub> and <em>K</em><sub>m</sub> from all six rates. Separately, a tabular Q-learning policy observes an initial rate at 0.11 ppm, selects a second concentration, and evaluates a fitted Gaussian decoder on held-out synthetic curves.</p>
+  <p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py">Simulation and training script</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed CPU notebook</a> · <a href="molecular.html">Open the Molecular Learning Lab</a></p>
+</section>
+
+<section id="audit">
+  <h2>Prediction audit</h2>
+  <h3>Cellpose · instance matching</h3>
+  <p>The teaching example uses synthetic label maps. The evaluator computes the intersection over union of each object pair, assigns one-to-one matches and counts true positives, false positives and false negatives at each threshold. The displayed score is TP / (TP + FP + FN).</p>
+  <p><a href="https://github.com/MouseLand/cellpose/blob/a54cb48849b7e225a81e8e43dcb042d42427f543/cellpose/metrics.py">Cellpose · exact metrics implementation</a></p>
+  <h3>AlphaFold · residue confidence</h3>
+  <p>For each residue, softmax converts synthetic confidence logits into probabilities over bins. The probability-weighted bin centers give the predicted confidence score (pLDDT) on a 0–100 scale. The mean summarizes the chain and can hide low-confidence residues.</p>
+  <p><a href="https://github.com/google-deepmind/alphafold/blob/c77e5d2a8961d1a353632c462914ff0a32a950f6/alphafold/common/confidence.py">AlphaFold · exact confidence implementation</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/evidence/README.md">Project evaluator and reproduction commands</a> · <a href="audit.html">Return to prediction audit</a></p>
+</section>
+
+<section id="structure">
+  <h2>Protein structures</h2>
+  <p>Human ubiquitin uses 76 alpha-carbon coordinates from chain A of the experimental 1.8 Å X-ray structure. The viewer measures the straight-line distance between selected Cα atoms in ångströms. The default contact cutoff is 8 Å. The cutoff and minimum sequence separation are adjustable.</p>
+  <p><a href="https://www.rcsb.org/structure/1UBQ">Vijay-Kumar, Bugg and Cook · PDB 1UBQ</a> · <a href="https://files.rcsb.org/view/1UBQ.pdb">Deposited coordinates</a></p>
+  <p>Additional experimental chain-A traces: <a href="https://www.rcsb.org/structure/1GCN">Glucagon (1GCN)</a> · <a href="https://www.rcsb.org/structure/1CRN">Crambin (1CRN)</a> · <a href="https://www.rcsb.org/structure/2RBG">ST0493 (2RBG)</a>. Radius of gyration weights each resolved Cα equally. Maximum span is the largest pairwise Euclidean distance.</p>
+  <p>The five gene products use chain-A coordinates from AlphaFold DB version 6. A distance measured in one of these models describes the predicted fold. The <a href="#dna">gene and model table</a> links to the exact model files used.</p>
+  <p><a href="https://alphafold.ebi.ac.uk/">AlphaFold Protein Structure Database</a> · <a href="https://creativecommons.org/licenses/by/4.0/">Model data license · CC BY 4.0</a> · <a href="structure.html">Open the structure viewer</a> · <a href="linked.html">Linked protein explorer</a></p>
+</section>
+
+<section id="dna">
+  <h2>DNA and gene records</h2>
+  <p>The strand exercise uses the first 60 nucleotides of each oriented KEGG coding sequence. The 3D DNA view uses the full coding sequence and an idealized double helix. Read pairs in the assembly exercise are simulated from the selected window.</p>
+  <div class="table-wrap"><table><thead><tr><th>Organism</th><th>Gene sequence</th><th>Protein prediction</th><th>Coordinates</th></tr></thead><tbody>
+    <tr><td>Homo sapiens</td><td><a href="https://www.kegg.jp/entry/hsa:4508">MT-ATP6 · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/P00846">P00846</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-P00846-F1-model_v6.pdb">PDB v6 · P00846</a></td></tr>
+    <tr><td>Escherichia coli K-12 MG1655</td><td><a href="https://www.kegg.jp/entry/eco:b3985">rplJ · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/P0A7J3">P0A7J3</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-P0A7J3-F1-model_v6.pdb">PDB v6 · P0A7J3</a></td></tr>
+    <tr><td>Saccharomyces cerevisiae</td><td><a href="https://www.kegg.jp/entry/sce:YGR192C">TDH3 · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/P00359">P00359</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-P00359-F1-model_v6.pdb">PDB v6 · P00359</a></td></tr>
+    <tr><td>Prochlorococcus marinus MIT 9312</td><td><a href="https://www.kegg.jp/entry/pmi:PMT9312_0550">rbcL · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/Q31BY4">Q31BY4</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-Q31BY4-F1-model_v6.pdb">PDB v6 · Q31BY4</a></td></tr>
+    <tr><td>Arabidopsis thaliana</td><td><a href="https://www.kegg.jp/entry/ath:AT4G14320">AT4G14320 · KEGG</a></td><td><a href="https://alphafold.ebi.ac.uk/entry/O23290">O23290</a></td><td><a href="https://alphafold.ebi.ac.uk/files/AF-O23290-F1-model_v6.pdb">PDB v6 · O23290</a></td></tr>
+  </tbody></table></div>
+  <p><a href="dna.html">Open the DNA strand lab</a></p>
+</section>
+
+<section id="expression">
+  <h2>Gene expression atlas</h2>
+  <p>The Golub leukemia microarray benchmark contains 38 training specimens and 34 test specimens. Numeric sample IDs join each expression column to its diagnosis. The atlas reports class means in each cohort. Each model uses 25 ANOVA-selected training probes and training-derived scaling. The number of probes includes controls and repeated gene targets.</p>
+  <p><a href="https://doi.org/10.1126/science.286.5439.531">Golub et al., Science (1999)</a> · <a href="https://github.com/varshith-alladi/Leukemia-Cancer-Classification">Input CSV mirror</a> · <a href="expression.html">Open the atlas</a></p>
+</section>
+
+<section id="cytology">
+  <h2>Cytology classifier</h2>
+  <p>NucleusAudit uses 569 Wisconsin Diagnostic Breast Cancer specimens. The primary pipeline fits standardized logistic regression using 455 training specimens and evaluates predictions on a stratified holdout of 114. The nested cross-validation benchmark compares logistic regression, k-nearest neighbors, RBF SVM, random forest, and a class-prior baseline on 5 × 4 stratified folds with paired bootstrap Brier intervals.</p>
+  <p><a href="https://doi.org/10.24432/C5DW2B">Wolberg, Street and Mangasarian · UCI dataset</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html">scikit-learn dataset loader</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/NucleusAudit/README.md">Model report and split design</a> · <a href="research.html">Nested cross-validation benchmark</a></p>
+</section>
+
+<section id="tomography">
+  <h2>Computational tomography</h2>
+  <p>AlphaFold protein chain-A traces (or four synthetic ellipsoids for geometric calibration) define a 3D density field. Each view sums slice pixels into nearest detector bins. A simultaneous iterative solver backprojects detector residuals normalized by ray occupancy, averages across views and clips negative densities. Error is pixelwise RMSE against the known 64 × 64 slice. Export includes raw angle-major measurements, target and recovered pixels.</p>
+  <p><a href="tomography.html">Open reconstruction experiment</a></p>
+</section>
+
+<section id="transport">
+  <h2>Molecular transport in 3D</h2>
+  <p>Each tracer starts at the origin. Free increments are independent Gaussian draws of variance 2DΔt per axis. Drift adds vΔt along x. For a harmonic trap each coordinate is multiplied by exp(−kΔt), then independent Gaussian noise of variance D(1−exp(−2kΔt))/k is added. The directional model assigns x diffusivity D(1+k). Periodic flow integrates velocity v cos(πt) along x. The inference experiment fits conditional Gaussian increments to 64 complete trajectories and evaluates log density on 32 held-out trajectories. Curves compare the mean squared displacement across 96 tracers with its analytical expectation.</p>
+  <p><a href="transport.html">Open transport lab</a> · <a href="https://help.labxchange.org/en/articles/7239233">LabXchange virtual experiment format · teaching inspiration</a></p>
+</section>
+
+<section id="simulation">
+  <h2>Simulations</h2>
+  <p>The force-law exercise fits a harmonic model to a synthetic one-dimensional potential. Its independent checker uses error metrics from MACE. The ensemble exercise uses a two-state Markov chain to explore finite sampling. BioEmu inspired the ensemble question. The trajectories shown here are generated by the classroom simulator.</p>
+  <p><a href="https://github.com/ACEsuit/mace/blob/1f44a4b3e81c316ae9f03a646f21c66766d1ef01/mace/tools/utils.py">MACE · pinned metric implementations</a> · <a href="https://github.com/microsoft/bioemu">BioEmu · upstream project</a> · <a href="simulation.html">Open the simulation lab</a></p>
+</section>
+
+<section id="language">
+  <h2>Language and physics lab</h2>
+  <p>A bag-of-words multinomial linear classifier maps English and Spanish commands across 12 structured action–object–color meanings using disjoint training and test phrasing templates. Equivalent implementations in NumPy, PyTorch, and TensorFlow are provided in the companion notebook. An independent grammar validator prevents physics execution when a prompt is out of scope or disagrees with the predicted meaning.</p>
+  <p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MultilingualTraining.ipynb">Executed bilingual training notebook</a> · <a href="language.html">Open the Language and Physics Lab</a></p>
+</section>
+</main>
+<footer><a href="index.html">Return to Assay Evidence Studio</a> · <a href="workspace.html">Evidence workspace</a></footer>
+<script src="studio-nav.js"></script>
+</body>
+</html>
