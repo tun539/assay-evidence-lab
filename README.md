@@ -9,7 +9,7 @@
 [![Download the offline app](https://img.shields.io/badge/DOWNLOAD-OFFLINE%20APP-b86c2f?style=for-the-badge)](https://tun539.github.io/assay-evidence-lab/assay-evidence-studio.zip)
 [![Download full source](https://img.shields.io/badge/GET-FULL%20SOURCE-334c56?style=for-the-badge)](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip)
 
-[Evidence workspace](https://tun539.github.io/assay-evidence-lab/workspace.html) · [Local play and editing guide](PLAY.md) · [Methods and data sources](https://tun539.github.io/assay-evidence-lab/methods.html) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)
+[Evidence workspace](https://tun539.github.io/assay-evidence-lab/workspace.html) · [Customize & deploy](https://tun539.github.io/assay-evidence-lab/customize.html) · [Deploy anywhere guide](DEPLOY.md) · [Local play guide](PLAY.md) · [Methods and data sources](https://tun539.github.io/assay-evidence-lab/methods.html) · [MIT license](LICENSE)
 
 ## Tools used
 
@@ -47,13 +47,12 @@
 | Genomics | [Expression atlas](https://tun539.github.io/assay-evidence-lab/expression.html) · [DNA strand lab](https://tun539.github.io/assay-evidence-lab/dna.html) | Compare microarray cohorts, inspect complementary strands, or assemble two reads. |
 | Model evaluation | [Prediction audit](https://tun539.github.io/assay-evidence-lab/audit.html) · [Research benchmark](https://tun539.github.io/assay-evidence-lab/research.html) · [Simulation lab](https://tun539.github.io/assay-evidence-lab/simulation.html) | Inspect object matches, change decision thresholds, or test a learned force law outside its training interval. |
 
-## Play, edit, and remix
+## Edit anywhere, deploy everywhere
 
-1. [Download and extract the offline app](https://tun539.github.io/assay-evidence-lab/assay-evidence-studio.zip). Open `studio/atlas.html` in a browser to start the missions.
-2. Edit `studio/atlas.js` to change missions, `studio/atlas.css` to style the map, or individual pages in `studio/` to customize a lab.
-3. For a local HTTP server, run `python scripts/play_studio.py`. See [PLAY.md](PLAY.md) for platform notes and packaging instructions.
-
-Fork the repository to share your own version. Pushes to `main` automatically run the Node.js and Python test suites, package a fresh offline ZIP, and deploy the studio to GitHub Pages via [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml). Start with the [executed molecular training notebook](ml/MolecularLearning.ipynb) to reproduce the random forest, neural network, and RL comparison.
+1. **Visual browser customizer (zero install):** Open [Customize & deploy](https://tun539.github.io/assay-evidence-lab/customize.html) to edit branding, theme colors, and lab cards visually, preview live in your browser, then copy the generated [`studio/studio-config.js`](studio/studio-config.js) straight into GitHub's web editor.
+2. **Edit directly from phone or browser:** Edit [`studio/studio-config.js`](https://github.com/tun539/assay-evidence-lab/edit/main/studio/studio-config.js), `studio/atlas.js`, or any lab page on GitHub and commit to `main`—GitHub Actions runs all tests and deploys automatically in ~40 seconds.
+3. **Run locally or deploy to your own host:** Run `python3 scripts/play_studio.py` locally, or build a portable `dist/` folder with `python3 scripts/build_site.py --out dist`. Ready-made configs are included for **GitHub Pages**, **Vercel** (`vercel.json`), **Netlify** (`netlify.toml`), and **Cloudflare Pages**—see [DEPLOY.md](DEPLOY.md) for custom domain (`CNAME`) and multi-host instructions.
+4. **Offline app:** [Download and extract the offline app](https://tun539.github.io/assay-evidence-lab/assay-evidence-studio.zip) and open `studio/atlas.html` in any browser. See [PLAY.md](PLAY.md) for platform notes.
 
 ## Featured experiment
 

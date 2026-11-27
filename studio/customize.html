@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Customize &amp; deploy · Assay Evidence Studio</title>
+<link rel="stylesheet" href="research.css">
+<style>
+:root{--studio-primary:#18493c;--studio-primary-hover:#22624f;--studio-accent:#337953;--studio-bg:#f5f7f2;--studio-surface-tint:#edf5ec}
+body{background:var(--studio-bg)}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.field{display:grid;gap:4px;margin-bottom:10px}
+.field label{font-weight:600;font-size:.92rem}
+.field input[type=text],.field input[type=url],.field textarea{width:100%;padding:8px 10px;border:1px solid #96b0a1;border-radius:7px;font:inherit;background:#fff}
+.field textarea{min-height:74px;resize:vertical}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.swatch-btn{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;border:1px solid #9db6a8;background:#fff;cursor:pointer;font-size:.9rem;font-weight:550}
+.swatch-btn:hover{background:#eef5ee}
+.dot{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid #0002}
+.color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.color-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #cddad0;border-radius:8px;background:#fafcfa;font-size:.88rem}
+.color-item input[type=color]{width:34px;height:30px;padding:0;border:0;background:none;cursor:pointer}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.actions a,.actions button{min-height:40px;display:inline-flex;align-items:center;padding:7px 13px;border-radius:8px;text-decoration:none;font-weight:600;font-size:.93rem}
+.btn-primary{background:var(--studio-primary);color:#fff;border:1px solid var(--studio-primary)}
+.btn-primary:hover{background:var(--studio-primary-hover)}
+.btn-secondary{background:#fff;color:#183c35;border:1px solid #8ca999}
+.btn-secondary:hover{background:var(--studio-surface-tint)}
+.btn-danger{background:#fff8f6;color:#8a2c1c;border:1px solid #d7a89c}
+.lab-editor-list{display:grid;gap:10px;margin:12px 0}
+.lab-row{padding:12px;border-radius:10px;border:1px solid #cad8cd;background:var(--studio-surface-tint);display:grid;gap:8px}
+.lab-row-top{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+@media(max-width:680px){.lab-row-top{grid-template-columns:1fr}}
+.lab-row input[type=text]{width:100%;padding:6px 8px;border:1px solid #96b0a1;border-radius:6px;font:inherit;background:#fff}
+.lab-row-controls{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.lab-row-btns{display:flex;gap:6px;flex-wrap:wrap}
+.lab-row-btns button{padding:4px 9px;font-size:.84rem}
+.code-out{width:100%;min-height:220px;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;padding:12px;border:1px solid #b8cbbd;border-radius:10px;background:#102925;color:#e5f5eb;white-space:pre;overflow:auto}
+.host-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin-top:12px}
+.host-card{padding:14px;border-radius:10px;border:1px solid #c9d8cd;background:#f7faf6}
+.host-card h3{margin:0 0 6px;font-size:1.05rem}
+.host-card p{margin:0 0 8px;font-size:.9rem;color:#3d5b4f}
+.host-card code{display:inline-block;background:#e6efe8;padding:2px 6px;border-radius:4px;font-size:.83rem}
+.preview-pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.85rem;font-weight:650;background:#e2f0e6;color:#14523b}
+.preview-pill.active{background:#f7e4d4;color:#824417}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">Assay Evidence Studio</a>
+  <a href="workspace.html">Evidence workspace</a>
+  <a href="atlas.html">3D atlas</a>
+</header>
+<main>
+<h1>Customize &amp; deploy your studio</h1>
+<p class="intro">Modify branding, colors, and lab cards visually from any browser—no local install required. Preview changes live in your browser, then publish to GitHub Pages, Vercel, Netlify, or your own custom domain.</p>
+
+<div class="facts" id="build-facts">
+  <div><strong id="preview-mode-label">Live defaults</strong> mode</div>
+  <div><strong id="build-sha">local</strong> deployed commit</div>
+  <div><strong id="build-date">—</strong> last built</div>
+</div>
+
+<section>
+  <h2>1. Brand &amp; hero copy</h2>
+  <div class="grid-2">
+    <div class="field"><label for="brandName">Product name</label><input id="brandName" type="text" maxlength="80"></div>
+    <div class="field"><label for="brandMark">Brand mark symbol</label><input id="brandMark" type="text" maxlength="4"></div>
+    <div class="field"><label for="heroTitlePrefix">Hero title prefix</label><input id="heroTitlePrefix" type="text" maxlength="40"></div>
+    <div class="field"><label for="heroTitleAccent">Hero title accent (highlighted)</label><input id="heroTitleAccent" type="text" maxlength="60"></div>
+  </div>
+  <div class="field"><label for="heroIntro">Hero subtitle</label><textarea id="heroIntro" maxlength="400"></textarea></div>
+  <div class="grid-2">
+    <div class="field"><label for="repoUrl">GitHub repository URL</label><input id="repoUrl" type="url" maxlength="300"></div>
+    <div class="field"><label for="bannerText">Workspace banner description</label><input id="bannerText" type="text" maxlength="300"></div>
+  </div>
+  <label><input id="bannerEnabled" type="checkbox"> Show Evidence Workspace callout banner on home page</label>
+</section>
+
+<section>
+  <h2>2. Theme palette</h2>
+  <div class="swatches" id="presets" aria-label="Theme presets"></div>
+  <div class="color-grid">
+    <label class="color-item"><input id="colorPrimary" type="color"><span>Primary button &amp; nav</span></label>
+    <label class="color-item"><input id="colorPrimaryHover" type="color"><span>Primary hover</span></label>
+    <label class="color-item"><input id="colorAccent" type="color"><span>Hero accent</span></label>
+    <label class="color-item"><input id="colorBackground" type="color"><span>Page background</span></label>
+    <label class="color-item"><input id="colorSurfaceTint" type="color"><span>Banner tint</span></label>
+  </div>
+</section>
+
+<section>
+  <h2>3. Lab directory cards</h2>
+  <p>Edit, reorder, remove, or add your own custom experiment pages or external tools to the Studio home grid.</p>
+  <div id="lab-list" class="lab-editor-list"></div>
+  <div class="actions">
+    <button id="add-lab" class="btn-secondary" type="button">+ Add lab card</button>
+  </div>
+</section>
+
+<section>
+  <h2>4. Preview &amp; publish from anywhere</h2>
+  <p><span id="preview-badge" class="preview-pill">Using live site configuration</span></p>
+  <div class="actions">
+    <button id="apply-preview" class="btn-primary" type="button">Apply live browser preview</button>
+    <a class="btn-secondary" href="index.html">Open home page to inspect →</a>
+    <button id="reset-preview" class="btn-danger" type="button">Reset to defaults</button>
+  </div>
+  <p id="status" role="status"></p>
+
+  <h3>Publish permanently (works from phone, browser, or CLI)</h3>
+  <p>Copy or download the generated <code>studio/studio-config.js</code> below, then click <strong>Edit on GitHub</strong>, paste it in, and commit to <code>main</code>. GitHub Actions will run all tests and update your live site in ~40 seconds.</p>
+  <div class="actions">
+    <button id="copy-config" class="btn-primary" type="button">Copy studio-config.js</button>
+    <button id="download-config" class="btn-secondary" type="button">Download studio-config.js</button>
+    <a id="github-edit-link" class="btn-secondary" target="_blank" rel="noopener">Edit studio-config.js on GitHub ↗</a>
+    <button id="export-json" class="btn-secondary" type="button">Export JSON</button>
+    <label class="btn-secondary" style="cursor:pointer">Import JSON <input id="import-json" type="file" accept=".json,application/json" style="display:none"></label>
+  </div>
+  <pre id="code-output" class="code-out" aria-label="Generated studio-config.js"></pre>
+</section>
+
+<section>
+  <h2>5. Deploy to your own host or custom domain</h2>
+  <p>This repository has zero vendor lock-in. A single command <code>python3 scripts/build_site.py --out dist</code> builds the complete site and offline ZIP for any static host:</p>
+  <div class="host-grid">
+    <article class="host-card">
+      <h3>GitHub Pages (Active)</h3>
+      <p>Already configured in <code>.github/workflows/deploy-pages.yml</code>. Push or edit on GitHub to deploy automatically. Add a root <code>CNAME</code> file for your own domain.</p>
+    </article>
+    <article class="host-card">
+      <h3>Vercel</h3>
+      <p>Ready via <code>vercel.json</code>. Import the GitHub repo in Vercel for instant preview URLs on every branch and custom domain SSL.</p>
+    </article>
+    <article class="host-card">
+      <h3>Netlify</h3>
+      <p>Ready via <code>netlify.toml</code>. Connect the repo in Netlify to publish <code>dist/</code> with clean extensionless URLs automatically.</p>
+    </article>
+    <article class="host-card">
+      <h3>Cloudflare Pages / Self-host</h3>
+      <p>Build command: <code>python3 scripts/build_site.py --out dist</code> · Output directory: <code>dist</code>. Works on any static CDN or S3 bucket.</p>
+    </article>
+  </div>
+</section>
+</main>
+<script src="studio-config.js"></script>
+<script src="studio-runtime.js"></script>
+<script src="customize.js"></script>
+</body>
+</html>

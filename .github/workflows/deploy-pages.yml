@@ -37,6 +37,7 @@ jobs:
         run: |
           node studio/test-fit.cjs
           node studio/test-evidence-records.cjs
+          node studio/test-studio-config.cjs
           for f in studio/*.js; do
             node --check "$f"
           done
@@ -49,10 +50,14 @@ jobs:
           python -m unittest discover -s kinetics
           python -m unittest discover -s evidence
 
-      - name: Verify offline studio bundle packaging
+      - name: Verify site build and offline ZIP packaging
         run: |
-          python scripts/package_studio.py /tmp/assay-evidence-studio.zip
-          rm -f /tmp/assay-evidence-studio.zip
+          python scripts/build_site.py --out /tmp/verify-site
+          test -f /tmp/verify-site/index.html
+          test -f /tmp/verify-site/customize.html
+          test -f /tmp/verify-site/build-info.json
+          test -f /tmp/verify-site/assay-evidence-studio.zip
+          rm -rf /tmp/verify-site
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -73,22 +78,8 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Stage production site and offline ZIP
-        run: |
-          mkdir -p _site
-          python -c "
-          import shutil
-          from pathlib import Path
-          src = Path('studio')
-          dst = Path('_site')
-          for file in sorted(src.rglob('*')):
-              if file.is_file() and file.suffix in {'.html', '.css', '.js', '.json', '.csv'}:
-                  target = dst / file.relative_to(src)
-                  target.parent.mkdir(parents=True, exist_ok=True)
-                  shutil.copy2(file, target)
-          "
-          python scripts/package_studio.py _site/assay-evidence-studio.zip
-          touch _site/.nojekyll
+      - name: Build production site, build manifest, and offline ZIP
+        run: python scripts/build_site.py --out _site
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

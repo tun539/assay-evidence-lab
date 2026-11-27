@@ -1,0 +1,8 @@
+[build]
+  command = "python3 scripts/build_site.py --out dist"
+  publish = "dist"
+
+[[headers]]
+  for = "/build-info.json"
+  [headers.values]
+    Cache-Control = "no-cache"
