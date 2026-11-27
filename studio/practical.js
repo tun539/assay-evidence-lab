@@ -74,4 +74,36 @@ byId('pred').onclick=()=>{
     lines.push([model,p.conc,p.state,p.rate,p.prediction].join(','));
   download('held-out-predictions.csv',lines.join('\n')+'\n','text/csv');
 };
+byId('save-evidence').onclick=()=>{
+  if(!record)return;
+  try{
+    const shared=record.fits.shared, separate=record.fits.separate;
+    evidenceRecords.capture({
+      kind:'measured',
+      title:'Practical fit · '+record.source.slice(0,80),
+      dataset:record.source,
+      method:record.method,
+      metric:'Separate-curves pooled RMSE',
+      unit:record.rateUnit,
+      value:Number(separate.pooled.toFixed(3)),
+      source:'studio/practical.html',
+      details:{
+        comparisonKey:'practical-'+record.source+'-'+record.rateUnit,
+        track:record.track,
+        observations:record.rows.length,
+        concentrationFolds:shared.folds.length,
+        concentrationUnit:record.concentrationUnit,
+        sharedPooledRmse:Number(shared.pooled.toFixed(3)),
+        sharedBalancedRmse:Number(shared.balanced.toFixed(3)),
+        separatePooledRmse:Number(separate.pooled.toFixed(3)),
+        separateBalancedRmse:Number(separate.balanced.toFixed(3)),
+        hypothesis:record.hypothesis||undefined,
+        interpretation:value('answer')||undefined,
+      },
+    });
+    byId('save-status').textContent='Saved fitted practical results to the evidence workspace.';
+  }catch(error){
+    byId('save-status').textContent='Could not save the practical run. '+error.message;
+  }
+};
 example();showTask();

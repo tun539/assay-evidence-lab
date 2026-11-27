@@ -6,6 +6,7 @@
 <title>Research benchmark · Assay Evidence Studio</title>
 <link rel="stylesheet" href="research.css">
 <script defer src="research-data.js"></script>
+<script defer src="evidence-records.js"></script>
 <script defer src="research.js"></script>
 </head>
 <body>
@@ -22,7 +23,10 @@
 <div class="controls">
 <label>Model <select id="model"></select></label>
 <button id="download">Export predictions CSV</button>
+<button id="save-evidence" type="button">Save to evidence workspace</button>
+<a href="workspace.html">Open workspace</a>
 </div>
+<p id="save-status" role="status"></p>
 <div class="charts">
 <section>
 <h2>Probability reliability</h2>

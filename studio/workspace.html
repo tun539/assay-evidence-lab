@@ -1,8 +1,138 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Evidence workspace · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><style>
-.work-actions{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}.work-actions a,.work-actions button{min-height:44px;display:inline-flex;align-items:center;padding:.4rem .8rem;border-radius:7px}.work-actions a:first-child{background:#1b5d49;color:white}.records{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:1rem}.records article{padding:1rem;border-radius:10px;background:#f2f6f1;border:1px solid #c8d9cd;overflow-wrap:anywhere}.records pre{white-space:pre-wrap;max-height:16rem;overflow:auto}.records h3{margin:.4rem 0}.records .metric{font-size:1.3rem;color:#135940;font-weight:650}.records label{display:block;margin:.5rem 0}.records button{margin-top:.5rem}.kind{font-size:.9rem;color:#46685c}textarea{display:block;width:100%;min-height:90px;font:inherit}.work-actions input{max-width:100%;font:inherit}
-</style></head><body><header><a href="index.html">Assay Evidence Studio</a><a href="methods.html">Methods and sources</a></header><main>
-<h1>Evidence workspace</h1><p class="intro">Keep the measurements, model settings, and conclusions together. Export a packet that another person can reopen and review.</p>
-<section><h2>Collect evidence</h2><div class="work-actions"><a href="kinetics.html">Measured kinetics workbench</a><a href="molecular.html">Simulated molecular lab</a></div><p>Save a holdout or a completed measurement from its lab. Records stay in this browser until you export them. A packet can be imported into another copy of Assay Evidence Studio.</p></section>
-<section><h2>Saved runs</h2><p id="count"></p><div id="records" class="records"></div></section>
-<section><h2>Compare and share</h2><p id="compare" role="status">Select two records to compare.</p><label>Review note<textarea id="note" maxlength="2000" placeholder="State the claim, the evidence, and what remains uncertain."></textarea></label><p>Your note travels with the export. The import keeps any current note when the field is already filled.</p><div class="work-actions"><button id="export">Export evidence packet</button><label>Import evidence packet <input id="import" type="file" accept=".json,application/json"></label></div><p id="status" role="status"></p></section>
-</main><script src="evidence-records.js"></script><script src="workspace.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidence workspace · Assay Evidence Studio</title>
+<link rel="stylesheet" href="research.css">
+<style>
+.work-actions{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center}
+.work-actions a,.work-actions button{min-height:40px;display:inline-flex;align-items:center;padding:.4rem .8rem;border-radius:8px;text-decoration:none}
+.work-actions a{border:1px solid #a9bfae;background:#fff;color:#183c35;font-weight:550;font-size:.94rem}
+.work-actions a:hover{background:#edf5e9;border-color:#5f8f79}
+.work-actions a.primary,.work-actions button.primary{background:#17483c;color:#fff;border-color:#17483c}
+.work-actions a.primary:hover,.work-actions button.primary:hover{background:#22624f}
+.work-actions button.danger{color:#8a2c1c;border-color:#d7a89c;background:#fff8f6}
+.work-actions button.danger:hover{background:#fcebe6}
+.work-actions input[type=file]{max-width:100%;font:inherit}
+.toolbar{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center;margin:1rem 0}
+.filter-group{display:inline-flex;flex-wrap:wrap;gap:.35rem}
+.filter-group button[aria-pressed="true"]{background:#17483c;color:#fff;border-color:#17483c}
+.toolbar input[type=search]{padding:7px 10px;border:1px solid #8ca999;border-radius:6px;font:inherit;min-width:190px;flex:1 1 200px}
+.toolbar select{max-width:260px}
+.records{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:1rem}
+.records article{padding:1rem 1.1rem;border-radius:12px;background:#f2f6f1;border:1px solid #c8d9cd;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:.35rem}
+.records article.is-selected{border-color:#17483c;box-shadow:0 0 0 2px #17483c33;background:#eaf3eb}
+.records pre{white-space:pre-wrap;max-height:16rem;overflow:auto;background:#fff;padding:.65rem;border-radius:8px;border:1px solid #d5e1d7;font-size:.86rem}
+.records h3{margin:.15rem 0;font-size:1.12rem}
+.records .metric{font-size:1.38rem;color:#135940;font-weight:650;font-variant-numeric:tabular-nums}
+.records .meta{margin:0;font-size:.92rem;color:#3e5e52}
+.records label{display:inline-flex;align-items:center;gap:.45rem;margin:.35rem 0;cursor:pointer;font-weight:550}
+.card-footer{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.45rem;margin-top:auto;padding-top:.45rem;border-top:1px solid #d9e5dc}
+.card-footer .mini-actions{display:inline-flex;gap:.4rem;flex-wrap:wrap}
+.card-footer button{padding:5px 9px;font-size:.86rem}
+.card-footer button.match-btn{border-color:#5f8f79;color:#17483c;background:#e6f2ea}
+.card-footer button.match-btn:hover{background:#d7eadc}
+.kind{display:inline-block;align-self:flex-start;font-size:.8rem;font-weight:650;letter-spacing:.03em;text-transform:uppercase;padding:.18rem .55rem;border-radius:999px;background:#dcebe0;color:#17483c}
+.kind.simulated{background:#efe5d6;color:#78421d}
+.compare-box{margin:1rem 0;padding:1rem 1.15rem;border-radius:10px;background:#f5f9f4;border:1px solid #c8d9cd}
+.compare-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.5rem}
+.compare-badge{display:inline-block;font-size:.82rem;font-weight:650;padding:.2rem .6rem;border-radius:999px}
+.compare-badge.ok{background:#d7eee0;color:#14523b}
+.compare-badge.warn{background:#f7e4d4;color:#824417}
+.compare-delta{font-size:1.22rem;font-weight:650;color:#135940;margin:.25rem 0 .75rem;font-variant-numeric:tabular-nums}
+.compare-chart{display:block;width:100%;max-width:740px;margin:.6rem 0 1rem;background:#fff;border:1px solid #d6e2d8;border-radius:8px}
+.compare-table{table-layout:fixed;width:100%}
+.compare-table th:first-child{width:24%}
+.compare-table td,.compare-table th{overflow-wrap:anywhere;vertical-align:top}
+tr.diff-row td{background:#f9f1e4}
+textarea{display:block;width:100%;min-height:96px;font:inherit;padding:.65rem;border:1px solid #8ca999;border-radius:8px;margin-top:.35rem}
+.empty-state{padding:1.4rem;border-radius:10px;border:1px dashed #9fb7a8;background:#f8fbf7;color:#3e5e52}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">Assay Evidence Studio</a>
+  <a href="atlas.html">3D atlas</a>
+  <a href="methods.html">Methods and sources</a>
+</header>
+<main>
+<h1>Evidence workspace</h1>
+<p class="intro">Collect measured assays, structural distances, model benchmarks, and simulations across all ten labs. Compare compatible runs visually and export a portable packet for independent review.</p>
+
+<div class="facts" id="summary-facts" aria-label="Workspace summary">
+  <div><strong id="stat-total">0</strong> saved runs</div>
+  <div><strong id="stat-measured">0</strong> measured</div>
+  <div><strong id="stat-simulated">0</strong> simulated</div>
+  <div><strong id="stat-datasets">0</strong> datasets</div>
+</div>
+
+<section>
+  <h2>Collect evidence from any lab</h2>
+  <div class="work-actions">
+    <a class="primary" href="kinetics.html">Kinetics workbench</a>
+    <a href="molecular.html">Molecular learning</a>
+    <a href="practical.html">Enzyme practical</a>
+    <a href="research.html">Research benchmark</a>
+    <a href="expression.html">Expression atlas</a>
+    <a href="structure.html">Protein 3D</a>
+    <a href="tomography.html">Tomography</a>
+    <a href="transport.html">Transport 3D</a>
+    <a href="simulation.html">Simulation lab</a>
+    <a href="audit.html">Prediction audit</a>
+    <button id="load-sample" type="button">Load sample comparison</button>
+  </div>
+  <p>Save a result from any lab above. Records stay locally in your browser until you export them, and any JSON packet can be imported into another copy of Assay Evidence Studio.</p>
+</section>
+
+<section>
+  <h2>Saved runs</h2>
+  <div class="toolbar">
+    <div class="filter-group" role="group" aria-label="Filter by evidence type">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="measured" aria-pressed="false">Measured</button>
+      <button type="button" data-filter="simulated" aria-pressed="false">Simulated</button>
+    </div>
+    <label>Dataset
+      <select id="dataset-filter" aria-label="Filter by dataset">
+        <option value="">All datasets</option>
+      </select>
+    </label>
+    <input id="search" type="search" aria-label="Filter saved runs" placeholder="Search title, dataset, method, metric…">
+    <label>Sort
+      <select id="sort">
+        <option value="newest">Newest first</option>
+        <option value="value-asc">Value: low to high</option>
+        <option value="value-desc">Value: high to low</option>
+      </select>
+    </label>
+  </div>
+  <p id="count" role="status"></p>
+  <div id="records" class="records"></div>
+</section>
+
+<section id="compare-section">
+  <h2>Compare and share</h2>
+  <div id="compare-panel" class="compare-box" aria-live="polite">
+    <p id="compare" role="status">Select two records above to compare them side by side.</p>
+    <div id="compare-table-wrap" class="table-wrap" hidden></div>
+  </div>
+  <label for="note">Review note
+    <textarea id="note" maxlength="2000" placeholder="State the claim, the supporting evidence, and what remains uncertain."></textarea>
+  </label>
+  <p>Your note is saved automatically in this browser and travels with JSON and Markdown exports.</p>
+  <div class="work-actions">
+    <button id="export" class="primary" type="button">Export JSON packet</button>
+    <button id="export-md" type="button">Export Markdown report</button>
+    <button id="copy-md" type="button">Copy Markdown</button>
+    <button id="export-csv" type="button">Export CSV table</button>
+    <label>Import JSON packet <input id="import" type="file" accept=".json,application/json"></label>
+    <button id="clear-all" class="danger" type="button">Clear workspace</button>
+  </div>
+  <p id="status" role="status"></p>
+</section>
+</main>
+<script src="evidence-records.js"></script>
+<script src="workspace.js"></script>
+</body>
+</html>

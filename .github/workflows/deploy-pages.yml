@@ -1,0 +1,100 @@
+name: Verify and deploy Assay Evidence Studio
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run browser-module unit tests and syntax checks
+        run: |
+          node studio/test-fit.cjs
+          node studio/test-evidence-records.cjs
+          for f in studio/*.js; do
+            node --check "$f"
+          done
+
+      - name: Install Python test dependencies
+        run: python -m pip install -r NucleusAudit/requirements.txt
+
+      - name: Run Python verification suites
+        run: |
+          python -m unittest discover -s kinetics
+          python -m unittest discover -s evidence
+
+      - name: Verify offline studio bundle packaging
+        run: |
+          python scripts/package_studio.py /tmp/assay-evidence-studio.zip
+          rm -f /tmp/assay-evidence-studio.zip
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Stage production site and offline ZIP
+        run: |
+          mkdir -p _site
+          python -c "
+          import shutil
+          from pathlib import Path
+          src = Path('studio')
+          dst = Path('_site')
+          for file in sorted(src.rglob('*')):
+              if file.is_file() and file.suffix in {'.html', '.css', '.js', '.json', '.csv'}:
+                  target = dst / file.relative_to(src)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(file, target)
+          "
+          python scripts/package_studio.py _site/assay-evidence-studio.zip
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

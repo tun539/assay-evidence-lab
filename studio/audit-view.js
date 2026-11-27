@@ -26,6 +26,25 @@ function show(report){
         out.textContent='Matched '+r.tp+' · Extra '+r.fp+' · Missed '+r.fn+' · Score '+(r.score===null?'undefined':r.score.toFixed(3));
       }
       select.onchange=update;update();
+      const saveBtn=add(box,'button','Save threshold score to workspace');saveBtn.type='button';
+      saveBtn.onclick=()=>{
+        const r=run.rows[Number(select.value)];
+        if(r.score===null){statusLine.textContent='Cannot save an undefined match score.';return;}
+        try{
+          evidenceRecords.capture({
+            kind:'simulated',
+            title:'Cellpose audit · IoU '+r.threshold,
+            dataset:'Prediction audit · '+report.source,
+            method:'Cellpose one-to-one instance matching',
+            metric:'Object match score TP/(TP+FP+FN)',
+            unit:'score (0–1)',
+            value:Number(r.score.toFixed(4)),
+            source:'studio/audit.html',
+            details:{comparisonKey:'audit-mask-'+report.source, threshold:r.threshold, tp:r.tp, fp:r.fp, fn:r.fn},
+          });
+          statusLine.textContent='Saved Cellpose IoU '+r.threshold+' score ('+r.score.toFixed(3)+') to the evidence workspace.';
+        }catch(error){statusLine.textContent='Could not save audit score. '+error.message;}
+      };
     }else if(run.kind==='confidence'){
       if(!Array.isArray(run.scores)||!run.scores.length||!run.scores.every(v=>finite(v)&&v>=0&&v<=100)||!finite(run.mean))throw Error('Invalid pLDDT values.');
       add(box,'h2','Residue confidence');
@@ -42,6 +61,25 @@ function show(report){
       const out=add(box,'output'),bar=add(box,'progress');bar.max=100;
       function update(){const val=run.scores[Number(pos.value)-1];out.textContent=finite(val)?'pLDDT '+val.toFixed(2):'Choose a valid position.';bar.value=val||0}
       pos.oninput=update;update();
+      const saveBtn=add(box,'button','Save confidence summary to workspace');saveBtn.type='button';
+      saveBtn.onclick=()=>{
+        const idx=Math.max(1,Math.min(run.scores.length,Number(pos.value)||1));
+        const val=run.scores[idx-1];
+        try{
+          evidenceRecords.capture({
+            kind:'simulated',
+            title:'AlphaFold confidence · pos '+idx+' (mean '+run.mean.toFixed(1)+')',
+            dataset:'Prediction audit · '+report.source,
+            method:'AlphaFold pLDDT head evaluation',
+            metric:'Mean pLDDT',
+            unit:'pLDDT (0–100)',
+            value:Number(run.mean.toFixed(2)),
+            source:'studio/audit.html',
+            details:{comparisonKey:'audit-plddt-'+report.source, residues:run.scores.length, inspectedPosition:idx, inspectedPlddt:Number(val.toFixed(2)), below50:bands[0], between50And70:bands[1], between70And90:bands[2], above90:bands[3]},
+          });
+          statusLine.textContent='Saved AlphaFold confidence audit (mean pLDDT '+run.mean.toFixed(2)+') to the evidence workspace.';
+        }catch(error){statusLine.textContent='Could not save confidence audit. '+error.message;}
+      };
     }else throw Error('Unrecognized analysis.');
   }
   statusLine.textContent='Data source: '+report.source;

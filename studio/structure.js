@@ -122,7 +122,7 @@ async function selectStructure(){
   el('workspace').hidden=true;el('load-status').textContent='';
   if(experimental[id]){
     const m=experimental[id],source='https://www.rcsb.org/structure/'+id;
-    el('heading').textContent=m.name+' in 3D';document.title=m.name+' · Assay Evidence Lab';
+    el('heading').textContent=m.name+' in 3D';document.title=m.name+' · Assay Evidence Studio';
     el('intro').textContent='Inspect the experimentally resolved chain A of '+m.name+'. Residue labels preserve the deposited numbering.';
     el('provenance').replaceChildren('Experimental X-ray coordinates · ',refLink(source,'PDB '+id));
     el('dna-link').href='dna.html';scene.setAttribute('aria-label','Rotatable '+m.name+' Cα trace');
@@ -133,12 +133,12 @@ async function selectStructure(){
     for(const key of Object.keys(original))el(key).innerHTML=original[key];
     scene.setAttribute('aria-label','Rotatable human ubiquitin trace. Use arrow keys to rotate.');
     el('dna-link').href='dna.html';
-    document.title='Ubiquitin in 3D · Assay Evidence Lab';
+    document.title='Ubiquitin in 3D · Assay Evidence Studio';
     present({id:'1UBQ',source:'https://www.rcsb.org/structure/1UBQ',rows:residues.map(([name,...xyz],i)=>[name,i+1,...xyz])});
     return;
   }
   el('heading').textContent=record.gene+' protein in 3D';
-  document.title=el('heading').textContent+' · Assay Evidence Lab';
+  document.title=el('heading').textContent+' · Assay Evidence Studio';
   el('intro').textContent=record.species+' · '+record.note+' Follow the protein backbone from teal to gold.';
   el('lesson').textContent='Select a contact away from the diagonal. Record the two residues and their distance, then find a pair with similar sequence separation but a different distance. Explain what the folded geometry adds to the sequence.';
   const entry='https://alphafold.ebi.ac.uk/entry/'+id;
@@ -181,4 +181,35 @@ el('edges').onclick=()=>{
   for(const [i,j,d] of contacts)lines.push([active.id,active.source,'A',label(i),label(j),d.toFixed(4),el('cut').value,el('sep').value].join(','));
   const url=URL.createObjectURL(new Blob([lines.join('\n')+'\n'],{type:'text/csv'}));
   const link=document.createElement('a');link.href=url;link.download=active.id+'-contacts.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+el('save-evidence').onclick=()=>{
+  if(!active)return;
+  const [a,b]=pair();
+  const isExperimental=active.id==='1UBQ'||Object.hasOwn(experimental,active.id);
+  const d=dist(a,b);
+  try{
+    evidenceRecords.capture({
+      kind:isExperimental?'measured':'simulated',
+      title:active.id+' · '+label(a)+' ↔ '+label(b),
+      dataset:(isExperimental?'RCSB PDB experimental structure · ':'AlphaFold DB predicted fold · ')+active.id,
+      method:'Chain A Euclidean Cα distance',
+      metric:'Cα–Cα distance',
+      unit:'Å',
+      value:Number(d.toFixed(2)),
+      source:active.source,
+      details:{
+        comparisonKey:'structure-'+active.id+'-pair',
+        accession:active.id,
+        residueA:label(a),
+        residueB:label(b),
+        sequenceSeparation:Math.abs(rows[a][1]-rows[b][1]),
+        radiusOfGyrationAngstrom:Number(rg.toFixed(2)),
+        contactCutoffAngstrom:Number(el('cut').value),
+        totalContacts:contacts.length,
+      },
+    });
+    el('save-status').textContent='Saved '+label(a)+' ↔ '+label(b)+' ('+d.toFixed(2)+' Å) to the evidence workspace.';
+  }catch(error){
+    el('save-status').textContent='Could not save measurement. '+error.message;
+  }
 };

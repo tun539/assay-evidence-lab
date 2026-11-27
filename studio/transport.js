@@ -1,7 +1,7 @@
 'use strict';
 const get=id=>document.getElementById(id);
 const dt=.025, steps=160, count=96;
-let frames, stats, config, yaw=.45, pitch=.27, playing=false, last=0;
+let frames, stats, config, lastFits = [], yaw=.45, pitch=.27, playing=false, last=0;
 function generator(seed){
   return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return (seed+.5)/4294967296;};
 }
@@ -41,7 +41,8 @@ function run(){
   get('investigate').textContent={axis:'Which axis grows widest? Rotate the cloud and compare the fitted diffusion coefficients.',wave:'Inspect the centroid at 0.5 and 1 second. Can constant drift explain both?',free:'Try doubling D with the same seed. What happens to the slope?',drift:'Compare the centroid motion to the random spread. When does the quadratic term dominate?',trap:'Increase the restoring rate. Does the plateau rise or fall? Repeat with a second seed.'}[config.mode];
   get('message').textContent='Displaying '+get('mode').selectedOptions[0].text+' · seed '+config.seed;
   const table=get('fit');table.replaceChildren();
-  for(const result of fitMotion(frames,dt,64)){
+  lastFits=fitMotion(frames,dt,64);
+  for(const result of lastFits){
     const row=table.insertRow();
     const parameter=result.model==='Restoring force'?result.rate.toFixed(3)+' /s':(['Constant drift','Periodic flow'].includes(result.model)?result.beta.toFixed(3)+' μm/s':'—');
     for(const value of [result.model,result.loss.toFixed(5),result.diffusivity.map(v=>v.toFixed(3)).join(' / '),parameter])row.insertCell().textContent=value;
@@ -102,5 +103,36 @@ world.onpointermove=e=>{if(drag){yaw+=(e.clientX-drag[0])*.01;pitch+=(e.clientY-
 world.onlostpointercapture=()=>{drag=null;};
 world.onkeydown=e=>{const step={ArrowLeft:[-.1,0],ArrowRight:[.1,0],ArrowUp:[0,.1],ArrowDown:[0,-.1]}[e.key];if(step){e.preventDefault();yaw+=step[0];pitch+=step[1];draw();}};
 get('export').onclick=()=>{const csv='model,D,strength,seed,time_s,MSD_um2,expected_um2,mean_x_um,mean_y_um,mean_z_um\n'+stats.map(r=>[config.mode,config.D,config.k,config.seed,...r].join(',')).join('\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='transport-'+config.mode+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+get('save-evidence').onclick=()=>{
+  if(!config||!stats?.length)return;
+  const best=lastFits[0];
+  const finalRow=stats.at(-1);
+  const modeLabel=get('mode').selectedOptions[0].text;
+  try{
+    evidenceRecords.capture({
+      kind:'simulated',
+      title:modeLabel+' · D='+config.D+' · seed '+config.seed,
+      dataset:'3D molecular transport (96 tracers, 4 s)',
+      method:'64-train / 32-test increment NLL inference',
+      metric:'Best held-out NLL',
+      unit:'nats/coord',
+      value:Number(best.loss.toFixed(5)),
+      source:'studio/transport.html',
+      details:{
+        comparisonKey:'transport-'+config.mode+'-D'+config.D,
+        transportMode:config.mode,
+        diffusivityUm2PerS:config.D,
+        strengthParameter:config.k,
+        seed:config.seed,
+        topInferredModel:best.model,
+        finalMeasuredMsdUm2:Number(finalRow[1].toFixed(3)),
+        finalTheoryMsdUm2:Number(finalRow[2].toFixed(3)),
+      },
+    });
+    get('save-status').textContent='Saved transport run (top model: '+best.model+') to the evidence workspace.';
+  }catch(error){
+    get('save-status').textContent='Could not save transport run. '+error.message;
+  }
+};
 get('spread').onchange=draw;
 controls();run();

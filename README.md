@@ -4,11 +4,12 @@
 
 **A playable biology lab for exploring molecular structures, comparing models, and tracing predictions back to evidence.** Orbit the 3D atlas, run an experiment, and test your reasoning at one of nine research stations.
 
-[![Play the 3D atlas](https://img.shields.io/badge/PLAY-3D%20ATLAS-176953?style=for-the-badge)](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/atlas)
-[![Download the offline app](https://img.shields.io/badge/DOWNLOAD-OFFLINE%20APP-b86c2f?style=for-the-badge)](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/assay-evidence-studio.zip)
+[![Open Assay Evidence Studio](https://img.shields.io/badge/OPEN-LIVE%20STUDIO-17483c?style=for-the-badge)](https://tun539.github.io/assay-evidence-lab/)
+[![Play the 3D atlas](https://img.shields.io/badge/PLAY-3D%20ATLAS-176953?style=for-the-badge)](https://tun539.github.io/assay-evidence-lab/atlas.html)
+[![Download the offline app](https://img.shields.io/badge/DOWNLOAD-OFFLINE%20APP-b86c2f?style=for-the-badge)](https://tun539.github.io/assay-evidence-lab/assay-evidence-studio.zip)
 [![Download full source](https://img.shields.io/badge/GET-FULL%20SOURCE-334c56?style=for-the-badge)](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip)
 
-[Local play and editing guide](PLAY.md) · [Methods and data sources](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/methods) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)
+[Evidence workspace](https://tun539.github.io/assay-evidence-lab/workspace.html) · [Local play and editing guide](PLAY.md) · [Methods and data sources](https://tun539.github.io/assay-evidence-lab/methods.html) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)
 
 ## Tools used
 
@@ -34,25 +35,25 @@
 
 ## Evidence workspace
 
-[Open the workspace](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/workspace). Save a measured kinetics fold or a simulated molecular assay, compare compatible records, and export a JSON packet for independent review. Records are stored in the current browser.
+[Open the workspace](https://tun539.github.io/assay-evidence-lab/workspace.html). Capture runs from all ten quantitative labs — Kinetics workbench, Molecular learning lab, Enzyme practical, Research benchmark, Gene expression atlas, Protein 3D structure viewer, Tomography, Molecular transport in 3D, Simulation lab, and Prediction audit. Filter by evidence type or dataset, search and sort saved runs, jump straight to matching peers with **Compare with match**, inspect side-by-side SVG bar charts and parameter diffs (with **Swap A ↔ B**), persist review notes in the browser, and export JSON packets, Markdown reports (download or copy to clipboard), or CSV summary tables. Run `node studio/test-evidence-records.cjs` to verify record validation, comparison, and export logic.
 
 ## Explore the studio
 
 | Research area | Open a lab | What to try |
 | --- | --- | --- |
-| Molecular structure | [Protein 3D](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/structure) · [Linked residue explorer](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/linked) | Rotate a chain and measure a Cα distance from the contact map. |
-| Imaging and transport | [Tomography](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/tomography) · [Transport in 3D](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/transport) | Reconstruct a protein-derived slice or compare moving tracers with theory. |
-| Enzyme kinetics | [Kinetics workbench](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/kinetics) · [Molecular Learning Lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/molecular) | Hold out a concentration in the measured assay, then test a learned measurement policy on simulated assays. |
-| Genomics | [Expression atlas](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/expression) · [DNA strand lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/dna) | Compare microarray cohorts, inspect complementary strands, or assemble two reads. |
-| Model evaluation | [Prediction audit](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/audit) · [Research benchmark](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/research) · [Simulation lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/simulation) | Inspect object matches, change decision thresholds, or test a learned force law outside its training interval. |
+| Molecular structure | [Protein 3D](https://tun539.github.io/assay-evidence-lab/structure.html) · [Linked residue explorer](https://tun539.github.io/assay-evidence-lab/linked.html) | Rotate a chain and measure a Cα distance from the contact map. |
+| Imaging and transport | [Tomography](https://tun539.github.io/assay-evidence-lab/tomography.html) · [Transport in 3D](https://tun539.github.io/assay-evidence-lab/transport.html) | Reconstruct a protein-derived slice or compare moving tracers with theory. |
+| Enzyme kinetics | [Kinetics workbench](https://tun539.github.io/assay-evidence-lab/kinetics.html) · [Molecular Learning Lab](https://tun539.github.io/assay-evidence-lab/molecular.html) | Hold out a concentration in the measured assay, then test a learned measurement policy on simulated assays. |
+| Genomics | [Expression atlas](https://tun539.github.io/assay-evidence-lab/expression.html) · [DNA strand lab](https://tun539.github.io/assay-evidence-lab/dna.html) | Compare microarray cohorts, inspect complementary strands, or assemble two reads. |
+| Model evaluation | [Prediction audit](https://tun539.github.io/assay-evidence-lab/audit.html) · [Research benchmark](https://tun539.github.io/assay-evidence-lab/research.html) · [Simulation lab](https://tun539.github.io/assay-evidence-lab/simulation.html) | Inspect object matches, change decision thresholds, or test a learned force law outside its training interval. |
 
 ## Play, edit, and remix
 
-1. [Download and extract the offline app](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/assay-evidence-studio.zip). Open `studio/atlas.html` in a browser to start the missions.
+1. [Download and extract the offline app](https://tun539.github.io/assay-evidence-lab/assay-evidence-studio.zip). Open `studio/atlas.html` in a browser to start the missions.
 2. Edit `studio/atlas.js` to change missions, `studio/atlas.css` to style the map, or individual pages in `studio/` to customize a lab.
 3. For a local HTTP server, run `python scripts/play_studio.py`. See [PLAY.md](PLAY.md) for platform notes and packaging instructions.
 
-Fork the repository to share your own version. Start with the [executed molecular training notebook](ml/MolecularLearning.ipynb) to reproduce the random forest, neural network, and RL comparison.
+Fork the repository to share your own version. Pushes to `main` automatically run the Node.js and Python test suites, package a fresh offline ZIP, and deploy the studio to GitHub Pages via [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml). Start with the [executed molecular training notebook](ml/MolecularLearning.ipynb) to reproduce the random forest, neural network, and RL comparison.
 
 ## Featured experiment
 
@@ -60,7 +61,7 @@ Fork the repository to share your own version. Start with the [executed molecula
 
 ![Measured galactosyltransferase reaction rates in two conditions and prediction error for four kinetic models](kinetics/comparison.png)
 
-[Open the enzyme practical](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/practical) · [Inspect measured rates](kinetics/puromycin.csv) · [Review held-out predictions](kinetics/predictions.csv)
+[Open the enzyme practical](https://tun539.github.io/assay-evidence-lab/practical.html) · [Inspect measured rates](kinetics/puromycin.csv) · [Review held-out predictions](kinetics/predictions.csv)
 
 ## DNA sequence and strand practical
 
@@ -68,7 +69,7 @@ Open `studio/dna.html` online or offline. Five linked reference records supply 6
 
 ## Folded gene products
 
-Open [the protein structure lab](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/structure.html?protein=P00846) and select a gene product or the experimental ubiquitin reference. Each predicted trace includes one alpha carbon per residue. Rotate the trace, select contacts and export a distance or the coordinates. The DNA lab links directly to the selected product. All five traces are bundled for offline use.
+Open [the protein structure lab](https://tun539.github.io/assay-evidence-lab/structure.html?protein=P00846) and select a gene product or the experimental ubiquitin reference. Each predicted trace includes one alpha carbon per residue. Rotate the trace, select contacts and export a distance or the coordinates. The DNA lab links directly to the selected product. All five traces are bundled for offline use.
 
 Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each export records the versioned source PDB URL. Run `python scripts/refresh_gene_models.py` to extract fresh chain-A traces. Distances in predicted monomers describe model geometry.
 
@@ -134,7 +135,7 @@ The fit uses positive parameters, equal observation weights and nonlinear least 
 
 ## Research benchmark · model comparison and probability error
 
-[Open the interactive benchmark](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/research) to compare logistic regression, k-nearest neighbors, RBF SVM and random forest on shared outer folds. Explore reliability, threshold behavior and paired Brier differences. The [research report](research/README.md) includes commands to reproduce and independently verify the results.
+[Open the interactive benchmark](https://tun539.github.io/assay-evidence-lab/research.html) to compare logistic regression, k-nearest neighbors, RBF SVM and random forest on shared outer folds. Explore reliability, threshold behavior and paired Brier differences. The [research report](research/README.md) includes commands to reproduce and independently verify the results.
 
 ## Second case study · NucleusAudit
 
@@ -148,4 +149,4 @@ The reference implementation and interpretation were prepared with AI assistance
 
 ## Gene expression atlas
 
-[Open the atlas](https://assay-evidence.kh-ng-gian-l-5063.chatgpt.site/expression). Search 7,129 microarray probe sets, compare cohort means, export the training-selected panel and inspect specimen-level predictions. To reproduce, download `actual.csv`, `data_set_ALL_AML_train.csv` and `data_set_ALL_AML_independent.csv` from the [data mirror](https://github.com/varshith-alladi/Leukemia-Cancer-Classification), install the root requirements, then run `python research/expression.py /path/to/csv-directory`. Hyperparameters and the 25-probe panel size are fixed. The small historical test cohort limits precision and transportability.
+[Open the atlas](https://tun539.github.io/assay-evidence-lab/expression.html). Search 7,129 microarray probe sets, compare cohort means, export the training-selected panel and inspect specimen-level predictions. To reproduce, download `actual.csv`, `data_set_ALL_AML_train.csv` and `data_set_ALL_AML_independent.csv` from the [data mirror](https://github.com/varshith-alladi/Leukemia-Cancer-Classification), install the root requirements, then run `python research/expression.py /path/to/csv-directory`. Hyperparameters and the 25-probe panel size are fixed. The small historical test cohort limits precision and transportability.

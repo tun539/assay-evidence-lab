@@ -100,7 +100,8 @@ studioMenu.addEventListener('keydown', event => {
   }
 });
 </script>
-<script src="results.js"></script><script src="kinetics-data.js"></script><script src="app.js"></script><script src="validation.js"></script><script>setStudy()
+<script src="results.js"></script><script src="kinetics-data.js"></script><script src="evidence-records.js"></script><script src="app.js"></script><script src="validation.js"></script><script>setStudy()
+evidenceRecords.bindBadge(document.querySelector('.workspace-link'));
 if (location.protocol==='file:' || ['localhost','127.0.0.1','[::1]'].includes(location.hostname)) {
   const download=document.getElementById('offline-download');
   download.href='https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip';

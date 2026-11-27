@@ -64,4 +64,36 @@ get('download').onclick=()=>{
   a.href=url;a.download='wdbc-out-of-fold-predictions.csv';a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
+get('save-evidence').onclick=()=>{
+  const model=benchmark.models[modelIndex()];
+  const threshold=Number(get('threshold').value);
+  const counts=[0,0,0,0];
+  for(const [,y,,...p] of benchmark.rows) counts[2*y+Number(p[modelIndex()]>=threshold)]++;
+  const [tn,fp,fn,tp]=counts;
+  try{
+    evidenceRecords.capture({
+      kind:'measured',
+      title:model.name+' · WDBC nested CV',
+      dataset:'UCI Wisconsin Diagnostic Breast Cancer (569 specimens)',
+      method:'5×4 nested cross-validation',
+      metric:'Pooled Brier score',
+      unit:'squared probability error',
+      value:Number(model.brier.toFixed(4)),
+      source:'https://archive.ics.uci.edu/dataset/17/breast%2Bcancer%2Bwisconsin%2Bdiagnostic',
+      details:{
+        comparisonKey:'wdbc-569-nested-cv',
+        model:model.name,
+        meanFoldAuroc:Number(model.mean_auc.toFixed(4)),
+        deltaBrierVsLogistic:model.key==='logistic'?0:Number(model.delta_brier.toFixed(4)),
+        threshold:Number(threshold.toFixed(2)),
+        sensitivity:Number((tp/(tp+fn)).toFixed(4)),
+        specificity:Number((tn/(tn+fp)).toFixed(4)),
+        confusion:{tn,fp,fn,tp},
+      },
+    });
+    get('save-status').textContent='Saved '+model.name+' (Brier '+model.brier.toFixed(4)+') to the evidence workspace.';
+  }catch(error){
+    get('save-status').textContent='Could not save the benchmark run. '+error.message;
+  }
+};
 render();

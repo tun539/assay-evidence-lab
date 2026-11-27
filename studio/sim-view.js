@@ -88,4 +88,54 @@ get('csv').onclick=()=>{
   for(const [name,data] of Object.entries(charts))for(const [x,a,b] of data)rows.push([name,x,a,b??''].join(','));
   download('simulation-curves.csv',rows.join('\n'),'text/csv');
 };
+get('save-evidence').onclick=()=>{
+  if(!snapshot)return;
+  const r=snapshot.result, p=snapshot.params;
+  try{
+    if(snapshot.mode==='force'){
+      evidenceRecords.capture({
+        kind:'simulated',
+        title:'Force law · train ±'+p.width+' / start '+p.amplitude,
+        dataset:'Anharmonic oscillator force-law task',
+        method:'Linear least-squares stiffness + velocity Verlet',
+        metric:'Force RMSE',
+        unit:'reduced force',
+        value:Number(r.rmse.toFixed(4)),
+        source:'studio/simulation.html',
+        details:{
+          comparisonKey:'simulation-force-amp-'+p.amplitude,
+          trainingHalfWidth:p.width,
+          startingAmplitude:p.amplitude,
+          fittedStiffness:Number(r.stiffness.toFixed(4)),
+          forceMae:Number(r.mae.toFixed(4)),
+          claim:get('brief').value||undefined,
+        },
+      });
+    }else{
+      evidenceRecords.capture({
+        kind:'simulated',
+        title:'Two-state ensemble · ΔG '+p.gap+' / mix '+p.mix,
+        dataset:'Two-conformation Markov chain (500 steps)',
+        method:'Seeded discrete-time two-state sampling',
+        metric:'Observed state B occupancy',
+        unit:'fraction',
+        value:Number(r.observed.toFixed(4)),
+        source:'studio/simulation.html',
+        details:{
+          comparisonKey:'simulation-ensemble-gap-'+p.gap,
+          freeEnergyGap:p.gap,
+          transitionScale:p.mix,
+          seed:p.seed,
+          equilibriumB:Number(r.probability.toFixed(4)),
+          absoluteError:Number(Math.abs(r.observed-r.probability).toFixed(4)),
+          stateSwitches:r.switches,
+          claim:get('brief').value||undefined,
+        },
+      });
+    }
+    get('save-status').textContent='Saved simulation run to the evidence workspace.';
+  }catch(error){
+    get('save-status').textContent='Could not save simulation run. '+error.message;
+  }
+};
 get('mode').onchange=setup;get('run').onclick=run;setup();

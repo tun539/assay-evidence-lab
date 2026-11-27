@@ -134,5 +134,35 @@ canvas.onpointermove=e=>{if(drag){yaw+=(e.clientX-drag[0])*.015;pitch+=(e.client
 canvas.onlostpointercapture=()=>{drag=null;};
 canvas.onkeydown=e=>{const d={ArrowLeft:[-.1,0],ArrowRight:[.1,0],ArrowUp:[0,.1],ArrowDown:[0,-.1]}[e.key];if(d){e.preventDefault();yaw+=d[0];pitch+=d[1];world();}};
 get('save').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='tomography-experiment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+get('save-evidence').onclick=()=>{
+  if(!record)return;
+  const label=get('specimen').selectedOptions[0].text;
+  const finalRmse=record.rmse.at(-1);
+  try{
+    evidenceRecords.capture({
+      kind:'simulated',
+      title:record.specimen+' · '+record.angles+' views ('+record.span_degrees+'°)',
+      dataset:'Simulated parallel-beam tomography · '+label,
+      method:'Iterative back-projection ('+record.passes+' passes)',
+      metric:'Density RMSE',
+      unit:'normalized density',
+      value:Number(finalRmse.toFixed(4)),
+      source:protein?'https://alphafold.ebi.ac.uk/entry/'+protein.id:'studio/tomography.html',
+      details:{
+        comparisonKey:'tomography-'+record.specimen+'-z'+record.z.toFixed(2),
+        specimen:record.specimen,
+        sliceZ:record.z,
+        angles:record.angles,
+        spanDegrees:record.span_degrees,
+        passes:record.passes,
+        initialRmse:Number(record.rmse[0].toFixed(4)),
+        widthAngstrom:record.width_angstrom?Number(record.width_angstrom.toFixed(1)):null,
+      },
+    });
+    get('save-status').textContent='Saved tomography reconstruction (RMSE '+finalRmse.toFixed(4)+') to the evidence workspace.';
+  }catch(error){
+    get('save-status').textContent='Could not save reconstruction. '+error.message;
+  }
+};
 get('specimen').onchange=choose;
 choose();

@@ -42,4 +42,34 @@ function compareProbe(){
   evidenceMatrix(el('cohortMap'),'Difference in original intensity units',['Probe','Training','Test'],[delta],[probe[0]],true);
 }
 el('compareProbe').onchange=compareProbe;compareProbe();
+el('save-evidence').onclick=()=>{
+  const probe=panelProbes[Number(el('compareProbe').value)],delta=difference(probe);
+  try{
+    evidenceRecords.capture({
+      kind:'measured',
+      title:probe[0]+' · Golub test contrast',
+      dataset:'Golub ALL/AML microarray (38 train, 34 test)',
+      method:'Cohort mean intensity difference (AML minus ALL)',
+      metric:'Test-cohort contrast',
+      unit:'intensity units',
+      value:Number(delta[1].toFixed(2)),
+      source:'https://doi.org/10.1126/science.286.5439.531',
+      details:{
+        comparisonKey:'golub-probe-contrast',
+        probeId:probe[0],
+        description:probe[1],
+        trainAllMean:probe[2],
+        trainAmlMean:probe[3],
+        testAllMean:probe[4],
+        testAmlMean:probe[5],
+        trainContrast:Number(delta[0].toFixed(2)),
+        testContrast:Number(delta[1].toFixed(2)),
+        sameDirection:Math.sign(delta[0])===Math.sign(delta[1]),
+      },
+    });
+    el('save-status').textContent='Saved probe '+probe[0]+' to the evidence workspace.';
+  }catch(error){
+    el('save-status').textContent='Could not save the probe contrast. '+error.message;
+  }
+};
 evidenceMatrix(el('panelMap'),'Shared scale across the full selected panel',['Probe','Training','Test'],panelProbes.map(difference),panelProbes.map(r=>r[0]),true);
