@@ -1,3 +1,4 @@
+:root{--studio-max-width:1120px}
 *{box-sizing:border-box}
 body{margin:0;background:#f4f6f1;color:#183c35;font:16px/1.55 Inter,Arial,sans-serif}
 header,main{max-width:1120px;margin:auto;padding:18px clamp(16px,4vw,44px)}
@@ -9,6 +10,7 @@ h1{font-size:clamp(40px,7vw,76px);max-width:850px;margin-top:16px}
 h2{font-size:28px}
 .intro{max-width:730px;font-size:18px;color:#3e5e52}
 .facts,.controls{display:flex;gap:10px 25px;flex-wrap:wrap;align-items:center;margin:20px 0}
+.controls label{max-width:100%;min-width:0}
 .facts div{background:#17483c;color:white;border-radius:8px;padding:8px 12px}
 .facts strong{color:#ddf4b9}
 section{background:white;border:1px solid #cdd8cf;border-radius:14px;padding:clamp(14px,3vw,24px);margin:18px 0}

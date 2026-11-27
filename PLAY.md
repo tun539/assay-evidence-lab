@@ -14,11 +14,14 @@ The labs use bundled assets and run in the browser. The original references and 
 | --- | --- |
 | `studio/atlas.js` | Mission tasks, station labels, checkpoint questions and evidence feedback |
 | `studio/atlas.css` | Atlas palette, layout, controls and mobile styles |
-| `studio/index.html` | Studio landing page and links |
+| `studio/studio-nav.js`, `studio/studio-nav.css`, `studio/favicon.svg` | Unified responsive Studio header, Resources dropdown, contextual links, live Evidence Workspace badge, and favicon |
+| `studio/index.html` | Studio landing page, Cosmos-curated 3D specimen gallery, audience pathways, and 13-lab grid |
+| `studio/structure.html`, `studio/structure.css`, `studio/structure.js`, `studio/mol3d-engine.js` | AlphaFold-style 18-model 3D Molecular Studio, Catmull–Rom cartoon ribbon renderer, PAE matrix, local `.pdb` parser, and accessibility modes |
+| `studio/dna.html`, `studio/gene-model.js`, `studio/folds/*.js` | 10-gene 3D DNA double-helix lab, codon-to-protein translation bridge, and bundled AlphaFold DB v6 gene folds |
 | `studio/molecular.html`, `studio/molecular-scene.js` | Enzyme simulator controls and rendering |
 | `ml/MolecularLearning.ipynb` | Reproduce the CPU training and compare supervised and RL approaches |
 
-After editing a page, reload the browser. Checkpoint progress is stored locally per browser and site address. Browser restrictions can affect progress when opening files directly.
+After editing a page, reload the browser. Checkpoint progress and Evidence Workspace records are stored locally per browser and site address. Browser restrictions can affect progress when opening files directly. Run `node studio/test-fit.cjs`, `node studio/test-evidence-records.cjs`, and `node studio/test-studio-pages.cjs` from the repository root to verify solver parity, workspace logic, and all 17 Studio HTML pages.
 
 For training, create a Python environment and install `ml/requirements.txt` plus SciPy. Open notebooks from the `ml` directory. Running `python ml/molecular.py` from the project folder regenerates the molecular benchmark data consumed by the UI. The complete GitHub project also includes the primary assay fits, research scripts, tests, and teaching guides. See the in-app methods page for dataset and model provenance.
 

@@ -1,14 +1,88 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Linked protein explorer · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><style>
-.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:1rem}.views figure{margin:0}.views canvas{width:100%;aspect-ratio:1;display:block;touch-action:none}.views figcaption{margin:.5rem 0}#sequence{max-height:10rem;overflow:auto;display:flex;flex-wrap:wrap;gap:3px;padding:.4rem}#sequence button{font:14px monospace;padding:.22rem .36rem;margin:0;background:#e9f1eb;color:#193d37}#sequence button.a{background:#ffc364;color:#19281e}#sequence button.b{background:#8270be;color:white}#measurement{display:block;padding:1rem;background:#173d36;color:white;border-radius:8px;font-variant-numeric:tabular-nums}
-</style></head><body><header><a href="index.html">Assay Evidence Studio</a><a href="tomography.html">Tomography lab</a></header><main><h1>Linked protein explorer</h1><p>Which residues lie far apart in the sequence but meet in the fold? Choose two letters or click a pixel in the contact map to measure their separation.</p>
-<label>Protein <select id="protein"></select></label> <a id="source">AlphaFold source coordinates</a>
-<section><h2>Residue pair</h2><label>Next selection <select id="slot"><option value="0">A · gold</option><option value="1">B · violet</option></select></label><div id="sequence" aria-label="Protein sequence"></div><output id="measurement" aria-live="polite"></output></section>
-<div class="views"><figure><h2>Predicted backbone</h2><canvas id="fold" width="520" height="520" tabindex="0" aria-label="3D backbone. Use arrow keys to rotate."></canvas><figcaption>Drag or use arrow keys to rotate. Click the chain to select the nearest visible point. The dashed line joins your pair.</figcaption></figure>
-<figure><h2>Contact map</h2><canvas id="map" width="520" height="520" aria-label="Residue contact matrix. Use sequence buttons for keyboard selection."></canvas><figcaption>Columns select A from left to right. Rows select B from top to bottom. Green marks Cα pairs within 8 Å. Crosshairs mark your selection.</figcaption></figure></div><p>Distances use the original three-dimensional alpha-carbon coordinates of the predicted single chain. The 8 Å cutoff describes geometric proximity. The diagonal compares each residue with itself.</p></main>
-<script src="dna-data.js"></script><script src="fold-catalog.js"></script>
-<script src="folds/O23290.js"></script>
-<script src="folds/P00359.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Connect protein sequences, Cα contact maps, AlphaFold per-residue pLDDT confidence, and interactive 3D folds across 10 real KEGG gene models.">
+<title>Linked protein explorer · Assay Evidence Studio</title>
+<link rel="stylesheet" href="research.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
+<style>
+.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:1rem}
+.views figure{margin:0}
+.views canvas{width:100%;aspect-ratio:1;display:block;touch-action:none;border-radius:10px}
+.views figcaption{margin:.5rem 0}
+.linked-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:.7rem 0 1rem}
+.linked-top label{margin:0;max-width:100%;min-width:0}
+.linked-top select{max-width:100%}
+.linked-legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:#3b554c;margin:.5rem 0}
+.linked-legend span{display:inline-flex;align-items:center;gap:6px}
+.linked-swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+#sequence{max-height:11rem;overflow:auto;display:flex;flex-wrap:wrap;gap:3px;padding:.5rem;background:#f7faf8;border:1px solid #d2dfd5;border-radius:10px}
+#sequence button{font:13.5px monospace;padding:.24rem .38rem;margin:0;background:#e9f1eb;color:#193d37;border-radius:5px;border:1px solid #cddbd1}
+#sequence button.a{background:#ffc364;color:#19281e;border-color:#9e6a00;font-weight:700}
+#sequence button.b{background:#8270be;color:#fff;border-color:#4e3d8b;font-weight:700}
+#measurement{display:block;padding:1rem;background:#102b32;color:#f1f7f5;border-radius:10px;font-variant-numeric:tabular-nums;margin-top:.7rem}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="linked.html" data-methods="structure" data-related-href="structure.html" data-related-label="3D Molecular Studio →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+<main id="main">
+  <h1>Linked protein explorer</h1>
+  <p>Which residues lie far apart in the sequence but meet in the 3D fold? Inspect all <strong>10 KEGG-linked AlphaFold DB v6 gene products</strong> with real per-residue pLDDT coloring, contact matrices, and synchronized 3D backbones.</p>
+
+  <div class="linked-top">
+    <label>Protein (10 gene folds) <select id="protein"></select></label>
+    <a id="source">AlphaFold source coordinates</a>
+    <a id="open-studio" href="structure.html">Open in 3D Molecular Studio →</a>
+  </div>
+
+  <div class="linked-legend" aria-label="AlphaFold pLDDT color legend">
+    <span><i class="linked-swatch" style="background:#0053D6"></i>Very high (&gt;90)</span>
+    <span><i class="linked-swatch" style="background:#65CBF3"></i>Confident (70–90)</span>
+    <span><i class="linked-swatch" style="background:#FFDB13"></i>Low (50–70)</span>
+    <span><i class="linked-swatch" style="background:#FF7D45"></i>Very low (&lt;50)</span>
+  </div>
+
+  <section>
+    <h2>Residue pair</h2>
+    <label>Next selection <select id="slot"><option value="0">A · gold</option><option value="1">B · violet</option></select></label>
+    <div id="sequence" aria-label="Protein sequence"></div>
+    <output id="measurement" aria-live="polite"></output>
+  </section>
+
+  <div class="views">
+    <figure>
+      <h2>Predicted 3D backbone (pLDDT)</h2>
+      <canvas id="fold" width="520" height="520" tabindex="0" aria-label="3D backbone colored by AlphaFold pLDDT. Use arrow keys to rotate."></canvas>
+      <figcaption>Drag or use arrow keys to rotate. Click the chain to select the nearest visible residue. The dashed line joins residues A and B.</figcaption>
+    </figure>
+    <figure>
+      <h2>Contact map (8 Å Cα)</h2>
+      <canvas id="map" width="520" height="520" aria-label="Residue contact matrix. Use sequence buttons for keyboard selection."></canvas>
+      <figcaption>Columns select A from left to right; rows select B from top to bottom. Green marks Cα pairs within 8 Å. Crosshairs mark your selection.</figcaption>
+    </figure>
+  </div>
+
+  <p>Distances use the original three-dimensional alpha-carbon coordinates of the AlphaFold DB v6 single-chain prediction. Color bands reflect each residue’s AlphaFold pLDDT score (0–100). The 8 Å cutoff describes geometric proximity.</p>
+</main>
+<script src="dna-data.js"></script>
+<script src="fold-catalog.js"></script>
 <script src="folds/P00846.js"></script>
 <script src="folds/P0A7J3.js"></script>
+<script src="folds/P00359.js"></script>
 <script src="folds/Q31BY4.js"></script>
-<script src="linked.js"></script></body></html>
+<script src="folds/O23290.js"></script>
+<script src="folds/P04637.js"></script>
+<script src="folds/P68871.js"></script>
+<script src="folds/P01308.js"></script>
+<script src="folds/P0A7G6.js"></script>
+<script src="folds/P00441.js"></script>
+<script src="linked.js"></script>
+<script src="studio-nav.js"></script>
+</body>
+</html>

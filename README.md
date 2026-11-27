@@ -41,10 +41,10 @@
 
 | Research area | Open a lab | What to try |
 | --- | --- | --- |
-| Molecular structure | [Protein 3D](https://tun539.github.io/assay-evidence-lab/structure.html) · [Linked residue explorer](https://tun539.github.io/assay-evidence-lab/linked.html) | Rotate a chain and measure a Cα distance from the contact map. |
-| Imaging and transport | [Tomography](https://tun539.github.io/assay-evidence-lab/tomography.html) · [Transport in 3D](https://tun539.github.io/assay-evidence-lab/transport.html) | Reconstruct a protein-derived slice or compare moving tracers with theory. |
+| Molecular structure (18 3D models) | [3D Molecular Studio](https://tun539.github.io/assay-evidence-lab/structure.html) · [Linked residue explorer](https://tun539.github.io/assay-evidence-lab/linked.html) | Inspect PDB 8AW3 (Protein–RNA–2×Zn²⁺) or 10 AlphaFold DB v6 gene folds with cartoon ribbons, real PAE maps, local `.pdb` upload, and Explorer/Student/Researcher modes. |
+| Imaging and transport | [Tomography](https://tun539.github.io/assay-evidence-lab/tomography.html) · [Transport in 3D](https://tun539.github.io/assay-evidence-lab/transport.html) | Reconstruct slices across 10 AlphaFold gene proteins or compare moving tracers with theory. |
 | Enzyme kinetics | [Kinetics workbench](https://tun539.github.io/assay-evidence-lab/kinetics.html) · [Molecular Learning Lab](https://tun539.github.io/assay-evidence-lab/molecular.html) | Hold out a concentration in the measured assay, then test a learned measurement policy on simulated assays. |
-| Genomics | [Expression atlas](https://tun539.github.io/assay-evidence-lab/expression.html) · [DNA strand lab](https://tun539.github.io/assay-evidence-lab/dna.html) | Compare microarray cohorts, inspect complementary strands, or assemble two reads. |
+| Genomics (10 linked genes) | [3D Gene & DNA Lab](https://tun539.github.io/assay-evidence-lab/dna.html) · [Expression atlas](https://tun539.github.io/assay-evidence-lab/expression.html) | Orbit 10 full coding genes in shaded 3D duplexes, jump straight from any codon to its AlphaFold 3D residue, export FASTA, or compare microarray cohorts. |
 | Model evaluation | [Prediction audit](https://tun539.github.io/assay-evidence-lab/audit.html) · [Research benchmark](https://tun539.github.io/assay-evidence-lab/research.html) · [Simulation lab](https://tun539.github.io/assay-evidence-lab/simulation.html) | Inspect object matches, change decision thresholds, or test a learned force law outside its training interval. |
 
 ## Edit anywhere, deploy everywhere
@@ -62,19 +62,19 @@
 
 [Open the enzyme practical](https://tun539.github.io/assay-evidence-lab/practical.html) · [Inspect measured rates](kinetics/puromycin.csv) · [Review held-out predictions](kinetics/predictions.csv)
 
-## DNA sequence and strand practical
+## 3D Gene & DNA Lab (10 linked KEGG genes)
 
-Open `studio/dna.html` online or offline. Five linked reference records supply 60-base coding excerpts. Slide a 12-base window, rotate an idealized duplex, export FASTA and practice antiparallel pairing or assembly of two simulated reads.
+Open `studio/dna.html` online or offline. **Ten linked KEGG coding sequences** (`MT-ATP6`, `rplJ`, `TDH3`, `rbcL`, `AT4G14320`, `TP53`, `HBB`, `INS`, `recA`, and `SOD1`) render in **AlphaFold 3 / Mol\*-style 3D right-handed B-DNA** (3.38 Å/bp, asymmetric 22 Å major / 12 Å minor grooves, Catmull–Rom sugar–phosphate ribbons, deoxyribose pentoses, fused 5+6 purine & 6-ring pyrimidine slabs, All-Atom CPK Ball & Stick, Groove Spacefill VdW, and 2/3 dashed Watson–Crick H-bonds), with live mitochondrial/standard codon translation directly linking into each residue of the paired AlphaFold 3D protein fold, FASTA export, and simulated read-assembly exercises.
 
-## Folded gene products
+## AlphaFold-Style 3D Molecular Studio (18 models)
 
-Open [the protein structure lab](https://tun539.github.io/assay-evidence-lab/structure.html?protein=P00846) and select a gene product or the experimental ubiquitin reference. Each predicted trace includes one alpha carbon per residue. Rotate the trace, select contacts and export a distance or the coordinates. The DNA lab links directly to the selected product. All five traces are bundled for offline use.
+Open [the 3D Molecular & Gene Structure Studio](https://tun539.github.io/assay-evidence-lab/structure.html) online or offline to explore **18 bundled 3D structures** rendered with smooth Catmull–Rom cartoon ribbons, α-helices, sculpted β-strand arrowheads, nucleic acid base rungs, metallic ions, covalent ligands, and interactive green 0–30 Å Expected Position Error (PAE) matrices:
 
-Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each export records the versioned source PDB URL. Run `python scripts/refresh_gene_models.py` to extract fresh chain-A traces. Distances in predicted monomers describe model geometry.
+- **10 KEGG-linked AlphaFold DB v6 gene folds** (`P00846` MT-ATP6, `P0A7J3` rplJ, `P00359` TDH3, `Q31BY4` rbcL, `O23290` AT4G14320, `P04637` TP53, `P68871` HBB, `P01308` INS, `P0A7G6` recA, `P00441` SOD1), each carrying real per-residue pLDDT confidence scores and real 48×48 AlphaFold PAE matrices.
+- **8 experimental RCSB PDB macromolecular structures**, headlined by **PDB `8AW3`** (AlphaFold Server Protein–RNA–2×Zn²⁺ flagship complex with `ipTM = 0.78`, `pTM = 0.75`), **`1MBO`** (Oxymyoglobin + Heme porphyrin & O₂), **`1GFL`** (Green Fluorescent Protein β-barrel), **`1BNA`** (B-DNA dodecamer duplex), **`1UBQ`** (Ubiquitin), **`1GCN`**, **`1CRN`**, and **`2RBG`**, plus direct browser `.pdb` file upload.
+- **Multi-audience accessibility:** Switch between **Explorer**, **Student**, and **Researcher** modes, toggle **Okabe–Ito colorblind-safe palettes**, **High Contrast**, **Reduced Motion**, light/dark stage themes, and full keyboard 3D navigation.
 
-## Structural biology in 3D
-
-Open `studio/structure.html` locally to inspect the 76-residue alpha-carbon trace of [ubiquitin (PDB 1UBQ)](https://www.rcsb.org/structure/1UBQ). Rotate the structure, select a pair on the contact map and export its measured distance for peer review. The viewer works offline.
+Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and deposited [RCSB PDB](https://www.rcsb.org/) structures. Run `python scripts/refresh_gene_models.py` and `python scripts/refresh_experimental_and_dna.py` to refresh bundled coordinates and PAE matrices from upstream APIs. Distances in predicted monomers describe model geometry.
 
 ## Simulation lab
 
@@ -118,8 +118,13 @@ python -m pip install -r requirements.txt
 python kinetics/model.py
 python kinetics/figure.py
 python -m unittest discover -s kinetics
+python -m unittest discover -s evidence
 python NucleusAudit/train.py
 python NucleusAudit/verify.py
+python research/verify.py
+node studio/test-fit.cjs
+node studio/test-evidence-records.cjs
+node studio/test-studio-pages.cjs
 ```
 
 To review a second assay, use the example CSV schema with columns `conc,rate,state`. Provide positive finite substrate concentrations and initial rates, both states labeled `treated` and `untreated`, and at least three common concentration levels. Keep units consistent and record them with the input. The figure script is specific to the published example.

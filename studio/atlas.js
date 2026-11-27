@@ -7,8 +7,8 @@ const stations = [
  {id:'research', name:'Research benchmark', short:'Benchmark', task:'Compare two classifiers and move the decision threshold. Watch how their classification errors change.', question:'What changes when a threshold moves but prediction scores stay fixed?', options:['Ranking and AUROC','Confusion counts at that threshold'],correct:1,reason:'Thresholds change calls made from the same ranked scores.'},
  {id:'practical', name:'Enzyme kinetics practical', short:'Kinetics', task:'Compare the shared curve and separate plateaus. Export held-out predictions and identify one concentration where the models differ.', question:'Which split protects the concentration holdout?', options:['Remove every measurement at that concentration in both conditions','Remove one replicate and keep its same-concentration neighbors'],correct:0,reason:'Holding out the whole concentration tests prediction without measurements at that level.'},
  {id:'audit', name:'Cellpose and AlphaFold audit', short:'Prediction audit', task:'Open the teaching report. Raise the overlap threshold and compare the object matches with the residue confidence distribution.', question:'Which number measures segmentation agreement?', options:['Mean residue pLDDT','The object match score at the selected overlap threshold'],correct:1,reason:'The two scores refer to different tasks. pLDDT describes predicted local structure confidence.'},
- {id:'structure', name:'Ubiquitin and gene products in 3D', short:'Protein 3D', task:'Rotate a protein and inspect a residue pair. Follow the provenance link to identify the source of its coordinates.', question:'What does a short distance between alpha carbons establish?', options:['Geometric proximity in the displayed coordinates','An experimentally confirmed chemical bond'],correct:0,reason:'Chemical bonding requires atom-level evidence and context beyond an alpha-carbon distance.'},
- {id:'dna', name:'DNA strand lab', short:'DNA', task:'Inspect strand direction and assemble the reads. Compare the reverse complement with the original sequence.', question:'How do you write the complementary strand in the same 5′ to 3′ direction?', options:['Complement each base and preserve the order','Complement each base and reverse the order'],correct:1,reason:'The two strands are antiparallel. Reverse the order to express both in the same reading direction.'},
+ {id:'structure', name:'3D Molecular & Gene Structure Studio', short:'3D Studio', task:'Inspect PDB 8AW3 (Protein–RNA–2×Zn²⁺) or one of ten AlphaFold DB v6 gene folds, check PAE/pLDDT confidence, and measure a Cα distance.', question:'What does a short distance between alpha carbons establish?', options:['Geometric proximity in the displayed coordinates','An experimentally confirmed chemical bond'],correct:0,reason:'Chemical bonding requires atom-level evidence and context beyond an alpha-carbon distance.'},
+ {id:'dna', name:'3D Gene & DNA Lab (10 genes)', short:'3D DNA', task:'Explore ten KEGG coding genes in shaded 3D double-helix geometry, jump from a codon to its folded protein residue, and assemble two reads.', question:'How do you write the complementary strand in the same 5′ to 3′ direction?', options:['Complement each base and preserve the order','Complement each base and reverse the order'],correct:1,reason:'The two strands are antiparallel. Reverse the order to express both in the same reading direction.'},
  {id:'simulation', name:'Simulation lab', short:'Simulation', task:'Train a force model on a narrow interval. Increase the starting displacement and inspect the parameter sweep.', question:'Which result tests extrapolation?', options:['Error along a trajectory outside the fitted displacement interval','Error evaluated only on the fitted points'],correct:0,reason:'An out-of-range trajectory tests whether the learned force law remains useful beyond training.'},
 ];
 const get = id => document.getElementById(id);
@@ -79,11 +79,32 @@ function select(index){
 function updateProgress(){
  get('progress-meter').value=completed.size;
  get('progress').textContent=completed.size+' of '+stations.length+' checkpoints completed';
+ const resetBtn=get('reset-progress');
+ if(resetBtn) resetBtn.disabled=completed.size===0;
+ const summary=get('workspace-summary');
+ if(summary && typeof evidenceRecords!=='undefined'){
+   const saved=evidenceRecords.count();
+   summary.textContent=saved
+     ? saved+' evidence '+(saved===1?'record':'records')+' saved in this browser workspace.'
+     : 'Tip: save results from any mission lab to build a reviewable Evidence Workspace packet.';
+ }
  Array.from(get('stations').children).forEach((b,i)=>{
    b.textContent=stations[i].short+(completed.has(stations[i].id)?' ✓':'');
    b.setAttribute('aria-pressed',String(active===i));
  });
 }
+const resetBtn=get('reset-progress');
+if(resetBtn){
+ resetBtn.onclick=()=>{
+   if(!confirm('Reset all completed mission checkpoints in this browser?'))return;
+   completed.clear();
+   try{localStorage.removeItem(progressKey);}catch{}
+   get('answer').textContent='Checkpoint progress reset.';
+   updateProgress();
+ };
+}
+window.addEventListener('assay-evidence-change', updateProgress);
+window.addEventListener('storage', updateProgress);
 get('challenge').onsubmit=e=>{
  e.preventDefault();
  const selected=get('choices').querySelector('input:checked');

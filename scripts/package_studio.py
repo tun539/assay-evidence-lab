@@ -23,7 +23,7 @@ def main() -> None:
     archive_root = Path("AssayEvidenceStudio")
     with ZipFile(output, "w", ZIP_DEFLATED) as bundle:
         for file in sorted(site.rglob("*")):
-            if file.is_file() and file.suffix in {".html", ".css", ".js", ".json", ".csv"}:
+            if file.is_file() and file.suffix in {".html", ".css", ".js", ".json", ".csv", ".svg"}:
                 bundle.write(file, archive_root / "studio" / file.relative_to(site))
         for name in EXTRAS:
             bundle.write(ROOT / name, archive_root / name)

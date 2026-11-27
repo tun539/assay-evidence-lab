@@ -38,6 +38,7 @@ jobs:
           node studio/test-fit.cjs
           node studio/test-evidence-records.cjs
           node studio/test-studio-config.cjs
+          node studio/test-studio-pages.cjs
           for f in studio/*.js; do
             node --check "$f"
           done
@@ -49,12 +50,15 @@ jobs:
         run: |
           python -m unittest discover -s kinetics
           python -m unittest discover -s evidence
+          python NucleusAudit/verify.py
+          python research/verify.py
 
       - name: Verify site build and offline ZIP packaging
         run: |
           python scripts/build_site.py --out /tmp/verify-site
           test -f /tmp/verify-site/index.html
           test -f /tmp/verify-site/customize.html
+          test -f /tmp/verify-site/favicon.svg
           test -f /tmp/verify-site/build-info.json
           test -f /tmp/verify-site/assay-evidence-studio.zip
           rm -rf /tmp/verify-site

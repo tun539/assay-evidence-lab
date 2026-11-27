@@ -1,18 +1,231 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DNA strand lab · Assay Evidence Studio</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="AlphaFold-inspired 3D Gene & DNA Lab featuring true asymmetric B-DNA major/minor groove geometry, purine/pyrimidine ring slabs, all-atom ball-and-stick mode, 10 KEGG coding genes paired with AlphaFold DB v6 protein folds, FASTA export, and strand challenges.">
+<title>3D Gene &amp; DNA Lab · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f4f6f1;color:#183c35;font:16px/1.5 Inter,Arial,sans-serif}main,header{max-width:1160px;margin:auto;padding:0 4%}header{padding-block:20px;border-bottom:1px solid #c9d6ca;display:flex;justify-content:space-between}a{color:#215e47}h1,h2{font:normal clamp(36px,6vw,64px)/1.1 Georgia,serif;margin:24px 0 10px}h2{font-size:26px}.layout{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;align-items:start}.panel{background:white;border:1px solid #cdd8cf;border-radius:14px;overflow:hidden}.pad{padding:16px}.view{display:block;width:100%;background:#112d32;touch-action:none;cursor:grab}.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}label{display:grid;gap:3px}select,button{padding:6px;font:inherit;color:inherit;background:white;border:1px solid #a3baa9;border-radius:6px}output{display:block;font:32px Georgia,serif;margin:12px 0}canvas{display:block;width:min(100%,280px);height:auto;image-rendering:pixelated;cursor:crosshair}main{padding-bottom:36px}.hint{color:#486158;font-size:14px}button:focus-visible,input:focus-visible,svg:focus-visible,select:focus-visible{outline:3px solid #c97924}figure{margin:0}@media(max-width:760px){.layout{grid-template-columns:1fr}}
+*{box-sizing:border-box}
+body{margin:0;background:#f5f7f3;color:#17352f;font:16px/1.55 Inter,system-ui,-apple-system,Arial,sans-serif}
+main{max-width:1240px;margin:auto;padding:0 clamp(14px,3vw,32px) 44px}
+a{color:#1b5c46;text-underline-offset:.18em}
+h1,h2{font:normal clamp(30px,4.5vw,48px)/1.08 Georgia,serif;margin:18px 0 8px;letter-spacing:-.02em}
+h2{font-size:clamp(21px,2.5vw,26px);margin-top:0}
+.dna-hero{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;padding-bottom:16px;border-bottom:1px solid #d2ddd4}
+.dna-eyebrow{margin:14px 0 4px;font:700 12px/1.2 monospace;letter-spacing:.1em;text-transform:uppercase;color:#276b54}
+.dna-intro{margin:0;max-width:760px;color:#456056;font-size:15.5px}
+.dna-hero-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dna-cta{display:inline-flex;align-items:center;min-height:40px;padding:7px 15px;border-radius:10px;background:#0053D6;color:#fff;text-decoration:none;font-weight:650;font-size:14px;white-space:nowrap}
+.dna-cta:hover{background:#0040a8}
+.dna-toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 16px;margin:14px 0;padding:12px 16px;background:#fff;border:1px solid #cdd9d0;border-radius:14px}
+.layout{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;align-items:start;margin-top:16px}
+.panel{background:#fff;border:1px solid #cdd9d0;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(17,45,50,.04)}
+.pad{padding:18px}
+.view{display:block;width:100%;background:#0f282e;touch-action:auto}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+label{display:grid;gap:4px;font-size:13px;font-weight:600;color:#294940;max-width:100%;min-width:0}
+select,button,input{max-width:100%;font:inherit}
+select,button{padding:6px 10px;color:#17352f;background:#fff;border:1px solid #a9bfb0;border-radius:8px;cursor:pointer;font-size:13.5px}
+button:hover{background:#edf5ef;border-color:#5f917a}
+output{display:block;font:24px Georgia,serif;margin:12px 0}
+.hint{color:#49645a;font-size:13.5px;margin:10px 0 0}
+button:focus-visible,input:focus-visible,svg:focus-visible,select:focus-visible,a:focus-visible,canvas:focus-visible{outline:3px solid #c97924;outline-offset:2px}
+figure{margin:0}
+.strands{font:700 clamp(14px,2.3vw,21px)/1.8 monospace;white-space:pre;color:#123f47;background:#f4f8f5;border:1px solid #dae6dd;border-radius:10px;padding:10px 12px;overflow:auto}
+.bases{display:flex;gap:.8em 1.2em;flex-wrap:wrap;margin:10px 0 4px}
+.bases span{font:700 13.5px monospace;border-bottom:4px solid var(--color);padding-bottom:2px}
+.exercise{margin:16px 0;padding:18px}
+.exercise input[type=text],.exercise #answer{font:18px monospace;padding:8px 10px;border:1px solid #a9bfb0;border-radius:8px;text-transform:uppercase;width:min(100%,280px)}
+.exercise output{font:600 15px/1.4 Inter,sans-serif;min-height:1.5em;color:#194b3d}
+.source{overflow-wrap:anywhere}
+pre{overflow:auto}
 
-select,input,button{max-width:100%}.strands{font:700 clamp(14px,2.7vw,23px)/1.8 monospace;white-space:pre;color:#123f47}.bases{display:flex;gap:.8em;flex-wrap:wrap}.bases span{font:bold 16px monospace;border-bottom:4px solid var(--color)}.exercise{margin:20px 0;padding:18px}.exercise input{font:18px monospace;padding:8px;text-transform:uppercase}.exercise output{font:inherit;min-height:1.5em}.layout{margin-top:16px}.source{overflow-wrap:anywhere}h2{margin-top:4px}pre{overflow:auto}.view{touch-action:auto}
+/* AlphaFold-grade 3D DNA Stage */
+.dna-stage-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid #cad8ce;background:#f7faf9}
+#gene-stage{display:block;width:100%;height:clamp(380px,54vh,520px);image-rendering:auto;cursor:grab;touch-action:none}
+#gene-stage:active{cursor:grabbing}
+.dna-stage-badge{position:absolute;top:12px;left:12px;z-index:3;padding:4px 10px;border-radius:999px;font:600 12px/1.3 Inter,sans-serif;background:rgba(255,255,255,.92);color:#14362d;border:1px solid rgba(25,58,49,.18);backdrop-filter:blur(6px)}
+.dna-stage-toolbar{position:absolute;top:12px;right:12px;z-index:3;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.dna-stage-toolbar button{padding:5px 9px;font-size:12px;font-weight:600;border-radius:7px;border:1px solid rgba(25,58,49,.22);background:rgba(255,255,255,.93);color:#15382f;backdrop-filter:blur(6px)}
+.dna-stage-toolbar button:hover{background:#e7f2eb}
+.dna-stage-toolbar button[aria-pressed=true]{background:#174b3d;color:#fff;border-color:#174b3d}
+.dna-hover-tip{position:absolute;z-index:5;pointer-events:none;padding:6px 10px;border-radius:8px;font:600 12px/1.35 Inter,sans-serif;background:rgba(14,32,38,.94);color:#eef8f5;border:1px solid rgba(101,203,243,.45);box-shadow:0 6px 18px rgba(0,0,0,.22);white-space:nowrap}
+.dna-hover-tip[hidden]{display:none}
+.dna-geometry-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:10px 14px;background:#f4f8f5;border-top:1px solid #d7e3da;font-size:12.5px;color:#2f5046}
+.dna-chem-legend{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.dna-chem-legend span{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.dna-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dna-ring{width:12px;height:10px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.25)}
 
-#gene-stage{width:100%;height:clamp(280px,42vw,450px);image-rendering:auto;cursor:grab;touch-action:none;background:#112d32;border-radius:10px}#gene-stage:active{cursor:grabbing}#gene-stage:focus-visible{outline:3px solid #c97924}.model-tools{margin:12px 0;gap:18px}.model-tools input{accent-color:#215e47}.model-tools button[aria-pressed=true]{background:#215e47;color:white}.model-tools label{min-width:130px}.model-readout{font:600 15px/1.4 monospace}
-</style></head><body><header><strong>Assay Evidence Studio</strong><a href="index.html">Evidence Studio</a> <a href="methods.html#dna">Methods and sources</a><a href="atlas.html#dna">Research mission</a></header><main><h1>DNA strand lab</h1><p>Read a gene fragment from either strand. Follow the same bases through a reference sequence, an idealized double helix and a pair of simulated sequencing reads.</p>
-<p><a id="fold-link" href="structure.html?protein=P00846"><strong>Explore the folded protein in 3D →</strong></a></p><div class="row"><label>Organism and gene<select id="record"></select></label><label>First base of the 12 bp window<input type="range" id="start" min="1" max="49" value="1"></label></div>
-<div class="layout"><section class="panel"><svg id="helix" class="view" viewBox="0 0 520 245" role="img" aria-label="Idealized DNA duplex. Labels identify strand ends."></svg><div class="pad"><label>Rotate helix<input id="angle" type="range" min="0" max="360" value="20"></label><p class="bases"><span style="--color:#61d3a3">A · adenine</span><span style="--color:#ffa86d">T · thymine</span><span style="--color:#8abaff">C · cytosine</span><span style="--color:#df9af5">G · guanine</span></p><p class="hint">Schematic geometry illustrates base pairing. Base identities come from the reference record. Atomic positions are illustrative.</p></div></section>
-<section class="panel pad"><h2 id="gene"></h2><p id="note"></p><p class="source"><a id="source">Open reference record</a></p><strong id="range"></strong><pre class="strands" id="strands"></pre><p id="counts"></p><button id="export">Download fragment FASTA</button></section></div>
-<section class="panel exercise" aria-labelledby="model-heading"><h2 id="model-heading">Coding DNA in 3D</h2><p id="model-caption"></p>
-<div class="row model-tools"><button id="detail-mode" aria-pressed="true">Inspect 24 base pairs</button><button id="full-mode" aria-pressed="false">Whole coding sequence</button><button id="reset-camera">Reset camera</button></div>
-<canvas id="gene-stage" tabindex="0" role="img" aria-label="Interactive three-dimensional DNA model. Drag or use arrow keys to orbit."></canvas>
-<div class="row model-tools"><label>Inspect base pair<input type="range" id="position" min="1" value="1"></label><label>Camera zoom<input type="range" id="camera-zoom" min="70" max="160" value="100"></label><span id="model-position" class="model-readout"></span></div>
-<p class="hint">Drag horizontally or vertically to orbit. In the overview, successive 60-bp rows run left to right in sequence order. Row breaks are display breaks. The white halo marks the selected pair. Both views use idealized double-helix geometry for the coding sequence; the arrangement inside a cell requires separate structural evidence.</p></section>
-<section class="panel exercise"><h2>Strand challenge</h2><label>Exercise<select id="task"><option>Write the aligned complement (3′ → 5′)</option><option>Write the opposite strand (5′ → 3′)</option><option>Assemble two overlapping reads (5′ → 3′)</option></select></label><p id="question"></p><pre id="prompt"></pre><form id="quiz"><label>Your DNA sequence<input id="answer" autocomplete="off" spellcheck="false" required></label><p><button>Check answer</button> <button type="button" id="next">Next window</button></p></form><output id="feedback" aria-live="polite"></output><details><summary>Inspect the reference strands</summary><pre id="key"></pre></details></section>
-<p class="hint">Each record contains coding-sequence positions 1–60 in its published orientation. Coordinates start at 1 and refer to the gene sequence. Base counts describe only the selected window. The assembly exercise uses two error-free computer-generated reads from this window.</p><a href="structure.html">Explore the experimental ubiquitin structure →</a></main><script src="dna-data.js"></script><script src="dna.js"></script><script src="gene-sequences.js"></script><script src="gene-model.js"></script><script src="fold-catalog.js"></script><script src="dna-fold-link.js"></script></body></html>
+.model-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.model-tools{margin:12px 0;gap:10px 14px}
+.model-tools input{accent-color:#1b5c46}
+.model-tools button[aria-pressed=true]{background:#174b3d;border-color:#174b3d;color:#fff}
+.model-tools label{min-width:130px}
+.model-readout{font:600 13.5px/1.45 monospace;color:#163d34;background:#eef5f0;border:1px solid #cde0d3;border-radius:8px;padding:6px 10px}
+.codon-bridge{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:12px 14px;border-radius:12px;background:#edf5f9;border:1px solid #c3daea}
+.codon-bridge strong{color:#10384e;font-size:14.5px}
+.codon-bridge span{font-size:13.5px;color:#2c5266}
+.codon-bridge a{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:8px;background:#0053D6;color:#fff;text-decoration:none;font-size:13.5px;font-weight:650}
+.codon-bridge a:hover{background:#0040a8}
+.gene-badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.gene-pill{padding:3px 9px;border-radius:999px;background:#eaf2ec;border:1px solid #cfe0d4;font-size:12px;font-weight:650;color:#1d5041}
+.dna-footer-link{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-weight:650}
+@media(max-width:820px){.layout{grid-template-columns:1fr}.dna-hero{align-items:flex-start}.dna-stage-badge{max-width:calc(100% - 24px)}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="dna.html" data-mission="dna" data-methods="dna" data-related-href="structure.html" data-related-label="3D Molecular Studio →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+<main id="main">
+  <section class="dna-hero">
+    <div>
+      <p class="dna-eyebrow">AlphaFold 3 / Mol*-Style B-DNA · 10 KEGG Genes Paired with AlphaFold DB v6</p>
+      <h1>3D Gene &amp; DNA Lab</h1>
+      <p class="dna-intro">Inspect ten real coding genes in biologically accurate right-handed B-DNA geometry—with asymmetric Major &amp; Minor grooves, purine/pyrimidine aromatic ring slabs, deoxyribose pentoses, all-atom ball-and-stick mode, Watson–Crick H-bonds, and live codon-to-protein residue linking.</p>
+    </div>
+    <div class="dna-hero-actions">
+      <a class="dna-cta" id="fold-link" href="structure.html?protein=P00846">Explore folded MT-ATP6 protein in 3D →</a>
+    </div>
+  </section>
+
+  <div class="dna-toolbar">
+    <label style="flex:1 1 260px">Organism and gene (10 linked models)
+      <select id="record"></select>
+    </label>
+    <label style="flex:0 1 215px">3D Representation (AlphaFold / Mol*)
+      <select id="dna-rep">
+        <option value="cartoon" selected>Cartoon Ribbons + Base Rings</option>
+        <option value="atomic">All-Atom Ball &amp; Stick (CPK)</option>
+        <option value="surface">Groove Spacefill (VdW)</option>
+      </select>
+    </label>
+    <label style="flex:0 1 200px">First base of 12 bp window
+      <input type="range" id="start" min="1" max="49" value="1">
+    </label>
+  </div>
+
+  <section class="panel exercise" aria-labelledby="model-heading">
+    <div class="model-head">
+      <div>
+        <h2 id="model-heading">Atomic-Detail B-DNA Double Helix in 3D</h2>
+        <p id="model-caption" style="margin:0;color:#446056;font-size:14px"></p>
+      </div>
+      <div class="row model-tools" style="margin:0">
+        <button id="detail-mode" type="button" aria-pressed="true">Inspect 18 bp duplex</button>
+        <button id="full-mode" type="button" aria-pressed="false">Whole coding gene</button>
+        <button id="dna-grooves" type="button" aria-pressed="true">Groove &amp; 5′/3′ labels</button>
+        <button id="dna-cb" type="button" aria-pressed="false">Colorblind palette</button>
+      </div>
+    </div>
+
+    <div class="dna-stage-wrap">
+      <span class="dna-stage-badge" id="dna-stage-badge">B-DNA Cartoon + Purine/Pyrimidine Rings · 3.38 Å/bp · 10.5 bp/turn</span>
+      <div class="dna-stage-toolbar">
+        <button id="reset-camera" type="button" title="Reset camera and zoom (R)">Reset zoom</button>
+        <button id="dna-orient" type="button" title="Cycle Side / Groove / Down-the-Axis views">Orient axes</button>
+        <button id="dna-spin" type="button" aria-pressed="false" title="Smooth rotation (Space)">Auto-orbit</button>
+        <button id="dna-theme" type="button" aria-pressed="false" title="Switch Light AlphaFold vs Dark Cosmos stage">Dark stage</button>
+        <button id="dna-png" type="button" title="Download high-DPI PNG snapshot">PNG</button>
+      </div>
+      <canvas id="gene-stage" tabindex="0" role="img" aria-label="Interactive three-dimensional AlphaFold-style B-DNA double helix. Drag to orbit, scroll to zoom, click any base pair to inspect, or use arrow keys."></canvas>
+      <div id="dna-hover-tip" class="dna-hover-tip" hidden></div>
+      <div class="dna-geometry-bar">
+        <div class="dna-chem-legend" id="dna-chem-legend">
+          <span><i class="dna-ring" style="background:#2db07d"></i>A (Purine 5+6)</span>
+          <span><i class="dna-ring" style="background:#ea8a34"></i>T (Pyrimidine 6)</span>
+          <span><i class="dna-ring" style="background:#4290eb"></i>C (Pyrimidine 6)</span>
+          <span><i class="dna-ring" style="background:#a668e0"></i>G (Purine 5+6)</span>
+          <span><i class="dna-dot" style="background:#ff8000"></i>Phosphate (P)</span>
+          <span><i class="dna-dot" style="background:#1784a6"></i>H-bonds (2 A=T · 3 G≡C)</span>
+        </div>
+        <span style="font-family:monospace;font-weight:600">Major groove 22 Å · Minor groove 12 Å</span>
+      </div>
+    </div>
+
+    <div class="row model-tools">
+      <label style="flex:1 1 220px">Inspect base pair (or click directly on the 3D helix)
+        <input type="range" id="position" min="1" value="1">
+      </label>
+      <label style="flex:0 1 170px">Camera zoom
+        <input type="range" id="camera-zoom" min="65" max="200" value="108">
+      </label>
+      <span id="model-position" class="model-readout"></span>
+    </div>
+
+    <div class="codon-bridge" aria-live="polite">
+      <div>
+        <strong id="codon-readout">Codon 1 (ATG) → Met (M)</strong><br>
+        <span id="codon-detail">Bases 1–3 encode residue 1 of the translated protein chain. Highlighted in gold on the 3D helix.</span>
+      </div>
+      <a id="codon-protein-link" href="structure.html?protein=P00846&res=1">Inspect Residue 1 in 3D Protein →</a>
+    </div>
+
+    <p class="hint">Drag to orbit, scroll to zoom, click any base ring in 3D to select it, or press <strong>Orient axes</strong> to look straight down the helical core. Purines (A, G) render as fused 5+6 bicyclic rings and Pyrimidines (T, C) as 6-ring hexagons joined by 2 (A=T) or 3 (G≡C) dashed Watson–Crick hydrogen bonds. Canonical B-DNA geometry illustrates real KEGG coding sequences; compare with crystal B-DNA in <a href="structure.html?protein=1BNA">PDB 1BNA</a>.</p>
+  </section>
+
+  <div class="layout">
+    <section class="panel">
+      <svg id="helix" class="view" viewBox="0 0 520 245" role="img" aria-label="Idealized DNA duplex. Labels identify strand ends."></svg>
+      <div class="pad">
+        <label>Rotate 12 bp schematic helix<input id="angle" type="range" min="0" max="360" value="20"></label>
+        <p class="bases" id="base-legend">
+          <span style="--color:#2db07d">A · adenine</span>
+          <span style="--color:#ea8a34">T · thymine</span>
+          <span style="--color:#4290eb">C · cytosine</span>
+          <span style="--color:#a668e0">G · guanine</span>
+        </p>
+        <p class="hint">Schematic geometry illustrates antiparallel base pairing (5′→3′ vs 3′→5′). Base identities come directly from the KEGG coding sequence record.</p>
+      </div>
+    </section>
+
+    <section class="panel pad">
+      <h2 id="gene"></h2>
+      <p id="note"></p>
+      <div class="gene-badge-row" id="gene-badges"></div>
+      <p class="source" style="margin-top:12px"><a id="source">Open KEGG reference record</a></p>
+      <strong id="range"></strong>
+      <pre class="strands" id="strands"></pre>
+      <p id="counts" class="hint"></p>
+      <button id="export" type="button" style="margin-top:6px">Download 12 bp fragment FASTA</button>
+    </section>
+  </div>
+
+  <section class="panel exercise">
+    <h2>Strand &amp; read-assembly challenge</h2>
+    <label style="max-width:420px">Exercise
+      <select id="task">
+        <option>Write the aligned complement (3′ → 5′)</option>
+        <option>Write the opposite strand (5′ → 3′)</option>
+        <option>Assemble two overlapping reads (5′ → 3′)</option>
+      </select>
+    </label>
+    <p id="question"></p>
+    <pre id="prompt" class="strands"></pre>
+    <form id="quiz">
+      <label>Your DNA sequence
+        <input id="answer" autocomplete="off" spellcheck="false" required>
+      </label>
+      <p><button type="submit">Check answer</button> <button type="button" id="next">Next window</button></p>
+    </form>
+    <output id="feedback" aria-live="polite"></output>
+    <details><summary>Inspect the reference strands</summary><pre id="key" class="strands"></pre></details>
+  </section>
+
+  <p class="hint">Each record begins with coding-sequence positions 1–60 in its published KEGG orientation; the 3D helix loads the full coding DNA sequence (318–1,416 bp) paired with its AlphaFold DB v6 protein fold. The assembly exercise uses two error-free simulated reads from the active 12 bp window.</p>
+  <a class="dna-footer-link" href="structure.html">Open the 18-model AlphaFold-style 3D Molecular Studio →</a>
+</main>
+<script src="dna-data.js"></script>
+<script src="dna.js"></script>
+<script src="gene-sequences.js"></script>
+<script src="fold-catalog.js"></script>
+<script src="gene-model.js"></script>
+<script src="dna-fold-link.js"></script>
+<script src="studio-nav.js"></script>
+</body>
+</html>
