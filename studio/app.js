@@ -78,4 +78,46 @@ function setStudy(key){const s=el('study').value;el('model').replaceChildren(...
 el('study').onchange=()=>setStudy();el('model').onchange=render;el('view').onchange=render;
 el('ask').onsubmit=e=>{e.preventDefault();const q=el('query').value.toLowerCase();let s,k;if(/cytology|nucle|classif|confusion|morphology|size|baseline/.test(q)){s='cell';k=/baseline/.test(q)?'majority_baseline':/without|remov/.test(q)?'without_direct_size':/size/.test(q)?'size_only':'all'}else if(/enzym|plateau|saturat|kinetic|vmax|both|shared|puromycin|galacto|holdout|held|validation|residual|heatmap|\bkm\b/.test(q)){s='enz';k=/both/.test(q)?'split_both':/shared|common/.test(q)?'shared':/half|\bkm\b/.test(q)?'split_km':'split_vmax'}else{el('status').textContent='Available topics include enzyme plateaus, half-saturation, cytology errors and size ablation.';return}el('study').value=s;el('view').value=/diagram|workflow|design/.test(q)?'map':s==='enz'&&/holdout|held|validation|residual|heatmap|matrix/.test(q)?'validation':'chart';setStudy(k);el('status').textContent='Opened '+studies[s][k]+'.'};
 el('download').onclick=()=>{const svg=el('canvas').querySelector('svg');const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=url;a.download=el('study').value+'-'+el('model').value+'-'+el('view').value+'.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+if(el('explorer-save')){
+ el('explorer-save').onclick=()=>{
+  const enzymeStudy=el('study').value==='enz', view=el('view').value, key=el('model').value;
+  try{
+   if(enzymeStudy && view==='validation'){
+    const foldIdx=Number(el('validationFold').value), fold=kineticsData.folds[foldIdx];
+    const score=Number(el('metric').textContent);
+    const labelMap={shared:'Shared Vmax and Km',split_vmax:'Condition-specific Vmax',split_km:'Condition-specific Km',split_both:'Condition-specific Vmax and Km'};
+    evidenceRecords.capture({
+     kind:'measured', title:labelMap[key]+' · '+fold.level+' ppm',
+     dataset:'Puromycin · galactosyltransferase initial rates', method:'Leave one concentration out',
+     metric:'Held-out RMSE', unit:'counts/min/min', value:score,
+     source:'https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html',
+     details:{comparisonKey:'puromycin-holdout-'+fold.level, concentrationPpm:fold.level, model:key, pooledRmse:Number(data.fits[key].rmse.toFixed(2))},
+    });
+   }else if(enzymeStudy){
+    const fit=data.fits[key];
+    evidenceRecords.capture({
+     kind:'measured', title:studies.enz[key]+' · Puromycin pooled holdout',
+     dataset:'Puromycin · galactosyltransferase initial rates', method:'Concentration-level holdout (6 folds)',
+     metric:'Pooled held-out RMSE', unit:'counts/min/min', value:Number(fit.rmse.toFixed(2)),
+     source:'https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/Puromycin.html',
+     details:{comparisonKey:'puromycin-pooled-holdout', model:key, parameters:fit.params},
+    });
+   }else{
+    const m=data.cytology[key];
+    evidenceRecords.capture({
+     kind:'measured', title:studies.cell[key]+' · NucleusAudit (114 holdout)',
+     dataset:'NucleusAudit cytology holdout (114 specimens)', method:'Frozen classifier evaluated at threshold 0.50',
+     metric:'Held-out ROC-AUC', unit:'ROC-AUC', value:Number(m.auc.toFixed(4)),
+     source:repo+'NucleusAudit/results/metrics.json',
+     details:{comparisonKey:'nucleus-audit-114', configuration:key, tn:m.tn, fp:m.fp, fn:m.fn, tp:m.tp},
+    });
+   }
+   el('explorer-save-status').textContent='Saved to the evidence workspace.';
+   if(typeof refreshWorkspaceBadge==='function') refreshWorkspaceBadge();
+   if(typeof updateBanner==='function') updateBanner();
+  }catch(error){
+   el('explorer-save-status').textContent='Could not save run. '+error.message;
+  }
+ };
+}
 

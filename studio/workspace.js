@@ -398,4 +398,16 @@ window.addEventListener('storage', () => {
   render();
 });
 
+if (location.hash === '#compare-sample') {
+  const packet = evidenceRecords.samplePacket();
+  try {
+    evidenceRecords.merge(packet);
+    if (!get('note').value && packet.note) {
+      get('note').value = packet.note;
+      evidenceRecords.saveNote(packet.note);
+    }
+    selected.splice(0, selected.length, ...packet.runs.map(run => run.id));
+  } catch {}
+}
+
 render();
