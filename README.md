@@ -118,8 +118,13 @@ python -m pip install -r requirements.txt
 python kinetics/model.py
 python kinetics/figure.py
 python -m unittest discover -s kinetics
+python -m unittest discover -s evidence
 python NucleusAudit/train.py
 python NucleusAudit/verify.py
+python research/verify.py
+node studio/test-fit.cjs
+node studio/test-evidence-records.cjs
+node studio/test-studio-pages.cjs
 ```
 
 To review a second assay, use the example CSV schema with columns `conc,rate,state`. Provide positive finite substrate concentrations and initial rates, both states labeled `treated` and `untreated`, and at least three common concentration levels. Keep units consistent and record them with the input. The figure script is specific to the published example.
