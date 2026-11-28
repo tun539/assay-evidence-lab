@@ -36,9 +36,38 @@
     return a;
   }
 
+  function ensureStudioPrefs(onReady) {
+    if (typeof document === 'undefined') return;
+    if (!document.querySelector('link[href*="studio-prefs.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'studio-prefs.css';
+      document.head.append(link);
+    }
+    if (typeof StudioPrefs !== 'undefined') {
+      onReady();
+      return;
+    }
+    const existing = document.querySelector('script[src*="studio-prefs.js"]');
+    if (existing) {
+      existing.addEventListener('load', onReady, { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'studio-prefs.js';
+    script.onload = onReady;
+    document.head.append(script);
+  }
+
   function buildHeader(header) {
     const page = (header.dataset.page || currentPageName()).toLowerCase();
     const labsHref = page === 'index.html' ? '#labs-title' : 'index.html#labs-title';
+    const tr = typeof StudioPrefs !== 'undefined' ? StudioPrefs.t() : {
+      atlas: '3D atlas',
+      labs: 'Labs',
+      workspace: 'Evidence workspace',
+      resources: 'Resources',
+    };
 
     header.replaceChildren();
 
@@ -58,11 +87,11 @@
     nav.className = 'site-nav';
     nav.setAttribute('aria-label', 'Main navigation');
     nav.append(
-      createLink('atlas.html', '3D atlas', { current: page === 'atlas.html' }),
-      createLink(labsHref, 'Labs'),
+      createLink('atlas.html', tr.atlas, { current: page === 'atlas.html' }),
+      createLink(labsHref, tr.labs),
     );
 
-    const workspaceLink = createLink('workspace.html', 'Evidence workspace', {
+    const workspaceLink = createLink('workspace.html', tr.workspace, {
       className: 'workspace-link',
       current: page === 'workspace.html',
     });
@@ -77,7 +106,7 @@
     const menu = document.createElement('details');
     menu.className = 'studio-menu';
     const summary = document.createElement('summary');
-    summary.textContent = 'Resources';
+    summary.textContent = tr.resources;
     const panel = document.createElement('nav');
     panel.className = 'studio-menu-panel';
     panel.setAttribute('aria-label', 'Resources');
@@ -85,12 +114,12 @@
     const resources = [
       ['structure.html', '3D molecular studio (18 models)'],
       ['dna.html', '3D gene & DNA lab (10 genes)'],
+      ['molecular.html', 'Molecular learning lab (molML)'],
       ['kinetics.html', 'Kinetics & OOD workbench (6 models)'],
       ['simulation.html', 'Simulation & ML force-field lab'],
       ['tomography.html', 'Inside the specimen · Cryo-ET (6 solvers)'],
       ['transport.html', '3D molecular transport & SPT lab'],
       ['audit.html', 'Cellpose & AlphaFold audit lab'],
-      ['molecular.html', 'Molecular learning lab'],
       ['linked.html', 'Linked protein explorer'],
       ['customize.html', 'Customize & deploy', true],
       ['methods.html', 'Methods and sources'],
@@ -104,7 +133,19 @@
       }));
     }
     menu.append(summary, panel);
-    header.append(brand, nav, menu);
+
+    const rightBox = document.createElement('div');
+    rightBox.className = 'studio-header-right';
+    rightBox.append(nav, menu);
+
+    header.append(brand, rightBox);
+
+    ensureStudioPrefs(() => {
+      if (typeof StudioPrefs !== 'undefined') {
+        StudioPrefs.applyDom();
+        StudioPrefs.mountHeaderTools(rightBox);
+      }
+    });
 
     document.addEventListener('click', event => {
       if (menu.open && !menu.contains(event.target)) menu.open = false;
@@ -154,6 +195,13 @@
   }
 
   window.addEventListener('assay-evidence-change', syncBadges);
+  window.addEventListener('studio-prefs-change', () => {
+    const header = document.querySelector('header.studio-header');
+    if (header) {
+      buildHeader(header);
+      syncBadges();
+    }
+  });
   window.addEventListener('storage', event => {
     if (!event.key || event.key === STORAGE_KEY) syncBadges();
   });

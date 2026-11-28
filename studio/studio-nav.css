@@ -17,15 +17,16 @@
 }
 
 header.studio-header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
-  gap: clamp(10px, 2vw, 24px);
+  gap: clamp(8px, 1.5vw, 18px);
   min-height: 74px;
-  max-width: var(--studio-max-width, 1230px);
+  max-width: var(--studio-max-width, 1320px);
   width: 100%;
   margin: 0 auto;
-  padding: 12px clamp(16px, 4vw, 44px);
+  padding: 10px clamp(16px, 4vw, 44px);
   border-bottom: 1px solid #cad6c9;
   font-family: "Inter", system-ui, -apple-system, Arial, sans-serif;
 }
@@ -58,11 +59,20 @@ header.studio-header .studio-brand-mark {
   flex-shrink: 0;
 }
 
+header.studio-header .studio-header-right {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px 10px;
+  margin-left: auto;
+}
+
 header.studio-header nav.site-nav {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: clamp(4px, 1vw, 12px);
+  gap: clamp(4px, 0.8vw, 10px);
   border: 0;
   padding: 0;
   margin: 0;
@@ -71,13 +81,13 @@ header.studio-header nav.site-nav {
 header.studio-header nav.site-nav a,
 header.studio-header .studio-menu summary {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 38px;
   align-items: center;
   gap: 7px;
-  padding: 0 11px;
+  padding: 0 10px;
   border-radius: 8px;
   color: #214c3e;
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.2;
   white-space: nowrap;
   margin: 0;
@@ -97,7 +107,7 @@ header.studio-header nav.site-nav a[aria-current="page"]:not(.workspace-link) {
 header.studio-header nav.site-nav .workspace-link {
   background: #17483d;
   color: #fff;
-  padding-inline: 14px;
+  padding-inline: 12px;
 }
 
 header.studio-header nav.site-nav .workspace-link:hover {
@@ -167,10 +177,10 @@ header.studio-header a:focus-visible {
 
 header.studio-header nav.studio-menu-panel {
   position: absolute;
-  z-index: 30;
+  z-index: 40;
   right: 0;
   top: calc(100% + 8px);
-  width: min(260px, calc(100vw - 32px));
+  width: min(275px, calc(100vw - 32px));
   padding: 6px;
   background: #fff;
   border: 1px solid #c7d9ca;
@@ -182,10 +192,10 @@ header.studio-header nav.studio-menu-panel {
 header.studio-header nav.studio-menu-panel a {
   display: flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 40px;
   padding: 4px 10px;
   border-radius: 7px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #204c3e;
   margin: 0;
 }
@@ -204,7 +214,7 @@ header.studio-header nav.studio-menu-panel a.menu-divider {
 }
 
 .studio-context-bar {
-  max-width: var(--studio-max-width, 1230px);
+  max-width: var(--studio-max-width, 1320px);
   margin: 0 auto;
   padding: 9px clamp(16px, 4vw, 44px);
   display: flex;
@@ -229,30 +239,11 @@ header.studio-header nav.studio-menu-panel a.menu-divider {
 }
 
 @media (max-width: 750px) {
-  header.studio-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px 10px;
-  }
-  header.studio-header .studio-brand {
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
-  }
-  header.studio-header .studio-brand span:last-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  header.studio-header .studio-menu {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  header.studio-header nav.site-nav {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  header.studio-header .studio-header-right {
+    width: 100%;
     justify-content: flex-start;
-    flex-wrap: wrap;
     border-top: 1px solid #dce5dc;
-    padding-top: 6px;
+    padding-top: 8px;
   }
 }
 
@@ -276,11 +267,8 @@ header.studio-header nav.studio-menu-panel a.menu-divider {
   }
   header.studio-header nav.site-nav a,
   header.studio-header .studio-menu summary {
-    min-height: 38px;
+    min-height: 36px;
     padding: 0 8px;
-    font-size: 13px;
-  }
-  header.studio-header nav.site-nav .workspace-link {
-    padding-inline: 10px;
+    font-size: 12.5px;
   }
 }
