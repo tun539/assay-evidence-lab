@@ -68,9 +68,9 @@ footer{padding:16px clamp(18px,4vw,44px) 32px;border-top:1px solid #d4dfd5}
 </section>
 
 <section id="molecular">
-  <h2>Molecular learning lab</h2>
-  <p>Synthetic enzyme curves are generated from <em>v</em> = <em>V</em><sub>max</sub> · <em>S</em> / (<em>K</em><sub>m</sub> + <em>S</em>) with additive Gaussian noise across six substrate concentrations. Four parameter estimators (nonlinear Michaelis–Menten fit, ridge regression, scikit-learn random forest, and a two-hidden-layer PyTorch MLP) predict <em>V</em><sub>max</sub> and <em>K</em><sub>m</sub> from all six rates. Separately, a tabular Q-learning policy observes an initial rate at 0.11 ppm, selects a second concentration, and evaluates a fitted Gaussian decoder on held-out synthetic curves.</p>
-  <p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py">Simulation and training script</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed CPU notebook</a> · <a href="molecular.html">Open the Molecular Learning Lab</a></p>
+  <h2>Molecular learning lab &amp; Heavyweight AI/RL Suite</h2>
+  <p>Synthetic enzyme curves are generated from <em>v</em> = <em>V</em><sub>max</sub> · <em>S</em> / (<em>K</em><sub>m</sub> + <em>S</em>) with additive Gaussian noise across six substrate concentrations. Classical baselines (nonlinear Michaelis–Menten fit, ridge regression, scikit-learn random forest, HistGradientBoosting) are benchmarked alongside the lightweight browser MLP and tabular Q-policy, and extended in the full <strong>PyTorch Deep Learning &amp; RL Reference Suite</strong> (<code>KinResNet</code> heteroscedastic GaussianNLL + MC Dropout, <code>GolubAttentionNet</code>, <code>PredictedLDDTHead</code> L-BFGS calibration, Conservative Neural Potential <code>F = -∇U</code>, Double DQN, and continuous-dose PPO-Clip with Fisher D-optimality shaping).</p>
+  <p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/BioAI_PyTorch_ML_RL_Suite.ipynb">Heavyweight PyTorch, ML &amp; RL Suite Notebook</a> · <a href="https://colab.research.google.com/github/tun539/assay-evidence-lab/blob/main/ml/BioAI_PyTorch_ML_RL_Suite.ipynb">Launch in Google Colab ↗</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py">Simulation and training script</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed CPU starter notebook</a> · <a href="molecular.html">Open the Molecular Learning Lab</a></p>
 </section>
 
 <section id="audit">

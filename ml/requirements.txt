@@ -1,7 +1,9 @@
 numpy
 pandas
+scipy
 matplotlib
 torch
 tensorflow
 jupyterlab
 scikit-learn
+nbformat

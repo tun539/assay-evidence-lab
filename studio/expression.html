@@ -1,4 +1,286 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="evidence-charts.css"><script src="evidence-charts.js"></script><title>Gene expression atlas · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><script defer src="expression-data.js"></script><script defer src="evidence-records.js"></script><script defer src="expression.js"></script><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="studio-nav.css"><script defer src="studio-nav.js"></script></head><body><a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="expression.html" data-mission="expression" data-methods="expression"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header><main id="main"><h1>Gene expression atlas</h1><p class="intro">Which microarray signals distinguish ALL and AML in the Golub study? Explore 7,129 probe sets and compare predictions on the original 34-specimen test cohort.</p>
-<section><h2>Does the expression pattern repeat?</h2><p>Choose a training-selected probe. Compare the AML minus ALL difference in the original training and test specimens. Green means higher mean intensity in AML, orange means higher in ALL. Darkness measures difference magnitude on the same scale for both cohorts.</p><div class="controls"><label>Probe <select id="compareProbe"></select></label><button id="save-evidence" type="button">Save probe contrast to workspace</button><a href="workspace.html">Open workspace</a></div><p id="save-status" role="status"></p><p id="probeStory"></p><div id="cohortMap"></div><details><summary>Compare all 25 selected probes</summary><div id="panelMap"></div></details></section><section><h2>Explore the probes</h2><p>Search historical gene descriptions or probe accessions. Means are original microarray intensity units. Several probes can represent the same gene. Negative intensities occur in the source files.</p><div class="controls"><label>Search <input id="query" type="search" placeholder="Try myeloperoxidase"></label><label><input id="panel" type="checkbox"> Training-selected panel only</label><button id="export">Export filtered CSV</button></div><p id="count" role="status"></p><div class="table-wrap"><table><thead><tr><th>Probe</th><th>Description</th><th>Train ALL</th><th>Train AML</th><th>Test ALL</th><th>Test AML</th></tr></thead><tbody id="probes"></tbody></table></div><div class="controls"><button id="prev">Previous</button><button id="next">Next</button></div></section>
-<section><h2>Test cohort results</h2><p>Each model uses the same 25 probes selected by ANOVA on the 38 training specimens. Scaling parameters come from training data. AML is the positive class.</p><div class="table-wrap"><table><thead><tr><th>Model</th><th>AUROC</th><th>Balanced accuracy</th><th>False positives</th><th>False negatives</th></tr></thead><tbody id="models"></tbody></table></div><button id="predictions">Download specimen predictions</button></section>
-<section><h2>Replication exercise</h2><p>Search a gene, compare the direction of the ALL–AML difference across cohorts, then inspect an individual misclassification in the exported predictions. A probe-level difference supports an association within these specimens. Establishing a biological mechanism requires additional evidence.</p><a href="methods.html#expression">Study, raw matrices and reproduction instructions</a></section></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Gene Expression &amp; Transcriptomics Atlas: explore all 7,129 Golub leukemia probes, cross-cohort replication, ROC/PR calibration, data-leakage audits, custom signatures, and live 3D AlphaFold protein bridges.">
+<title>Gene expression atlas · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="evidence-charts.css">
+<link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="studio-prefs.css">
+<link rel="stylesheet" href="expression.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="expression.html" data-mission="expression" data-methods="expression" data-related-href="structure.html" data-related-label="3D Molecular Studio →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+
+<main class="ex-main" id="main">
+  <!-- Executive Header -->
+  <section class="ex-topbar" aria-label="Gene expression atlas overview">
+    <div class="ex-title-wrap">
+      <p class="ex-eyebrow" id="ex-eyebrow">Transcriptomics, Cross-Cohort Replication &amp; 3D Structure Bridge · Golub 7,129 Probes</p>
+      <h1 id="ex-title">Gene expression atlas</h1>
+      <p class="ex-subtitle" id="ex-subtitle">Explore all 7,129 microarray probes across 38 training and 34 independent test leukemia specimens, audit three classifiers without selection leakage, design custom gene signatures, and inspect linked genes in 3D AlphaFold structures.</p>
+    </div>
+    <div class="ex-actions">
+      <button type="button" class="ex-btn" id="ex-tour">Guided Tour</button>
+      <button type="button" class="ex-btn" id="ex-share">Share Link</button>
+      <button type="button" class="ex-btn" id="ex-export-md">Export Audit (.md)</button>
+      <a class="ex-btn" href="https://colab.research.google.com/github/tun539/assay-evidence-lab/blob/main/ml/BioAI_PyTorch_ML_RL_Suite.ipynb" target="_blank" rel="noopener">PyTorch/ML Notebook ↗</a>
+      <button type="button" class="ex-btn primary" id="save-evidence">Save probe contrast</button>
+      <button type="button" class="ex-btn" id="save-classifier-evidence">Save classifier ROC</button>
+    </div>
+  </section>
+
+  <p id="save-status" class="ex-status" role="status"></p>
+
+  <!-- Curated Biomarker & 3D Bridge Presets + Audience Tier -->
+  <section class="ex-ribbon" aria-label="Curated probe presets and accessibility modes">
+    <div class="ex-presets" role="group" aria-label="Curated biomarker presets">
+      <span class="ex-ribbon-lbl">Presets:</span>
+      <button type="button" class="ex-chip active" data-probe-acc="M27891_at">CST3 · Strongest AML</button>
+      <button type="button" class="ex-chip" data-probe-acc="M23197_at">CD33 · ADC Target</button>
+      <button type="button" class="ex-chip" data-probe-acc="U82759_at">HOXA9 · Homeobox Driver</button>
+      <button type="button" class="ex-chip" data-probe-acc="X95735_at">ZYX · Classic ALL/AML</button>
+      <button type="button" class="ex-chip" data-probe-acc="M22898_at">TP53 · 3D AlphaFold</button>
+      <button type="button" class="ex-chip" data-probe-acc="X02317_at">SOD1 · 3D Barrel</button>
+    </div>
+    <div class="ex-access-group">
+      <div class="ex-segmented" role="group" aria-label="Audience explanation depth">
+        <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+        <button type="button" data-audience="student" aria-pressed="true">Student</button>
+        <button type="button" data-audience="biologist" aria-pressed="false">Biologist</button>
+        <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+      </div>
+      <button type="button" class="ex-chip" id="ex-toggle-cb" aria-pressed="false">Colorblind Okabe–Ito</button>
+    </div>
+  </section>
+
+  <!-- Primary Interactive Controls -->
+  <section class="ex-controls-bar" aria-label="Probe, classifier, and decision threshold controls">
+    <label class="ex-field">Training-selected probe (25 ANOVA panel + active selection)
+      <select id="compareProbe"></select>
+    </label>
+    <label class="ex-field">Classifier model (34 test specimens)
+      <select id="modelSelect"></select>
+    </label>
+    <label class="ex-field">Decision threshold (τ)
+      <div class="ex-range-wrap">
+        <input id="threshold" type="range" min="0.05" max="0.95" step="0.01" value="0.50">
+        <output id="thresholdVal" class="ex-range-val" for="threshold">0.50</output>
+      </div>
+    </label>
+    <a class="ex-btn" href="workspace.html">Open workspace →</a>
+  </section>
+
+  <!-- 6-Card Live Telemetry KPI Strip -->
+  <section class="ex-kpi-grid" aria-label="Transcriptomics and classifier telemetry">
+    <article class="ex-kpi">
+      <span class="ex-kpi-lbl">Active Classifier AUROC</span>
+      <strong class="ex-kpi-val" id="kpi-auc">—</strong>
+      <span class="ex-kpi-sub" id="kpi-auc-sub">Held-out 34 specimens</span>
+    </article>
+    <article class="ex-kpi">
+      <span class="ex-kpi-lbl">Threshold Accuracy &amp; Errors</span>
+      <strong class="ex-kpi-val" id="kpi-ba">—</strong>
+      <span class="ex-kpi-sub" id="kpi-ba-sub">FP / FN at τ = 0.50</span>
+    </article>
+    <article class="ex-kpi">
+      <span class="ex-kpi-lbl">Genome Cross-Cohort r</span>
+      <strong class="ex-kpi-val" id="kpi-pearson">—</strong>
+      <span class="ex-kpi-sub" id="kpi-pearson-sub">7,129 probes · Panel r</span>
+    </article>
+    <article class="ex-kpi">
+      <span class="ex-kpi-lbl">25-Probe Replication Rate</span>
+      <strong class="ex-kpi-val" id="kpi-conc">—</strong>
+      <span class="ex-kpi-sub" id="kpi-conc-sub">Same AML/ALL sign in test</span>
+    </article>
+    <article class="ex-kpi">
+      <span class="ex-kpi-lbl">Selected Probe Test Δ</span>
+      <strong class="ex-kpi-val" id="kpi-delta">—</strong>
+      <span class="ex-kpi-sub" id="kpi-delta-sub">log₂FC &amp; direction</span>
+    </article>
+    <article class="ex-kpi">
+      <span class="ex-kpi-lbl">Feature Selection Audit</span>
+      <strong class="ex-kpi-val" id="kpi-leak">Leak-Free ✓</strong>
+      <span class="ex-kpi-sub" id="kpi-leak-sub">ANOVA k=25 fit on 38 train</span>
+    </article>
+  </section>
+
+  <!-- Dual Visual Stages: Left = Transcriptome Analytics + 3D Bridge | Right = Classifier, Waterfall & Leakage Audit -->
+  <div class="ex-stage-grid">
+    <!-- Left Stage -->
+    <section class="ex-stage-card" aria-label="Transcriptome and cross-cohort visualization">
+      <div class="ex-stage-head">
+        <h2 id="left-stage-title">Transcriptome &amp; Cross-Cohort Replication</h2>
+        <div class="ex-tabs" role="tablist" aria-label="Left visualization views">
+          <button type="button" role="tab" data-left-tab="scatter" aria-selected="true">7,129 Scatter</button>
+          <button type="button" role="tab" data-left-tab="ma" aria-selected="false">MA Plot</button>
+          <button type="button" role="tab" data-left-tab="heatmap" aria-selected="false">Panel Heatmap</button>
+          <button type="button" role="tab" data-left-tab="fold3d" aria-selected="false">3D Protein Bridge</button>
+        </div>
+      </div>
+
+      <div class="ex-plot-frame" id="left-stage-frame">
+        <canvas id="expr-canvas" width="660" height="400" aria-label="Interactive scatter and MA plot of 7,129 Golub probes. Click any probe to inspect."></canvas>
+        <div id="ex-hover-hud" class="ex-hover-hud" hidden></div>
+
+        <div id="left-heatmap-view" class="ex-panel-matrix-wrap" hidden>
+          <div id="panelMap"></div>
+        </div>
+
+        <div id="left-3d-view" class="ex-3d-bridge" hidden>
+          <div class="ex-3d-meta">
+            <span id="bridge-label">Loading 3D AlphaFold structure...</span>
+            <div class="ex-3d-links">
+              <a id="bridge-studio-link" href="structure.html">Open in 3D Studio →</a>
+              <a id="bridge-dna-link" href="dna.html">Inspect Coding DNA →</a>
+            </div>
+          </div>
+          <canvas id="bridge-3d-canvas" width="620" height="330" aria-label="Matched AlphaFold 3D protein structure preview"></canvas>
+        </div>
+      </div>
+      <p class="ex-stage-note" id="left-stage-note"></p>
+    </section>
+
+    <!-- Right Stage -->
+    <section class="ex-stage-card" aria-label="Held-out classifier and clinical specimen audit">
+      <div class="ex-stage-head">
+        <h2 id="right-stage-title">Test Cohort Audit (34 Independent Specimens)</h2>
+        <div class="ex-tabs" role="tablist" aria-label="Right visualization views">
+          <button type="button" role="tab" data-right-tab="roc" aria-selected="true">ROC &amp; PR</button>
+          <button type="button" role="tab" data-right-tab="waterfall" aria-selected="false">34 Patients</button>
+          <button type="button" role="tab" data-right-tab="pathways" aria-selected="false">Pathways</button>
+          <button type="button" role="tab" data-right-tab="leakage" aria-selected="false">Leakage Audit</button>
+        </div>
+      </div>
+
+      <div class="ex-plot-frame">
+        <svg id="right-svg" viewBox="0 0 640 380" role="img" aria-label="ROC, Precision-Recall, Patient Waterfall, and Pathway charts"></svg>
+        <div id="right-leakage-view" class="ex-leak-grid" hidden></div>
+        <div id="right-waterfall-info" class="ex-waterfall-info" hidden></div>
+      </div>
+      <p class="ex-stage-note" id="right-stage-note"></p>
+    </section>
+  </div>
+
+  <!-- Probe Replication Matrix & Custom Signature Builder -->
+  <section class="ex-card" aria-labelledby="contrast-heading">
+    <div class="ex-card-head">
+      <h2 id="contrast-heading">Does the expression pattern replicate across cohorts?</h2>
+      <button type="button" class="ex-btn" id="pin-active-probe">+ Pin active probe to signature</button>
+    </div>
+    <div class="ex-split-2">
+      <div>
+        <div class="ex-story-box" id="probeStory" role="status"></div>
+        <div id="cohortMap"></div>
+      </div>
+      <div class="ex-sig-tray" aria-label="Custom multi-gene biomarker signature builder">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <strong style="font-size:14.5px">Custom Biomarker Signature Builder</strong>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="ex-chip" id="sig-load-myeloid">Load 5-Gene Myeloid</button>
+            <button type="button" class="ex-chip" id="sig-clear">Clear</button>
+          </div>
+        </div>
+        <div class="ex-sig-chips" id="sig-chips"></div>
+        <div id="sig-summary" style="font-size:13.2px;color:#274e41"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="ex-btn primary" id="save-sig-evidence">Save custom signature to Workspace</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Full 7,129 Probe Explorer Table -->
+  <section class="ex-card" aria-labelledby="probe-table-heading">
+    <div class="ex-card-head">
+      <h2 id="probe-table-heading">Explore all 7,129 microarray probes</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="export" type="button" class="ex-btn">Export filtered CSV</button>
+        <button id="predictions" type="button" class="ex-btn">Download 34-specimen predictions CSV</button>
+      </div>
+    </div>
+    <div class="ex-table-controls">
+      <label style="margin:0;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px">Search
+        <input id="query" type="search" placeholder="Try CD33, HOXA9, TP53, SOD1, myeloperoxidase">
+      </label>
+      <label style="margin:0;display:flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px">
+        <input id="panel" type="checkbox"> Training-selected 25-probe panel only
+      </label>
+      <label style="margin:0;display:flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px">
+        <input id="filter-bridge" type="checkbox"> Linked 3D AlphaFold genes only
+      </label>
+      <p id="count" role="status" style="margin:0;margin-left:auto;font-size:13px;color:#3d5c50;font-weight:600"></p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Probe &amp; Gene</th>
+            <th>Description</th>
+            <th>Train ALL</th>
+            <th>Train AML</th>
+            <th>Test ALL</th>
+            <th>Test AML</th>
+            <th>Test log₂FC</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="probes"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button id="prev" type="button" class="ex-btn">← Previous</button>
+      <button id="next" type="button" class="ex-btn">Next →</button>
+    </div>
+  </section>
+
+  <!-- Classifier Performance Summary -->
+  <section class="ex-card" aria-labelledby="models-heading">
+    <div class="ex-card-head">
+      <h2 id="models-heading">Independent test cohort classifier comparison (34 specimens)</h2>
+      <a href="research.html" class="ex-btn">Compare in Research Benchmark →</a>
+    </div>
+    <p style="margin:0 0 10px;color:#446156;font-size:14px">Every classifier uses the identical 25 ANOVA probes (`SelectKBest(f_classif, k=25)`) and `StandardScaler` fit solely on the 38 training specimens. AML is encoded as positive class `1`.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>AUROC</th>
+            <th>Balanced accuracy</th>
+            <th>False positives</th>
+            <th>False negatives</th>
+          </tr>
+        </thead>
+        <tbody id="models"></tbody>
+      </table>
+    </div>
+    <p style="margin:12px 0 0;font-size:13.5px;color:#435f53">
+      <a href="methods.html#expression">Methods, upstream CSV matrices &amp; Python reproduction script</a> ·
+      <a href="structure.html">Open 3D Molecular Studio</a> ·
+      <a href="audit.html">Cellpose &amp; AlphaFold Audit</a>
+    </p>
+  </section>
+</main>
+
+<script src="expression-data.js"></script>
+<script src="expression-engine.js"></script>
+<script src="evidence-charts.js"></script>
+<script src="evidence-records.js"></script>
+<script src="fold-catalog.js"></script>
+<script src="folds/P00846.js"></script>
+<script src="folds/P00359.js"></script>
+<script src="folds/P04637.js"></script>
+<script src="folds/P00441.js"></script>
+<script src="mol3d-webgl.js"></script>
+<script src="mol3d-engine.js"></script>
+<script src="studio-prefs.js"></script>
+<script src="expression.js"></script>
+<script src="studio-nav.js"></script>
+</body>
+</html>
