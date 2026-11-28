@@ -97,8 +97,8 @@ assert.equal(ctx.experimental['1BNA'].chains.length, 2, '1BNA must include 2 ant
 assert.ok(ctx.Mol3D && typeof ctx.Mol3D.createViewer === 'function', 'Mol3D.createViewer must be exported');
 assert.ok(typeof ctx.Mol3D.parsePDB === 'function', 'Mol3D.parsePDB must be exported');
 
-// Verify all 10 fold scripts are loaded on structure.html, linked.html, and tomography.html
-for (const page of ['structure.html', 'linked.html', 'tomography.html']) {
+// Verify all 10 fold scripts are loaded on structure.html, linked.html, tomography.html, and transport.html
+for (const page of ['structure.html', 'linked.html', 'tomography.html', 'transport.html']) {
   const html = fs.readFileSync(path.join(studioDir, page), 'utf8');
   for (const acc of ctx.foldIds) {
     assert.ok(html.includes(`folds/${acc}.js`), `${page}: missing script tag for folds/${acc}.js`);
