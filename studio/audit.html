@@ -1,7 +1,292 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="evidence-charts.css"><link rel="stylesheet" href="studio-nav.css"><script src="evidence-charts.js"></script><title>Prediction audit · Assay Evidence Studio</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6ef;color:#173c34;font:16px/1.55 system-ui,sans-serif}.audit-main{max-width:1000px;margin:auto;padding:18px clamp(16px,6vw,70px) 52px}a{color:#205742}h1,h2{font-family:Georgia,serif;font-weight:normal}h1{font-size:clamp(38px,6vw,62px);line-height:1.02;margin:16px 0 12px}article{border:1px solid #bbcbbf;background:white;padding:8px 22px 22px;border-radius:14px;margin:18px 0}input,button,select{font:inherit;max-width:100%;padding:6px}button,select{cursor:pointer}table{border-collapse:collapse;width:100%}td,th{padding:5px;text-align:left;border-bottom:1px solid #ced9ce}progress{width:65%;accent-color:#347558}output{display:block;font-weight:bold}label{display:block}button{margin-top:8px}
-</style></head><body><a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="audit.html" data-mission="audit" data-methods="audit"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header><div class="audit-main" id="main">
-<h1>Prediction audit</h1><p>Compare object-level agreement from Cellpose metrics with the confidence assigned to each residue by an AlphaFold prediction head.</p>
-<label for="input">Open an audit JSON produced by the Python evaluator</label><input id="input" type="file" accept=".json"><button id="demo">Load teaching example</button> <a href="workspace.html">Open workspace</a><p id="status" role="status"></p><main id="panels"></main></div>
-<script src="audit-data.js"></script><script src="evidence-records.js"></script><script src="studio-nav.js"></script><script src="audit-view.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Audit Cellpose 2D microscopy instance segmentation (Hungarian IoU matching, Panoptic Quality PQ=SQ×RQ, merge/split taxonomy) alongside AlphaFold PredictedLDDTHead logits, Shannon entropy, temperature calibration, and 48×48 PAE pTM across 12 structures.">
+  <title>Cellpose &amp; AlphaFold Prediction Audit Workbench · Assay Evidence Studio</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="studio-nav.css">
+  <link rel="stylesheet" href="audit.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="studio-header" data-page="audit.html" data-mission="audit" data-methods="audit" data-related-href="structure.html" data-related-label="3D Molecular &amp; Gene Studio →">
+    <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+  </header>
+
+  <main id="main" class="au-main">
+    <div class="au-topbar">
+      <div class="au-title-wrap">
+        <p class="au-eyebrow">Instance Segmentation &amp; Structural Confidence Verification · Cellpose &amp; AlphaFold</p>
+        <h1>Cellpose &amp; AlphaFold Prediction Audit</h1>
+        <p class="au-subtitle">Audit one-to-one Hungarian instance matching, Panoptic Quality (<code>PQ = SQ × RQ</code>), and merge/split failure modes from <strong>Cellpose</strong> alongside per-residue <code>PredictedLDDTHead</code> softmax logits, Shannon entropy, temperature scaling, and 48×48 <code>PAE / pTM</code> domain geometry across <strong>AlphaFold DB v6</strong>.</p>
+      </div>
+      <div class="au-top-actions">
+        <div class="au-seg" role="group" aria-label="Audience explanation depth">
+          <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+          <button type="button" data-audience="student" aria-pressed="true">Student</button>
+          <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+        </div>
+        <button id="cb-toggle" class="au-btn" type="button" aria-pressed="false">Okabe–Ito Palette</button>
+        <label for="input" class="au-btn">Import Audit JSON</label>
+        <input id="input" type="file" accept=".json" hidden>
+        <button id="demo" class="au-btn" type="button">Classroom Fixture</button>
+        <button id="export-json" class="au-btn" type="button">Export JSON</button>
+        <button id="export-csv" class="au-btn" type="button">Export CSV</button>
+        <button id="save-mask-evidence" class="au-btn primary" type="button">Save Mask Audit</button>
+        <button id="save-conf-evidence" class="au-btn primary" type="button">Save AF Audit</button>
+        <a class="au-btn" href="workspace.html">Open Workspace</a>
+      </div>
+    </div>
+
+    <div id="status" class="au-status" role="status" aria-live="polite"></div>
+
+    <!-- Curated Dual-Audit Presets -->
+    <section class="au-preset-bar" aria-label="Prediction audit presets">
+      <span class="au-preset-label">Presets:</span>
+      <button type="button" class="au-preset-chip active" data-preset="flagship_tp53">Organoid Merge Audit + Human TP53 (Core vs. IDR)</button>
+      <button type="button" class="au-preset-chip" data-preset="myoblast_8aw3">Elongated Split Audit + PDB 8AW3 RNP (ipTM 0.78)</button>
+      <button type="button" class="au-preset-chip" data-preset="confluent_sod1">Confluent Nuclei + SOD1 β-Barrel (pTM 0.90)</button>
+      <button type="button" class="au-preset-chip" data-preset="low_snr_rbcl">Low-SNR Debris Audit + RuBisCO TIM-Barrel</button>
+      <button type="button" class="au-preset-chip" data-preset="classroom_upstream">Upstream Classroom Fixture (12×22 + 4-Res Logits)</button>
+    </section>
+
+    <!-- 6-Card Real-Time Biophysical & ML KPI Strip -->
+    <section class="au-kpi-grid" aria-label="Key segmentation and structural confidence metrics">
+      <article class="au-kpi">
+        <span class="au-kpi-label">Cellpose Match AP(τ)</span>
+        <strong id="kpi-ap" class="au-kpi-val">—</strong>
+        <span id="kpi-ap-sub" class="au-kpi-sub">TP / FP / FN at active IoU τ</span>
+      </article>
+      <article class="au-kpi">
+        <span class="au-kpi-label">COCO mAP@[.50:.95]</span>
+        <strong id="kpi-map" class="au-kpi-val">—</strong>
+        <span id="kpi-map-sub" class="au-kpi-sub">Object F1 &amp; 1-px Boundary BF1</span>
+      </article>
+      <article class="au-kpi">
+        <span class="au-kpi-label">Panoptic Quality PQ</span>
+        <strong id="kpi-pq" class="au-kpi-val">—</strong>
+        <span id="kpi-pq-sub" class="au-kpi-sub">SQ × RQ · Merges &amp; Splits</span>
+      </article>
+      <article class="au-kpi">
+        <span class="au-kpi-label">AlphaFold Mean pLDDT</span>
+        <strong id="kpi-plddt" class="au-kpi-val">—</strong>
+        <span id="kpi-plddt-sub" class="au-kpi-sub">Median &amp; % Disordered (&lt;50)</span>
+      </article>
+      <article class="au-kpi">
+        <span class="au-kpi-label">PAE-Derived pTM</span>
+        <strong id="kpi-ptm" class="au-kpi-val">—</strong>
+        <span id="kpi-ptm-sub" class="au-kpi-sub">Jumper Eq. 38 &amp; rigid domains</span>
+      </article>
+      <article class="au-kpi">
+        <span class="au-kpi-label">Calibration ECE &amp; Entropy</span>
+        <strong id="kpi-ece" class="au-kpi-val">—</strong>
+        <span id="kpi-ece-sub" class="au-kpi-sub">Logit temp T &amp; inspected residue</span>
+      </article>
+    </section>
+
+    <!--Uploaded external evidence-audit/1 report card (hidden unless custom file uploaded)-->
+    <section id="uploaded-report-card" class="au-card" hidden style="margin-bottom:14px;">
+      <div class="au-section-head">
+        <div>
+          <h2 id="uploaded-title">Imported <code>evidence-audit/1</code> Report</h2>
+          <p id="uploaded-summary"></p>
+        </div>
+        <button id="clear-upload" class="au-btn sm" type="button">Return to Interactive Benchmarks</button>
+      </div>
+      <div id="uploaded-tables" class="au-inline-2"></div>
+    </section>
+
+    <!-- Dual Interactive Visual Stage: Left = 2D Microscopy Instance Segmentation, Right = AlphaFold 48×48 PAE & Logit Inspector -->
+    <div class="au-stage-grid">
+      <!-- Track A Visual Stage: Microscopy Instance Segmentation -->
+      <section class="au-stage-card" aria-label="2D microscopy instance segmentation inspector">
+        <div class="au-stage-head">
+          <span class="au-stage-title">Track A · 2D Microscopy Instance Matching (Cellpose Hungarian IoU)</span>
+          <select id="mask-view-mode" class="au-dark-select" aria-label="Microscopy overlay mode">
+            <option value="audit">Overlay: TP / FP / FN &amp; Match Vectors</option>
+            <option value="taxonomy">Overlay: Merge / Split / Shift Taxonomy</option>
+            <option value="truth">Overlay: Reference Ground-Truth Labels</option>
+            <option value="pred">Overlay: Predicted Instance Labels</option>
+          </select>
+        </div>
+
+        <div class="au-canvas-wrap">
+          <canvas id="mask-canvas" width="560" height="350" aria-label="Interactive 2D fluorescence nuclei segmentation audit canvas. Click any cell to inspect IoU and match status."></canvas>
+        </div>
+
+        <div id="mask-inspect" class="au-inspect-bar" aria-live="polite">Click any nucleus to inspect its ground-truth area, Hungarian assignment, and pairwise IoU.</div>
+
+        <div class="au-dark-controls">
+          <div class="au-inline-2">
+            <div class="au-dfield">
+              <div class="au-dfield-head"><label for="scenario">Microscopy Benchmark</label></div>
+              <select id="scenario" class="au-dark-select"></select>
+            </div>
+            <div class="au-dfield">
+              <div class="au-dfield-head"><label for="seg-method">Segmentation Pipeline</label></div>
+              <select id="seg-method" class="au-dark-select"></select>
+            </div>
+          </div>
+
+          <div class="au-inline-3">
+            <div class="au-dfield">
+              <div class="au-dfield-head">
+                <label for="iou-th">Min IoU τ</label>
+                <output id="iou-th-val">0.50</output>
+              </div>
+              <input id="iou-th" type="range" min="0.30" max="0.95" step="0.05" value="0.50">
+            </div>
+            <div class="au-dfield">
+              <div class="au-dfield-head">
+                <label for="shift-px">Shift Δx</label>
+                <output id="shift-px-val">0 px</output>
+              </div>
+              <input id="shift-px" type="range" min="-2" max="4" step="1" value="0">
+            </div>
+            <div class="au-dfield">
+              <div class="au-dfield-head">
+                <label for="morph-rad">Rim Bias</label>
+                <output id="morph-rad-val">0 px</output>
+              </div>
+              <input id="morph-rad" type="range" min="-1" max="1" step="1" value="0">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Track B Visual Stage: AlphaFold PAE Matrix & Per-Residue Confidence Head -->
+      <section class="au-stage-card" aria-label="AlphaFold PAE domain map and residue confidence inspector">
+        <div class="au-stage-head">
+          <span class="au-stage-title">Track B · AlphaFold 48×48 PAE Domain Map &amp; pLDDT Head</span>
+          <a id="af-3d-link" href="structure.html?protein=P04637" class="au-dark-btn" style="text-decoration:none;">Open in 3D Studio →</a>
+        </div>
+
+        <div class="au-canvas-wrap">
+          <canvas id="pae-canvas" width="560" height="350" aria-label="Interactive AlphaFold 48x48 Expected Position Error matrix and confidence band summary. Click to select any residue."></canvas>
+        </div>
+
+        <div id="af-inspect" class="au-inspect-bar" aria-live="polite">Click the PAE matrix or drag the residue slider to inspect per-bin softmax logits and Shannon entropy.</div>
+
+        <div class="au-dark-controls">
+          <div class="au-dfield">
+            <div class="au-dfield-head"><label for="structure-select">AlphaFold DB v6 / PDB Structure Specimen</label></div>
+            <select id="structure-select" class="au-dark-select"></select>
+          </div>
+
+          <div class="au-inline-2">
+            <div class="au-dfield">
+              <div class="au-dfield-head">
+                <label for="residue-pos">Inspected Residue Position</label>
+                <output id="residue-pos-val">1</output>
+              </div>
+              <input id="residue-pos" type="range" min="1" max="393" step="1" value="42">
+            </div>
+            <div class="au-dfield">
+              <div class="au-dfield-head">
+                <label for="logit-temp">Logit Temp T</label>
+                <span>
+                  <output id="logit-temp-val">1.00</output>
+                  <button id="auto-cal-btn" type="button" class="au-dark-btn" style="padding:1px 6px;font-size:10.8px;margin-left:4px;">Fit T*</button>
+                </span>
+              </div>
+              <input id="logit-temp" type="range" min="0.40" max="2.20" step="0.05" value="1.00">
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Dual-Stage 10-Tab Publication SVG Diagnostic Suite -->
+    <section class="au-analytics-grid" aria-label="10-panel segmentation and structural confidence diagnostic charts">
+      <!-- Left 5 Tabs: Instance Segmentation & Hungarian Matching -->
+      <article class="au-card au-chart-card">
+        <div class="au-chart-top">
+          <div class="au-tab-strip" role="tablist" aria-label="Segmentation diagnostic views">
+            <button type="button" class="au-tab" role="tab" data-left-tab="ap_curve" aria-selected="true">AP(τ) &amp; PQ Curves</button>
+            <button type="button" class="au-tab" role="tab" data-left-tab="iou_matrix" aria-selected="false">Hungarian IoU Matrix</button>
+            <button type="button" class="au-tab" role="tab" data-left-tab="taxonomy" aria-selected="false">Merge / Split Audit</button>
+            <button type="button" class="au-tab" role="tab" data-left-tab="shift_cliff" aria-selected="false">Boundary Shift Cliff</button>
+            <button type="button" class="au-tab" role="tab" data-left-tab="area_iou" aria-selected="false">Size vs. IoU Scatter</button>
+          </div>
+          <button id="export-seg-svg" class="au-btn sm" type="button">SVG</button>
+        </div>
+        <div class="au-svg-wrap">
+          <svg id="seg-graph" viewBox="0 0 600 320" role="img" aria-label="Instance segmentation quantitative diagnostic chart"></svg>
+        </div>
+        <div id="seg-explain" class="au-explain-box"></div>
+      </article>
+
+      <!-- Right 5 Tabs: AlphaFold pLDDT, Logit Entropy, Calibration & PAE -->
+      <article class="au-card au-chart-card">
+        <div class="au-chart-top">
+          <div class="au-tab-strip" role="tablist" aria-label="AlphaFold confidence diagnostic views">
+            <button type="button" class="au-tab" role="tab" data-right-tab="plddt_chain" aria-selected="true">Chain pLDDT ± σ</button>
+            <button type="button" class="au-tab" role="tab" data-right-tab="logit_dist" aria-selected="false">Softmax Logit Bins</button>
+            <button type="button" class="au-tab" role="tab" data-right-tab="calibration" aria-selected="false">Reliability &amp; ECE(T)</button>
+            <button type="button" class="au-tab" role="tab" data-right-tab="pae_slice" aria-selected="false">PAE Row &amp; pTM</button>
+            <button type="button" class="au-tab" role="tab" data-right-tab="proteome" aria-selected="false">12-Structure Atlas</button>
+          </div>
+          <button id="export-af-svg" class="au-btn sm" type="button">SVG</button>
+        </div>
+        <div class="au-svg-wrap">
+          <svg id="af-graph" viewBox="0 0 600 320" role="img" aria-label="AlphaFold confidence and PAE quantitative diagnostic chart"></svg>
+        </div>
+        <div id="af-explain" class="au-explain-box"></div>
+      </article>
+    </section>
+
+    <!-- 5-Pipeline Segmentation Benchmark Leaderboard -->
+    <section class="au-card" aria-labelledby="leaderboard-heading">
+      <div class="au-section-head">
+        <div>
+          <h2 id="leaderboard-heading">5-Pipeline Instance Segmentation Benchmark Leaderboard</h2>
+          <p id="leaderboard-sub">Evaluated on the active microscopy field using exact Cellpose Kuhn–Munkres 1-to-1 linear sum assignment. Click any row to inspect its spatial mask and error modes above.</p>
+        </div>
+      </div>
+      <div class="au-table-wrap">
+        <table class="au-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Segmentation Pipeline</th>
+              <th>AP@0.50</th>
+              <th>AP@0.75</th>
+              <th>AP@0.90</th>
+              <th>mAP@[.5:.95]</th>
+              <th>Panoptic PQ (SQ × RQ)</th>
+              <th>1-px BF1</th>
+              <th>TP / FP / FN (τ)</th>
+              <th>Merges / Splits</th>
+            </tr>
+          </thead>
+          <tbody id="seg-leaderboard"></tbody>
+        </table>
+      </div>
+      <p class="au-footnote">
+        Upstream numerical implementations: <code>MouseLand/cellpose/metrics.py</code> (<code>a54cb48</code>) and <code>google-deepmind/alphafold/common/confidence.py</code> (<code>c77e5d2</code>). Compatible offline CLI: <code>python evidence/audit.py --out report.json demo</code>.
+        <a href="methods.html#audit">Exact equations, vendor licenses &amp; reproduction guide →</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="dna-data.js"></script>
+  <script src="fold-catalog.js"></script>
+  <script src="folds/P00846.js"></script>
+  <script src="folds/P0A7J3.js"></script>
+  <script src="folds/P00359.js"></script>
+  <script src="folds/Q31BY4.js"></script>
+  <script src="folds/O23290.js"></script>
+  <script src="folds/P04637.js"></script>
+  <script src="folds/P68871.js"></script>
+  <script src="folds/P01308.js"></script>
+  <script src="folds/P0A7G6.js"></script>
+  <script src="folds/P00441.js"></script>
+  <script src="experimental.js"></script>
+  <script src="evidence-records.js"></script>
+  <script src="audit-engine.js"></script>
+  <script src="audit-workbench.js"></script>
+  <script src="studio-nav.js"></script>
+</body>
+</html>

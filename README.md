@@ -96,9 +96,9 @@ Open [the 3D Molecular Transport & SPT Workbench](https://tun539.github.io/assay
 
 [Download the classroom files](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip), extract the ZIP and open `studio/practical.html`. Choose the undergraduate or graduate track, fit the published example or a local CSV, inspect held-concentration errors, and export your lab record and predictions. The [instructor guide](TEACHING.md) includes learning goals, submission requirements, a reference result and marking criteria. Run `node studio/test-fit.cjs` to check the browser fits against the SciPy benchmark.
 
-## Cellpose and AlphaFold integration
+## Cellpose Instance Segmentation & AlphaFold Confidence Audit Workbench
 
-The [prediction audit](studio/audit.html) uses numerical routines vendored from the two upstream repositories. Score your own label maps or model confidence logits with the [offline evaluator](evidence/README.md), then inspect its JSON in the studio. Teaching fixtures are synthetic. Original source credits and licenses accompany both modules.
+Open [the Cellpose & AlphaFold Prediction Audit Workbench](https://tun539.github.io/assay-evidence-lab/audit.html) (`studio/audit.html`) to audit **5 microscopy instance segmentation pipelines** (`Cellpose-cyto3`, `StarDist-2D`, `Distance Watershed`, `Semantic U-Net`, and `Mis-tuned Flow`) using exact Kuhn–Munkres 1-to-1 linear sum assignment (`MouseLand/cellpose@a54cb48`), **COCO `mAP@[0.50:0.95]`**, **Kirillov Panoptic Quality (`PQ = SQ × RQ`)**, 1-px morphological `Boundary F1`, and under-segmentation **Merge** vs. over-segmentation **Split** error decomposition alongside **AlphaFold `PredictedLDDTHead` softmax logits** (`google-deepmind/alphafold@c77e5d2`), per-residue Shannon entropy $\hat{H}$, post-hoc **Logit Temperature Scaling `ECE`**, and **Jumper Eq. 38 `PAE pTM`** domain analysis across all 10 KEGG/AlphaFold DB v6 folds and `PDB 8AW3`. Score your own label maps or logits offline with [`evidence/audit.py`](evidence/README.md) and import any `evidence-audit/1` JSON report directly in the browser.
 
 ## Interactive studio
 
@@ -138,6 +138,7 @@ node studio/test-fit.cjs
 node studio/test-simulation.cjs
 node studio/test-tomography.cjs
 node studio/test-transport.cjs
+node studio/test-audit.cjs
 node studio/test-evidence-records.cjs
 node studio/test-studio-config.cjs
 node studio/test-studio-pages.cjs

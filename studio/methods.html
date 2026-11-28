@@ -24,7 +24,7 @@ p{margin:8px 0}
 .toc a:hover{background:#dceade}
 table{border-collapse:collapse;width:100%;font-size:15px}
 th,td{padding:8px;text-align:left;border-bottom:1px solid #dae2db}
-td a{overflow-wrap:anywhere}
+td a,code{overflow-wrap:anywhere}
 .table-wrap{overflow:auto}
 ul{padding-left:22px}
 footer{padding:16px clamp(18px,4vw,44px) 32px;border-top:1px solid #d4dfd5}
@@ -74,13 +74,13 @@ footer{padding:16px clamp(18px,4vw,44px) 32px;border-top:1px solid #d4dfd5}
 </section>
 
 <section id="audit">
-  <h2>Prediction audit</h2>
-  <h3>Cellpose · instance matching</h3>
-  <p>The teaching example uses synthetic label maps. The evaluator computes the intersection over union of each object pair, assigns one-to-one matches and counts true positives, false positives and false negatives at each threshold. The displayed score is TP / (TP + FP + FN).</p>
-  <p><a href="https://github.com/MouseLand/cellpose/blob/a54cb48849b7e225a81e8e43dcb042d42427f543/cellpose/metrics.py">Cellpose · exact metrics implementation</a></p>
-  <h3>AlphaFold · residue confidence</h3>
-  <p>For each residue, softmax converts synthetic confidence logits into probabilities over bins. The probability-weighted bin centers give the predicted confidence score (pLDDT) on a 0–100 scale. The mean summarizes the chain and can hide low-confidence residues.</p>
-  <p><a href="https://github.com/google-deepmind/alphafold/blob/c77e5d2a8961d1a353632c462914ff0a32a950f6/alphafold/common/confidence.py">AlphaFold · exact confidence implementation</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/evidence/README.md">Project evaluator and reproduction commands</a> · <a href="audit.html">Return to prediction audit</a></p>
+  <h2>Cellpose instance segmentation &amp; AlphaFold confidence audit workbench</h2>
+  <h3>Track A · Cellpose Kuhn–Munkres instance matching &amp; Panoptic Quality</h3>
+  <p>In <code>studio/audit-engine.js</code> (exact browser counterpart to <code>evidence/audit.py</code> and vendored <code>MouseLand/cellpose/metrics.py</code> at <code>a54cb48</code>), arbitrary sparse 2D integer label maps are normalized to <code>0..K</code>, contingency pixel overlaps build the exact pairwise Intersection-over-Union matrix, and an exact <code>O(N²M)</code> Kuhn–Munkres / Jonker–Volgenant augmenting-path solver minimizes <code>cost = −𝕀(IoU ≥ τ) − IoU / (2 N_min)</code>. Alongside canonical Cellpose match scores <code>AP(τ) = TP / (TP + FP + FN)</code> across <code>τ ∈ [0.30, 0.95]</code> and <code>COCO mAP@[0.50:0.95:0.05]</code>, the workbench decomposes <a href="https://arxiv.org/abs/1801.00868">Kirillov et al. (2019)</a> Panoptic Quality <code>PQ = SQ × RQ</code>, 1-px morphological contour <code>Boundary F1</code>, foreground <code>Pixel Dice</code>, and overlap-graph failure taxonomy (<em>Under-segmented Merges</em>, <em>Over-segmented Splits</em>, <em>Boundary Shifts</em>, <em>Missed Dim FN</em>, and <em>Spurious Debris FP</em>) across five segmentation architectures (<code>Cellpose-cyto3</code>, <code>StarDist-2D</code>, <code>Distance Watershed</code>, <code>Semantic U-Net</code>, and <code>Mis-tuned Flow</code>).</p>
+  <p><a href="https://github.com/MouseLand/cellpose/blob/a54cb48849b7e225a81e8e43dcb042d42427f543/cellpose/metrics.py">Cellpose · exact metrics implementation</a> · <a href="https://doi.org/10.1038/s41592-020-01018-x">Stringer et al., Nat. Methods (2021)</a></p>
+  <h3>Track B · AlphaFold PredictedLDDTHead logits, calibration &amp; PAE pTM</h3>
+  <p>Matching vendored <code>google-deepmind/alphafold/common/confidence.py</code> (<code>c77e5d2</code>) to &lt;10<sup>−12</sup>, temperature-scaled softmax converts raw residue-by-bin logits <code>z / T</code> into probabilities over bin centers <code>c_b</code>, yielding expected per-residue <code>pLDDT</code>, predictive bin spread <code>±σ_pLDDT</code>, and normalized Shannon entropy <code>Ĥ ∈ [0, 1]</code> (separating uniform epistemic ignorance from bimodal hinge conformations). Across all 10 bundled KEGG/AlphaFold DB v6 monomers, flagship multi-entity <code>PDB 8AW3</code>, and the 4-residue classroom fixture, the workbench computes post-hoc temperature scaling Expected Calibration Error (<code>ECE</code>, <a href="https://arxiv.org/abs/1706.04599">Guo et al. 2017</a>) and <a href="https://doi.org/10.1038/s41586-021-03819-2">Jumper et al. (2021, Eq. 38)</a> Lorentzian <code>pTM</code> global packing scores and rigid-domain blocks directly from the 48 × 48 <code>PAE</code> matrices, while preserving lossless import/export of <code>evidence-audit/1</code> JSON reports.</p>
+  <p><a href="https://github.com/google-deepmind/alphafold/blob/c77e5d2a8961d1a353632c462914ff0a32a950f6/alphafold/common/confidence.py">AlphaFold · exact confidence implementation</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/evidence/README.md">Offline CLI evaluator (evidence/audit.py)</a> · <a href="audit.html">Open Cellpose &amp; AlphaFold Audit Workbench</a></p>
 </section>
 
 <section id="structure">
