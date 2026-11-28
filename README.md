@@ -76,9 +76,9 @@ Open [the 3D Molecular & Gene Structure Studio](https://tun539.github.io/assay-e
 
 Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and deposited [RCSB PDB](https://www.rcsb.org/) structures. Run `python scripts/refresh_gene_models.py` and `python scripts/refresh_experimental_and_dna.py` to refresh bundled coordinates and PAE matrices from upstream APIs. Distances in predicted monomers describe model geometry.
 
-## Simulation lab
+## Simulation & Conformational Ensemble Workbench
 
-[Two interactive experiments](studio/simulation.html) cover force-law learning and ensemble sampling. Change model assumptions, inspect trajectories and export reproducible plots as CSV or a team review as JSON. The [teaching guide](SIMULATIONS.md) includes role-based exercises and an independent MACE-metric checker.
+Open [the Simulation & ML Force-Field Workbench](https://tun539.github.io/assay-evidence-lab/simulation.html) (`studio/simulation.html`) to audit **5 physical potentials × 5 conservative MLIP surrogates** (`Harmonic`, `Quartic Taylor`, `Conservative RBF-GP`, `MACE-inspired Radial–Bessel`, and `Neural Committee` with live **Active-Learning DFT query `+ Add x*`**) across symplectic `Velocity Verlet` vs. `Euler`/`RK4`/`BAOAB Langevin` integrators, phase-space portraits, Hamiltonian drift $\Delta H(t)$, and vibrational power spectra $S(\omega)$ (*Fu et al., ICLR 2023*), or switch to **Track B** to compare `Langevin MD`, `MCMC`, `Well-Tempered Metadynamics`, and `BioEmu`-style equilibrium generation across 1D cryptic pockets and 2D **Müller–Brown / Alanine Dipeptide $(\phi, \psi)$ Ramachandran** free-energy landscapes coupled to live 3D protein breathing (`1MBO`, `1UBQ`, `TP53`). See [SIMULATIONS.md](SIMULATIONS.md) for the team exercise and independent MACE metric checker (`python evidence/check_simulation.py`).
 
 ## Classroom and research practical
 
