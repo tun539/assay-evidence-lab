@@ -53,7 +53,7 @@
           <label class="kw-field"><span>Initial-rate unit</span><input id="custom-rate-unit" type="text" value="µmol/min/mg"></label>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
-          <button class="kw-btn primary" id="apply-csv" type="button">Fit all 5 models on CSV</button>
+          <button class="kw-btn primary" id="apply-csv" type="button">Fit all 6 models on CSV</button>
           <button class="kw-btn" id="reset-puromycin" type="button">Reset to Puromycin</button>
         </div>
         <p id="csv-status" role="status" style="margin:0;font-size:13px;font-weight:600;color:#991b1b"></p>
@@ -64,7 +64,7 @@
   <!-- Primary Selectors -->
   <section class="kw-control-bar" aria-label="Benchmark dataset, validation split, and kinetic hypothesis">
     <div class="kw-field">
-      <label for="dataset">Benchmark dataset (4 curated + custom CSV)</label>
+      <label for="dataset">Benchmark dataset (5 curated + custom CSV)</label>
       <select id="dataset"></select>
     </div>
     <div class="kw-field">
@@ -72,7 +72,7 @@
       <select id="concentration"></select>
     </div>
     <div class="kw-field">
-      <label for="model">Active mechanistic hypothesis (5 models)</label>
+      <label for="model">Active mechanistic hypothesis (6 models)</label>
       <select id="model"></select>
     </div>
     <div class="kw-field">
@@ -90,7 +90,7 @@
     </div>
     <div class="kw-chip-group">
       <button type="button" class="kw-chip" id="toggle-ci" aria-pressed="true">95% Confidence bands</button>
-      <button type="button" class="kw-chip" id="toggle-all-models" aria-pressed="false">Overlay all 5 models</button>
+      <button type="button" class="kw-chip" id="toggle-all-models" aria-pressed="false">Overlay all 6 models</button>
       <button type="button" class="kw-chip" id="toggle-cb" aria-pressed="false">Colorblind palette</button>
     </div>
   </div>
@@ -256,8 +256,8 @@
         <p style="margin:0">Inspired by activity-cliff and OOD evaluation frameworks from <a href="https://github.com/molML" target="_blank" rel="noopener noreferrer">molML (TU Eindhoven)</a>, this workbench separates <strong>interior interpolation folds</strong> from <strong>boundary extrapolation folds</strong> (lowest and highest <code>[S]</code>). Holding out every replicate at a concentration tests whether a rate law generalizes across saturation regimes rather than memorizing replicate averages.</p>
       </div>
       <div>
-        <h3 style="margin:0 0 6px;font-size:15px;color:#13312a">2. Apparent vs. Microscopic Parameters</h3>
-        <p style="margin:0">Fitting <code>v = Vmax·[S]/(Km + [S])</code> estimates <em>apparent</em> steady-state parameters. Without independent active-site titration (<code>[E]total</code>) and pre-steady-state binding rates, apparent <code>Km</code> cannot be equated to an equilibrium dissociation constant <code>Kd</code>, and treatment-by-run confounding in single-batch assays requires independent biological preparations to confirm.</p>
+        <h3 style="margin:0 0 6px;font-size:15px;color:#13312a">2. Apparent Parameters, Cooperativity &amp; Substrate Inhibition</h3>
+        <p style="margin:0">Fitting <code>v = Vmax·[S]/(Km + [S])</code>, Cooperative Hill (<code>n</code>), or Haldane substrate inhibition (<code>v = Vmax·[S]/(Km + [S] + [S]²/Ki)</code>, peaking at <code>[S]opt = √(Km·Ki)</code>) estimates <em>apparent</em> steady-state parameters. Confirming dead-end <code>ESS</code> complexes, microscopic <code>Kd</code>, or batch-independent <code>Vmax</code> shifts requires orthogonal binding titrations and independent biological preparations.</p>
       </div>
       <div>
         <h3 style="margin:0 0 6px;font-size:15px;color:#13312a">3. Why Nonlinear Fitting Beats Linearization</h3>

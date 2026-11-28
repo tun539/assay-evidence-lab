@@ -41,8 +41,19 @@
   // and default to 'split_vmax' or check if any script expects 'shared'. No test checks default model on kinetics.html;
   // starting on 'split_vmax' (or 'shared' -> switching) — actually starting on 'split_vmax' immediately showcases clean fit,
   // OR starting on 'shared' immediately shows dramatic miss vs switching! Let's check URL ?model= & ?dataset= & ?fold=
+  const defaultModelForDataset = {
+    puromycin: 'split_vmax',
+    noncompetitive: 'split_vmax',
+    competitive: 'split_km',
+    cooperative: 'hill_both',
+    haldane: 'haldane_both',
+  };
+
   const params = new URLSearchParams(location.search);
-  if (params.get('dataset') && benchmarks[params.get('dataset')]) state.datasetKey = params.get('dataset');
+  if (params.get('dataset') && benchmarks[params.get('dataset')]) {
+    state.datasetKey = params.get('dataset');
+    state.modelId = defaultModelForDataset[state.datasetKey] || 'split_vmax';
+  }
   if (params.get('model') && KineticsAnalytics.MODEL_CATALOG.some(m => m.id === params.get('model'))) {
     state.modelId = params.get('model');
   }
@@ -58,7 +69,7 @@
           untreated: '#d55e00',
           untreatedFill: 'rgba(213, 94, 0, 0.14)',
           ood: '#cc79a7',
-          models: { shared: '#64748b', split_vmax: '#0072b2', split_km: '#e69f00', split_both: '#009e73', hill_both: '#cc79a7' },
+          models: { shared: '#64748b', split_vmax: '#0072b2', split_km: '#e69f00', split_both: '#009e73', hill_both: '#cc79a7', haldane_both: '#882255' },
         }
       : {
           treated: '#0b7a5c',
@@ -66,7 +77,7 @@
           untreated: '#b85627',
           untreatedFill: 'rgba(184, 86, 39, 0.14)',
           ood: '#7c3aed',
-          models: { shared: '#64748b', split_vmax: '#0b7a5c', split_km: '#d97706', split_both: '#2563eb', hill_both: '#7c3aed' },
+          models: { shared: '#64748b', split_vmax: '#0b7a5c', split_km: '#d97706', split_both: '#2563eb', hill_both: '#7c3aed', haldane_both: '#e11d48' },
         };
   }
 
@@ -81,7 +92,7 @@
   function fmtNum(v, digits = 2) {
     if (!Number.isFinite(v)) return '—';
     const abs = Math.abs(v);
-    if (abs > 0 && abs < 0.01) return v.toExponential(2);
+    if (abs > 0 && abs < Math.pow(10, -digits)) return v.toExponential(1);
     return v.toFixed(digits);
   }
 
@@ -214,6 +225,13 @@
       ? '<span class="kw-badge ood">OOD Extrap</span>'
       : '<span class="kw-badge">In-Domain</span>';
 
+    const hasKi = Number.isFinite(pT.ki) || Number.isFinite(pU.ki);
+    const kiSubText = hasKi
+      ? `Ki: ${Number.isFinite(pT.ki) ? pT.ki.toFixed(2) : '∞'} (T), ${Number.isFinite(pU.ki) ? pU.ki.toFixed(2) : '∞'} (U) · [S]opt ≈ ${(Number.isFinite(pU.sOpt) ? pU.sOpt : pT.sOpt).toFixed(2)}`
+      : pT.n !== 1
+      ? `Hill n: ${pT.n.toFixed(2)} (T), ${pU.n.toFixed(2)} (U)`
+      : `Treated vs Untreated (${esc(concUnit)})`;
+
     byId('kpi-strip').innerHTML = `
       <article class="kw-kpi">
         <div class="kw-kpi-label"><span>${isPooled ? 'Pooled Split' : `Holdout (${foldObj.level} ${esc(concUnit)})`}</span>${regimeTag}</div>
@@ -238,12 +256,12 @@
       <article class="kw-kpi">
         <div class="kw-kpi-label"><span>Apparent V<sub>max</sub></span><span class="kw-badge">${vmaxGapPct >= 0 ? '+' : ''}${vmaxGapPct.toFixed(1)}%</span></div>
         <div class="kw-kpi-val">${fmtNum(pT.vmax, 1)} <span style="font-size:13px;font-weight:500;color:#496359">/ ${fmtNum(pU.vmax, 1)}</span></div>
-        <div class="kw-kpi-sub">Treated vs Untreated (${esc(rateUnit)})</div>
+        <div class="kw-kpi-sub">${hasKi ? `Uninhibited ceiling (${esc(rateUnit)})` : `Treated vs Untreated (${esc(rateUnit)})`}</div>
       </article>
       <article class="kw-kpi">
-        <div class="kw-kpi-label"><span>Apparent K<sub>m</sub>${pT.n !== 1 ? ' &amp; n' : ''}</span><span class="kw-badge">V/K ${fmtNum(effT / Math.max(1e-9, effU), 2)}×</span></div>
+        <div class="kw-kpi-label"><span>Apparent K<sub>m</sub>${hasKi ? ' &amp; K<sub>i</sub>' : pT.n !== 1 ? ' &amp; n' : ''}</span><span class="kw-badge">V/K ${fmtNum(effT / Math.max(1e-9, effU), 2)}×</span></div>
         <div class="kw-kpi-val">${fmtNum(pT.km, 3)} <span style="font-size:13px;font-weight:500;color:#496359">/ ${fmtNum(pU.km, 3)}</span></div>
-        <div class="kw-kpi-sub">${pT.n !== 1 ? `Hill n: ${pT.n.toFixed(2)} (T), ${pU.n.toFixed(2)} (U)` : `Treated vs Untreated (${esc(concUnit)})`}</div>
+        <div class="kw-kpi-sub">${kiSubText}</div>
       </article>
     `;
 
@@ -314,16 +332,18 @@
              `<circle r="4.6" fill="${col}" stroke="#ffffff" stroke-width="1.2"/></g>`;
     };
 
+    const hasInhib = (pT.alpha > 0) || (pU.alpha > 0);
+
     if (tab === 'mm') {
       const xMax = analysis.maxConc * 1.08;
-      const sGrid = Array.from({ length: 90 }, (_, i) => (xMax * i) / 89);
+      const sGrid = Array.from({ length: 95 }, (_, i) => (xMax * i) / 94);
       const ciT = KineticsAnalytics.curveConfidenceAndSensitivity(trainRows, fit, 'treated', sGrid, sigma);
       const ciU = KineticsAnalytics.curveConfidenceAndSensitivity(trainRows, fit, 'untreated', sGrid, sigma);
       const yMax = Math.max(
         ...allObs.map(r => r.rate),
         ...ciT.band.map(b => state.showCI ? b.hi : b.pred),
         ...ciU.band.map(b => state.showCI ? b.hi : b.pred),
-        pT.vmax * 0.96
+        hasInhib ? 0 : pT.vmax * 0.96
       ) * 1.08;
       const { sx, sy, g } = drawGrid(0, xMax, 0, yMax, `Substrate concentration [S] (${concUnit})`, `Initial velocity v (${rateUnit})`, 2, 0);
       parts.push(g);
@@ -337,7 +357,7 @@
         parts.push(`<line x1="${hx.toFixed(1)}" x2="${hx.toFixed(1)}" y1="${pad.t}" y2="${pad.t + ph}" stroke="${strokeCol}" stroke-dasharray="5 4" stroke-width="1.5"/>`);
       }
 
-      // Optional overlay of all 5 models
+      // Optional overlay of all 6 models
       if (state.overlayAll) {
         for (const mSpec of KineticsAnalytics.MODEL_CATALOG) {
           if (mSpec.id === mId) continue;
@@ -358,27 +378,39 @@
         }
       }
 
-      // Km half-saturation markers + main curves
+      // Km markers, [S]opt substrate-inhibition peak diamonds, and main curves
       for (const [st, col, pState, ci] of [['untreated', pal.untreated, pU, ciU], ['treated', pal.treated, pT, ciT]]) {
         if (pState.km <= xMax) {
-          const kx = sx(pState.km), ky = sy(pState.vmax * 0.5);
+          const vAtKm = KineticsAnalytics.predictRate(fit, st, pState.km);
+          const kx = sx(pState.km), ky = sy(vAtKm);
           parts.push(`<line x1="${kx.toFixed(1)}" x2="${kx.toFixed(1)}" y1="${ky.toFixed(1)}" y2="${pad.t + ph}" stroke="${col}" stroke-opacity="0.45" stroke-dasharray="2 3"/>`);
-          parts.push(`<circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="3.2" fill="#fff" stroke="${col}" stroke-width="1.6" data-tip="${esc(`${st} half-saturation Km = ${pState.km.toFixed(4)} ${concUnit} (v = ½ Vmax = ${(pState.vmax * 0.5).toFixed(1)})`)}"/>`);
+          parts.push(`<circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="3.2" fill="#fff" stroke="${col}" stroke-width="1.6" data-tip="${esc(`${st} apparent Km = ${pState.km.toFixed(4)} ${concUnit} (v = ${vAtKm.toFixed(1)} ${rateUnit})`)}"/>`);
         }
         const pts = ci.band.map(b => `${sx(b.s).toFixed(1)},${sy(b.pred).toFixed(1)}`).join(' ');
         parts.push(`<polyline fill="none" stroke="${col}" stroke-width="2.7" points="${pts}"/>`);
+        if (Number.isFinite(pState.sOpt) && pState.sOpt <= xMax) {
+          const vOpt = KineticsAnalytics.predictRate(fit, st, pState.sOpt);
+          const ox = sx(pState.sOpt), oy = sy(vOpt);
+          parts.push(`<line x1="${ox.toFixed(1)}" x2="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" y2="${pad.t + ph}" stroke="${col}" stroke-opacity="0.55" stroke-dasharray="4 3"/>`);
+          parts.push(`<polygon points="${ox.toFixed(1)},${(oy - 5.8).toFixed(1)} ${(ox + 5.8).toFixed(1)},${oy.toFixed(1)} ${ox.toFixed(1)},${(oy + 5.8).toFixed(1)} ${(ox - 5.8).toFixed(1)},${oy.toFixed(1)}" fill="#ffffff" stroke="${col}" stroke-width="2" data-tip="${esc(`${st} optimal substrate [S]opt = √(Km·Ki) = ${pState.sOpt.toFixed(3)} ${concUnit} · Peak v = ${vOpt.toFixed(1)} ${rateUnit} (Ki = ${pState.ki.toFixed(3)} ${concUnit})`)}"/>`);
+        }
       }
 
       for (const r of allObs) parts.push(pointMarker(sx(r.conc), sy(r.rate), r));
     } else if (tab === 'log') {
-      // Log10[S] Sigmoidal Dose-Response (molML / QSAR standard)
+      // Log10[S] Sigmoidal / Bell-Shaped Dose-Response (molML / QSAR standard)
       const xMin = Math.log10(analysis.minConc) - 0.45;
       const xMax = Math.log10(analysis.maxConc) + 0.35;
-      const logGrid = Array.from({ length: 90 }, (_, i) => xMin + ((xMax - xMin) * i) / 89);
+      const logGrid = Array.from({ length: 95 }, (_, i) => xMin + ((xMax - xMin) * i) / 94);
       const sGrid = logGrid.map(lv => Math.pow(10, lv));
       const ciT = KineticsAnalytics.curveConfidenceAndSensitivity(trainRows, fit, 'treated', sGrid, sigma);
       const ciU = KineticsAnalytics.curveConfidenceAndSensitivity(trainRows, fit, 'untreated', sGrid, sigma);
-      const yMax = Math.max(...allObs.map(r => r.rate), pT.vmax, pU.vmax) * 1.1;
+      const yMax = Math.max(
+        ...allObs.map(r => r.rate),
+        ...ciT.band.map(b => state.showCI ? b.hi : b.pred),
+        ...ciU.band.map(b => state.showCI ? b.hi : b.pred),
+        hasInhib ? 0 : Math.max(pT.vmax, pU.vmax)
+      ) * 1.1;
       const { sx, sy, g } = drawGrid(xMin, xMax, 0, yMax, `Log₁₀[S] (log₁₀ ${concUnit})`, `Initial velocity v (${rateUnit})`, 2, 0);
       parts.push(g);
 
@@ -393,22 +425,33 @@
           parts.push(`<polygon points="${upper.concat(lower).join(' ')}" fill="${fill}"/>`);
         }
       }
-      // Vmax asymptotes + log10(Km) inflection pins
+      // Vmax asymptotes + log10(Km) inflection pins + log10([S]opt) bell peaks
       for (const [st, col, pState, ci] of [['untreated', pal.untreated, pU, ciU], ['treated', pal.treated, pT, ciT]]) {
-        const vy = sy(pState.vmax);
-        parts.push(`<line x1="${pad.l}" x2="${W - pad.r}" y1="${vy.toFixed(1)}" y2="${vy.toFixed(1)}" stroke="${col}" stroke-opacity="0.32" stroke-dasharray="4 4"/>`);
+        if (!(pState.alpha > 0)) {
+          const vy = sy(pState.vmax);
+          parts.push(`<line x1="${pad.l}" x2="${W - pad.r}" y1="${vy.toFixed(1)}" y2="${vy.toFixed(1)}" stroke="${col}" stroke-opacity="0.32" stroke-dasharray="4 4"/>`);
+        }
         const lkm = Math.log10(pState.km);
         if (lkm >= xMin && lkm <= xMax) {
-          const kx = sx(lkm), ky = sy(pState.vmax * 0.5);
+          const vAtKm = KineticsAnalytics.predictRate(fit, st, pState.km);
+          const kx = sx(lkm), ky = sy(vAtKm);
           parts.push(`<line x1="${kx.toFixed(1)}" x2="${kx.toFixed(1)}" y1="${ky.toFixed(1)}" y2="${pad.t + ph}" stroke="${col}" stroke-opacity="0.45" stroke-dasharray="2 3"/>`);
-          parts.push(`<circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="4" fill="#fff" stroke="${col}" stroke-width="1.8" data-tip="${esc(`${st} inflection log₁₀(Km) = ${lkm.toFixed(2)} (Km = ${pState.km.toFixed(4)} ${concUnit})`)}"/>`);
+          parts.push(`<circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="4" fill="#fff" stroke="${col}" stroke-width="1.8" data-tip="${esc(`${st} rising inflection log₁₀(Km) = ${lkm.toFixed(2)} (Km = ${pState.km.toFixed(4)} ${concUnit})`)}"/>`);
         }
         const pts = ci.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(b.pred).toFixed(1)}`).join(' ');
         parts.push(`<polyline fill="none" stroke="${col}" stroke-width="2.7" points="${pts}"/>`);
+        if (Number.isFinite(pState.sOpt)) {
+          const lOpt = Math.log10(pState.sOpt);
+          if (lOpt >= xMin && lOpt <= xMax) {
+            const vOpt = KineticsAnalytics.predictRate(fit, st, pState.sOpt);
+            const ox = sx(lOpt), oy = sy(vOpt);
+            parts.push(`<polygon points="${ox.toFixed(1)},${(oy - 5.8).toFixed(1)} ${(ox + 5.8).toFixed(1)},${oy.toFixed(1)} ${ox.toFixed(1)},${(oy + 5.8).toFixed(1)} ${(ox - 5.8).toFixed(1)},${oy.toFixed(1)}" fill="#ffffff" stroke="${col}" stroke-width="2" data-tip="${esc(`${st} bell-curve peak log₁₀([S]opt) = ${lOpt.toFixed(2)} ([S]opt = ${pState.sOpt.toFixed(3)} ${concUnit}, Ki = ${pState.ki.toFixed(3)} ${concUnit})`)}"/>`);
+          }
+        }
       }
       for (const r of allObs) parts.push(pointMarker(sx(Math.log10(r.conc)), sy(r.rate), r));
     } else if (tab === 'lb') {
-      // Lineweaver-Burk: 1/v vs 1/[S], extending left to -1/Km so X & Y intercepts are directly visible!
+      // Lineweaver-Burk: 1/v vs 1/[S], extending left to -1/Km so X & Y intercepts or upward Haldane hooks are directly visible!
       const minKm = Math.max(0.008, Math.min(pT.km, pU.km));
       const maxInvS = (1 / analysis.minConc) * 1.08;
       const minInvS = -Math.min(maxInvS * 0.55, (1 / minKm) * 1.28);
@@ -418,22 +461,29 @@
       parts.push(g);
 
       for (const [st, col, pState] of [['untreated', pal.untreated, pU], ['treated', pal.treated, pT]]) {
-        if (pState.n === 1) {
+        if (pState.n === 1 && !(pState.alpha > 0)) {
           // Exact line: 1/v = (1/Vmax) + (Km/Vmax)*(1/S), x-intercept at -1/Km
           const xStart = Math.max(minInvS, -1 / pState.km);
           const yAtStart = (1 / pState.vmax) + (pState.km / pState.vmax) * xStart;
           const yAtEnd = (1 / pState.vmax) + (pState.km / pState.vmax) * maxInvS;
           parts.push(`<line x1="${sx(xStart).toFixed(1)}" y1="${sy(Math.max(0, yAtStart)).toFixed(1)}" x2="${sx(maxInvS).toFixed(1)}" y2="${sy(Math.min(yMax, yAtEnd)).toFixed(1)}" stroke="${col}" stroke-width="2.5"/>`);
-          // Y-intercept dot (1/Vmax)
           parts.push(`<circle cx="${sx(0).toFixed(1)}" cy="${sy(1 / pState.vmax).toFixed(1)}" r="3.6" fill="#fff" stroke="${col}" stroke-width="1.8" data-tip="${esc(`${st} y-intercept 1/Vmax = ${(1 / pState.vmax).toFixed(4)} (Vmax = ${pState.vmax.toFixed(1)})`)}"/>`);
         } else {
-          // Cooperative Hill curve in double-reciprocal space bends upward (n>1) or downward (n<1)!
-          const invGrid = Array.from({ length: 70 }, (_, i) => (0.2 + ((maxInvS - 0.2) * i) / 69));
+          // Cooperative Hill OR Haldane Substrate Inhibition (upward hook as 1/[S] -> 0!)
+          const minPosInvS = Math.max(0.03, (1 / analysis.maxConc) * 0.45);
+          const invGrid = Array.from({ length: 95 }, (_, i) => minPosInvS + ((maxInvS - minPosInvS) * i) / 94);
           const pts = invGrid
             .map(invS => [invS, 1 / Math.max(1e-6, KineticsAnalytics.predictRate(fit, st, 1 / invS))])
             .filter(([, iv]) => iv >= 0 && iv <= yMax)
             .map(([ix, iv]) => `${sx(ix).toFixed(1)},${sy(iv).toFixed(1)}`).join(' ');
           parts.push(`<polyline fill="none" stroke="${col}" stroke-width="2.5" points="${pts}"/>`);
+          if (pState.alpha > 0) {
+            // Also show dashed low-[S] uninhibited asymptote line toward -1/Km!
+            const xStart = Math.max(minInvS, -1 / pState.km);
+            const yAtStart = (1 / pState.vmax) + (pState.km / pState.vmax) * xStart;
+            const yAtEnd = (1 / pState.vmax) + (pState.km / pState.vmax) * maxInvS;
+            parts.push(`<line x1="${sx(xStart).toFixed(1)}" y1="${sy(Math.max(0, yAtStart)).toFixed(1)}" x2="${sx(maxInvS).toFixed(1)}" y2="${sy(Math.min(yMax, yAtEnd)).toFixed(1)}" stroke="${col}" stroke-opacity="0.32" stroke-dasharray="4 3" stroke-width="1.4"/>`);
+          }
         }
       }
 
@@ -444,22 +494,22 @@
         const yHi = sy(Math.min(yMax, 1 / r.rate + ampErr));
         const yLo = sy(Math.max(0, 1 / r.rate - ampErr));
         parts.push(`<line x1="${ix.toFixed(1)}" x2="${ix.toFixed(1)}" y1="${yLo.toFixed(1)}" y2="${yHi.toFixed(1)}" stroke="${pal[r.state]}" stroke-opacity="0.38" stroke-width="1.4"/>`);
-        parts.push(pointMarker(ix, iy, r, `1/[S]=${(1 / r.conc).toFixed(1)}, 1/v=${(1 / r.rate).toFixed(4)}`));
+        parts.push(pointMarker(ix, iy, r, `1/[S]=${(1 / r.conc).toFixed(2)}, 1/v=${(1 / r.rate).toFixed(4)}`));
       }
     } else if (tab === 'eh') {
       // Eadie-Hofstee: v vs v/[S]
       const obsX = allObs.map(r => r.rate / r.conc);
       const xMax = Math.max(...obsX, pT.vmax / pT.km, pU.vmax / pU.km) * 1.06;
-      const yMax = Math.max(...allObs.map(r => r.rate), pT.vmax, pU.vmax) * 1.08;
+      const yMax = Math.max(...allObs.map(r => r.rate), hasInhib ? 0 : Math.max(pT.vmax, pU.vmax)) * 1.1;
       const { sx, sy, g } = drawGrid(0, xMax, 0, yMax, `v / [S] (${rateUnit} / ${concUnit})`, `Initial velocity v (${rateUnit})`, 0, 0);
       parts.push(g);
 
       for (const [st, col, pState] of [['untreated', pal.untreated, pU], ['treated', pal.treated, pT]]) {
-        if (pState.n === 1) {
+        if (pState.n === 1 && !(pState.alpha > 0)) {
           const xInt = pState.vmax / pState.km;
           parts.push(`<line x1="${sx(0).toFixed(1)}" y1="${sy(pState.vmax).toFixed(1)}" x2="${sx(Math.min(xMax, xInt)).toFixed(1)}" y2="${sy(Math.max(0, pState.vmax - pState.km * Math.min(xMax, xInt))).toFixed(1)}" stroke="${col}" stroke-width="2.5"/>`);
         } else {
-          const sGrid = Array.from({ length: 85 }, (_, i) => analysis.minConc * 0.4 * Math.pow((analysis.maxConc * 2.5) / (analysis.minConc * 0.4), i / 84));
+          const sGrid = Array.from({ length: 95 }, (_, i) => analysis.minConc * 0.35 * Math.pow((analysis.maxConc * 3.5) / (analysis.minConc * 0.35), i / 94));
           const pts = sGrid
             .map(s => { const v = KineticsAnalytics.predictRate(fit, st, s); return [v / s, v]; })
             .filter(([vx, vy]) => vx <= xMax && vy <= yMax)
@@ -469,7 +519,7 @@
       }
       for (const r of allObs) parts.push(pointMarker(sx(r.rate / r.conc), sy(r.rate), r, `v/[S]=${(r.rate / r.conc).toFixed(1)}`));
     } else if (tab === 'hw') {
-      // Hanes-Woolf: [S]/v vs [S] (much more uniform variance across high [S]!)
+      // Hanes-Woolf: [S]/v vs [S] (turns into an exact upward parabola under Haldane substrate inhibition!)
       const xMin = -Math.max(pT.km, pU.km) * 1.35;
       const xMax = analysis.maxConc * 1.08;
       const obsY = allObs.map(r => r.conc / r.rate);
@@ -478,13 +528,14 @@
       parts.push(g);
 
       for (const [st, col, pState] of [['untreated', pal.untreated, pU], ['treated', pal.treated, pT]]) {
-        if (pState.n === 1) {
+        if (pState.n === 1 && !(pState.alpha > 0)) {
           const x0 = Math.max(xMin, -pState.km);
           const y0 = (pState.km + x0) / pState.vmax;
           const y1 = (pState.km + xMax) / pState.vmax;
           parts.push(`<line x1="${sx(x0).toFixed(1)}" y1="${sy(Math.max(0, y0)).toFixed(1)}" x2="${sx(xMax).toFixed(1)}" y2="${sy(Math.min(yMax, y1)).toFixed(1)}" stroke="${col}" stroke-width="2.5"/>`);
         } else {
-          const sGrid = Array.from({ length: 80 }, (_, i) => analysis.minConc * 0.3 + ((xMax - analysis.minConc * 0.3) * i) / 79);
+          const sStart = pState.alpha > 0 ? 0.002 : analysis.minConc * 0.3;
+          const sGrid = Array.from({ length: 90 }, (_, i) => sStart + ((xMax - sStart) * i) / 89);
           const pts = sGrid
             .map(s => [s, s / Math.max(1e-6, KineticsAnalytics.predictRate(fit, st, s))])
             .filter(([, hy]) => hy <= yMax)
@@ -502,6 +553,7 @@
       `<span><i class="kw-swatch" style="background:${pal.treated}"></i>Treated</span>` +
       `<span><i class="kw-swatch" style="background:${pal.untreated}"></i>Untreated</span>` +
       `<span>● Fitted</span>` +
+      (hasInhib && (tab === 'mm' || tab === 'log') ? `<span>◆ [S]opt peak</span>` : '') +
       (isPooled ? `<span>Pooled LOO curves</span>` : `<span>✕ Held-out (${foldObj.level} ${esc(concUnit)})</span>`);
 
     renderCurveExplanation(ctx);
@@ -513,59 +565,92 @@
     const pT = fit.treated, pU = fit.untreated;
     const tab = state.curveTab;
     const aud = state.audience;
+    const hasInhib = (pT.alpha > 0) || (pU.alpha > 0);
 
     const configs = {
       mm: {
-        title: 'Hyperbolic Saturation & Confidence Envelope',
+        title: hasInhib
+          ? 'Haldane Substrate Inhibition · Non-Monotonic Peak & High-Dose Drop'
+          : 'Hyperbolic Saturation & Confidence Envelope',
         eq: summary.equation,
-        body: aud === 'explorer'
+        body: hasInhib
+          ? `At elevated substrate concentrations, a second substrate molecule binds the ES intermediate to form a non-productive dead-end ESS complex (uncompetitive substrate inhibition). Velocity rises to a maximum at [S]opt = √(Km·Ki) (marked ◆) before declining toward zero at high [S].`
+          : aud === 'explorer'
           ? `Reaction velocity rises steeply at low substrate concentration and levels off toward a ceiling (Vmax) once enzyme active sites saturate. Here, Treated reaches an apparent ceiling of ${pT.vmax.toFixed(1)} vs ${pU.vmax.toFixed(1)} ${rateUnit} for Untreated.`
           : `Nonlinear least squares fits the saturation curve directly on measured velocities without distorting experimental error. Shaded bands show pointwise 95% confidence intervals around the active ${summary.short} fit${isPooled ? ' across all observations' : ` trained without ${foldObj.level} ${concUnit}`}.`,
         bullets: [
-          `Apparent plateau shift ΔVmax = ${(pT.vmax - pU.vmax >= 0 ? '+' : '') + (pT.vmax - pU.vmax).toFixed(2)} ${rateUnit} (${(((pT.vmax - pU.vmax) / pU.vmax) * 100).toFixed(1)}%); half-saturation Km = ${pT.km.toFixed(4)} vs ${pU.km.toFixed(4)} ${concUnit}.`,
+          hasInhib
+            ? `Inhibition constants: Treated Ki = ${Number.isFinite(pT.ki) ? pT.ki.toFixed(3) + ' ' + concUnit + ` ([S]opt = ${pT.sOpt.toFixed(3)})` : '∞ (uninhibited)'} vs. Untreated Ki = ${Number.isFinite(pU.ki) ? pU.ki.toFixed(3) + ' ' + concUnit + ` ([S]opt = ${pU.sOpt.toFixed(3)})` : '∞ (uninhibited)'}.`
+            : `Apparent plateau shift ΔVmax = ${(pT.vmax - pU.vmax >= 0 ? '+' : '') + (pT.vmax - pU.vmax).toFixed(2)} ${rateUnit} (${(((pT.vmax - pU.vmax) / pU.vmax) * 100).toFixed(1)}%); half-saturation Km = ${pT.km.toFixed(4)} vs ${pU.km.toFixed(4)} ${concUnit}.`,
           isPooled
             ? `Viewing full-data curves alongside all ${analysis.rows.length} cross-validated observations (Pooled LOO RMSE = ${summary.pooled.rmse.toFixed(2)} ${rateUnit}).`
             : `Active split holds out ${foldObj.level} ${concUnit} (${foldObj.isOOD ? 'Out-of-Distribution boundary extrapolation!' : 'In-Domain interior interpolation'}): Split RMSE = ${ctx.evalMetrics.rmse.toFixed(2)} ${rateUnit}.`,
         ],
       },
       log: {
-        title: 'Semi-Log Sigmoidal Dose–Response (QSAR / molML View)',
-        eq: 'v(log₁₀[S]) = Vmax / (1 + 10^(n·(log₁₀Km − log₁₀[S])))',
-        body: `Linear concentration axes compress low-dose points (${analysis.minConc}–${analysis.levels[2]} ${concUnit}) into a narrow sliver. Plotting against log₁₀[S]—standard across molecular ML benchmarks such as MoleculeACE (pEC50 / pKi)—unfolds the hyperbola into a symmetrical S-curve centered on log₁₀(Km).`,
+        title: hasInhib
+          ? 'Semi-Log Bell-Shaped Dose–Response (Biphasic Activation + Inhibition)'
+          : 'Semi-Log Sigmoidal Dose–Response (QSAR / molML View)',
+        eq: hasInhib
+          ? 'v(log₁₀[S]) = Vmax / (1 + 10^(log₁₀Km − x) + 10^(x − log₁₀Ki))'
+          : 'v(log₁₀[S]) = Vmax / (1 + 10^(n·(log₁₀Km − log₁₀[S])))',
+        body: hasInhib
+          ? `On a logarithmic concentration axis, Haldane substrate inhibition unfolds into a symmetric bell-shaped curve! The rising limb is governed by log₁₀(Km), the summit sits exactly halfway at ½(log₁₀Km + log₁₀Ki) = log₁₀([S]opt), and the falling high-dose limb is governed by log₁₀(Ki).`
+          : `Linear concentration axes compress low-dose points (${analysis.minConc}–${analysis.levels[2]} ${concUnit}) into a narrow sliver. Plotting against log₁₀[S]—standard across molecular ML benchmarks such as MoleculeACE (pEC50 / pKi)—unfolds the hyperbola into a symmetrical S-curve centered on log₁₀(Km).`,
         bullets: [
-          `Inflection midpoints occur at log₁₀(Km) = ${Math.log10(pT.km).toFixed(2)} (Treated) and ${Math.log10(pU.km).toFixed(2)} (Untreated), where velocity equals exactly ½ Vmax.`,
-          `A horizontal shift of the S-curve signals a Km (affinity) change, whereas a vertical stretch signals a Vmax (capacity) change.`,
+          hasInhib
+            ? `Bell-curve summits occur at [S]opt = ${Number.isFinite(pT.sOpt) ? pT.sOpt.toFixed(3) : '—'} (Treated) and ${Number.isFinite(pU.sOpt) ? pU.sOpt.toFixed(3) : '—'} ${concUnit} (Untreated).`
+            : `Inflection midpoints occur at log₁₀(Km) = ${Math.log10(pT.km).toFixed(2)} (Treated) and ${Math.log10(pU.km).toFixed(2)} (Untreated), where velocity equals exactly ½ Vmax.`,
+          hasInhib
+            ? `Notice how low-dose catalytic efficiency matches closely while the falling right-hand limb separates Ki values cleanly.`
+            : `A horizontal shift of the S-curve signals a Km (affinity) change, whereas a vertical stretch signals a Vmax (capacity) change.`,
         ],
       },
       lb: {
-        title: 'Lineweaver–Burk Double-Reciprocal Diagnostic',
-        eq: '1/v = (1/Vmax) + (Km/Vmax)·(1/[S])',
-        body: `Inverts both axes so n = 1 Michaelis–Menten hyperbolas become straight lines meeting the vertical axis at 1/Vmax and the negative horizontal axis at −1/Km. Vertical whiskers (±s_pure / v²) reveal severe heteroscedastic error inflation at the rightmost low-[S] points.`,
+        title: hasInhib
+          ? 'Lineweaver–Burk Diagnostic · Classic Upward High-[S] Inhibition Hook'
+          : 'Lineweaver–Burk Double-Reciprocal Diagnostic',
+        eq: hasInhib
+          ? '1/v = (1/Vmax) + (Km/Vmax)·(1/[S]) + [S]/(Vmax·Ki)'
+          : '1/v = (1/Vmax) + (Km/Vmax)·(1/[S])',
+        body: hasInhib
+          ? `Substrate inhibition produces one of biochemistry’s most famous visual signatures on a double-reciprocal plot: instead of intersecting the 1/v axis linearly, 1/v drops to a minimum at 1/[S]opt and then hooks sharply UPWARD near the vertical 1/v axis (small 1/[S], high [S]) as the [S]/(Vmax·Ki) term dominates!`
+          : `Inverts both axes so n = 1 Michaelis–Menten hyperbolas become straight lines meeting the vertical axis at 1/Vmax and the negative horizontal axis at −1/Km. Vertical whiskers (±s_pure / v²) reveal severe heteroscedastic error inflation at the rightmost low-[S] points.`,
         bullets: [
-          Math.abs(pT.km - pU.km) / Math.max(pT.km, pU.km) < 0.08
+          hasInhib
+            ? `Dashed lines trace the uninhibited low-[S] asymptote (meeting −1/Km ≈ ${(-1 / pT.km).toFixed(1)} ${concUnit}⁻¹), while solid curves capture the high-dose upward hook governed by Ki.`
+            : Math.abs(pT.km - pU.km) / Math.max(pT.km, pU.km) < 0.08
             ? `Lines converge near −1/Km ≈ ${(-1 / pT.km).toFixed(1)} ${concUnit}⁻¹ on the horizontal axis—the classic signature of a pure Vmax (non-competitive / active-enzyme) effect.`
             : Math.abs(pT.vmax - pU.vmax) / Math.max(pT.vmax, pU.vmax) < 0.06
             ? `Lines intersect on the vertical 1/v axis at ${(1 / pT.vmax).toFixed(4)}—the classic signature of competitive inhibition (pure Km shift).`
             : `Both intercepts differ (1/Vmax = ${(1 / pT.vmax).toFixed(4)} vs ${(1 / pU.vmax).toFixed(4)}; −1/Km = ${(-1 / pT.km).toFixed(1)} vs ${(-1 / pU.km).toFixed(1)}), or curve if Hill n ≠ 1.`,
-          `Pitfall: Unweighted linear regression on 1/v overweights the noisy ${analysis.minConc} ${concUnit} replicates by >${Math.round((analysis.rows.at(-1).rate / analysis.rows[0].rate) ** 4)}× relative to high-[S] points.`,
+          `Pitfall: Unweighted linear regression on 1/v distorts error variance as 1/v⁴—always estimate Km, Vmax, and Ki on the untransformed velocity scale.`,
         ],
       },
       eh: {
-        title: 'Eadie–Hofstee Diagnostic (Amplifies Cooperativity & Departures)',
-        eq: 'v = Vmax − Km · (v / [S])',
-        body: `Plots velocity v against catalytic ratio v/[S]. Steep slope equals −Km, vertical intercept gives Vmax, and horizontal intercept gives catalytic efficiency Vmax/Km. Unlike Lineweaver–Burk, Eadie–Hofstee spreads points evenly across saturation levels and makes allosteric cooperativity (n ≠ 1) immediately visible as curvature.`,
+        title: 'Eadie–Hofstee Diagnostic (Amplifies Cooperativity & High-Dose Inhibition)',
+        eq: hasInhib ? 'v = Vmax − Km·(v/[S]) − (v·[S])/Ki' : 'v = Vmax − Km · (v / [S])',
+        body: hasInhib
+          ? `Under Haldane substrate inhibition, high substrate concentrations drive both v → 0 and v/[S] → 0, causing the Eadie–Hofstee trajectory to reach a ceiling peak and fold backward toward the origin (0, 0) instead of meeting the vertical Vmax intercept!`
+          : `Plots velocity v against catalytic ratio v/[S]. Steep slope equals −Km, vertical intercept gives Vmax, and horizontal intercept gives catalytic efficiency Vmax/Km. Unlike Lineweaver–Burk, Eadie–Hofstee spreads points evenly across saturation levels and makes allosteric cooperativity (n ≠ 1) immediately visible as curvature.`,
         bullets: [
-          `Catalytic efficiency Vmax/Km = ${(pT.vmax / pT.km).toFixed(1)} (Treated) vs ${(pU.vmax / pU.km).toFixed(1)} (Untreated) ${rateUnit}/${concUnit}.`,
+          `Low-dose catalytic efficiency Vmax/Km = ${(pT.vmax / pT.km).toFixed(1)} (Treated) vs ${(pU.vmax / pU.km).toFixed(1)} (Untreated) ${rateUnit}/${concUnit}.`,
           `Caveat: Because noisy velocity v appears on both axes, measurement error correlates diagonally along lines through the origin.`,
         ],
       },
       hw: {
-        title: 'Hanes–Woolf Linearization (Variance-Stabilized High-[S] Slope)',
-        eq: '[S]/v = (Km/Vmax) + (1/Vmax)·[S]',
-        body: `Multiplying Lineweaver–Burk by [S] yields slope 1/Vmax, vertical intercept Km/Vmax, and horizontal intercept −Km. Because [S] is controlled with negligible error, Hanes–Woolf avoids extreme low-dose leverage and estimates Vmax far more reliably than double-reciprocal plots.`,
+        title: hasInhib
+          ? 'Hanes–Woolf Parabolic Diagnostic (Exact Quadratic Test for Ki)'
+          : 'Hanes–Woolf Linearization (Variance-Stabilized High-[S] Slope)',
+        eq: hasInhib ? '[S]/v = Km/Vmax + [S]/Vmax + [S]²/(Vmax·Ki)' : '[S]/v = (Km/Vmax) + (1/Vmax)·[S]',
+        body: hasInhib
+          ? `Hanes–Woolf is the cleanest graphical test for uncompetitive substrate inhibition: multiplying 1/v by [S] transforms the Haldane equation into an exact upward-opening PARABOLA in [S], whose quadratic curvature 1/(Vmax·Ki) directly measures the strength of high-dose ESS complex formation!`
+          : `Multiplying Lineweaver–Burk by [S] yields slope 1/Vmax, vertical intercept Km/Vmax, and horizontal intercept −Km. Because [S] is controlled with negligible error, Hanes–Woolf avoids extreme low-dose leverage and estimates Vmax far more reliably than double-reciprocal plots.`,
         bullets: [
-          `Parallel Hanes–Woolf slopes indicate identical Vmax (competitive Km shift); diverging slopes (${(1 / pT.vmax).toFixed(5)} vs ${(1 / pU.vmax).toFixed(5)}) confirm distinct Vmax plateaus.`,
-          `X-axis intercepts sit at −Km = ${(-pT.km).toFixed(4)} (Treated) and ${(-pU.km).toFixed(4)} ${concUnit} (Untreated).`,
+          hasInhib
+            ? `Notice how Untreated (Ki = ${Number.isFinite(pU.ki) ? pU.ki.toFixed(2) : '∞'}) curves sharply upward as [S]² grows, whereas Treated (Ki = ${Number.isFinite(pT.ki) ? pT.ki.toFixed(2) : '∞'}) shows much gentler quadratic curvature.`
+            : `Parallel Hanes–Woolf slopes indicate identical Vmax (competitive Km shift); diverging slopes (${(1 / pT.vmax).toFixed(5)} vs ${(1 / pU.vmax).toFixed(5)}) confirm distinct Vmax plateaus.`,
+          `Low-dose tangent intercepts still point toward −Km = ${(-pT.km).toFixed(4)} and ${(-pU.km).toFixed(4)} ${concUnit}.`,
         ],
       },
     };
@@ -739,12 +824,21 @@
       const xMax = Math.log10(analysis.maxConc) + 0.35;
       const logGrid = Array.from({ length: 90 }, (_, i) => xMin + ((xMax - xMin) * i) / 89);
       const sGrid = logGrid.map(lv => Math.pow(10, lv));
-      const ciT = KineticsAnalytics.curveConfidenceAndSensitivity(trainRows, fit, 'treated', sGrid, sigma);
+      const hasKi = (fit.treated.alpha > 0) || (fit.untreated.alpha > 0);
+      const refState = (fit.untreated.alpha || 0) > (fit.treated.alpha || 0) ? 'untreated' : 'treated';
+      const ciRef = KineticsAnalytics.curveConfidenceAndSensitivity(trainRows, fit, refState, sGrid, sigma);
 
       // Normalize sensitivity curves onto [0, 1] information utility scale
-      const maxSe = Math.max(1e-6, ...ciT.band.map(b => b.se));
-      // Combined D-optimal utility balancing affinity (4*sensKm peaks at 1.0 at Km) + predictive SE
-      const utilities = ciT.band.map(b => 0.62 * (b.sensKm * 4) + 0.38 * (b.se / maxSe));
+      const maxSe = Math.max(1e-6, ...ciRef.band.map(b => b.se));
+      const maxKi = Math.max(1e-9, ...ciRef.band.map(b => b.sensKi || 0));
+      const maxKm = Math.max(1e-9, ...ciRef.band.map(b => b.sensKm));
+      const maxVm = Math.max(1e-9, ...ciRef.band.map(b => b.sensVmax));
+      // Combined D-optimal utility balancing Km, Ki (when active), and predictive SE
+      const utilities = ciRef.band.map(b =>
+        hasKi
+          ? 0.38 * (b.sensKm / maxKm) + 0.37 * ((b.sensKi || 0) / maxKi) + 0.25 * (b.se / maxSe)
+          : 0.62 * (b.sensKm / maxKm) + 0.38 * (b.se / maxSe)
+      );
       let bestIdx = 0;
       utilities.forEach((u, i) => { if (u > utilities[bestIdx]) bestIdx = i; });
       const optS = sGrid[bestIdx];
@@ -763,13 +857,17 @@
         parts.push(`<text x="${px.toFixed(1)}" y="${pad.t + ph + 18}" text-anchor="middle">${lv}</text>`);
       }
 
-      const kmSensPts = ciT.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(Math.min(1, b.sensKm * 4)).toFixed(1)}`).join(' ');
-      const vmaxSensPts = ciT.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(Math.min(1, b.sensVmax)).toFixed(1)}`).join(' ');
-      const sePts = ciT.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(b.se / maxSe).toFixed(1)}`).join(' ');
+      const kmSensPts = ciRef.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(Math.min(1, b.sensKm / maxKm)).toFixed(1)}`).join(' ');
+      const vmaxSensPts = ciRef.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(Math.min(1, b.sensVmax / maxVm)).toFixed(1)}`).join(' ');
+      const sePts = ciRef.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(b.se / maxSe).toFixed(1)}`).join(' ');
 
       parts.push(`<polyline fill="none" stroke="#0053d6" stroke-width="2.6" points="${kmSensPts}"/>`);
       parts.push(`<polyline fill="none" stroke="#0b7a5c" stroke-width="2.2" stroke-dasharray="5 3" points="${vmaxSensPts}"/>`);
       parts.push(`<polyline fill="none" stroke="#c97924" stroke-width="2.2" points="${sePts}"/>`);
+      if (hasKi) {
+        const kiSensPts = ciRef.band.map((b, i) => `${sx(logGrid[i]).toFixed(1)},${sy(Math.min(1, (b.sensKi || 0) / maxKi)).toFixed(1)}`).join(' ');
+        parts.push(`<polyline fill="none" stroke="#e11d48" stroke-width="2.5" points="${kiSensPts}"/>`);
+      }
 
       // Optimal Next-Dose vertical recommendation pin
       const ox = sx(Math.log10(optS));
@@ -781,8 +879,9 @@
       parts.push(`<text class="axis-title" x="${pad.l + pw / 2}" y="${H - 9}" text-anchor="middle">Candidate substrate concentration [S] (${esc(concUnit)}, log-spaced)</text>`);
       parts.push(`<text class="axis-title" transform="translate(17 ${pad.t + ph / 2}) rotate(-90)" text-anchor="middle">Normalized Fisher sensitivity &amp; SE</text>`);
       byId('diag-legend').innerHTML =
-        `<span><i class="kw-swatch" style="background:#0053d6"></i>Km info (peaks at [S]=Km)</span>` +
+        `<span><i class="kw-swatch" style="background:#0053d6"></i>Km info</span>` +
         `<span><i class="kw-swatch" style="background:#0b7a5c"></i>Vmax info</span>` +
+        (hasKi ? `<span><i class="kw-swatch" style="background:#e11d48"></i>Ki info (high [S])</span>` : '') +
         `<span><i class="kw-swatch" style="background:#c97924"></i>Pred. SE</span>`;
     }
 
@@ -797,17 +896,18 @@
     const tab = state.diagTab;
     const m = KineticsAnalytics.computeMetrics(allObs);
     const outliers = allObs.filter(r => Math.abs(r.residual / Math.max(1e-6, ctx.sigma)) > 2);
+    const hasKi = (fit.treated.alpha > 0) || (fit.untreated.alpha > 0);
 
     const configs = {
       residual: {
         title: 'Signed Residual Structure vs. Pure Replicate Noise',
         eq: 'e_i = y_i − ŷ_i',
-        body: `A well-specified kinetic law should leave unpatterned residuals scattered inside the shaded ±s_pure (${analysis.pure.sPure.toFixed(1)} ${rateUnit}) experimental replicate band. Persistent separation between the Treated and Untreated dashed mean traces diagnoses an unmodeled condition parameter.`,
+        body: `A well-specified kinetic law should leave unpatterned residuals scattered inside the shaded ±s_pure (${analysis.pure.sPure.toFixed(1)} ${rateUnit}) experimental replicate band. Persistent separation or curvature in the dashed mean traces diagnoses an unmodeled condition shift, cooperativity, or high-dose substrate inhibition.`,
         bullets: [
           `Mean signed bias = ${m.bias >= 0 ? '+' : ''}${m.bias.toFixed(2)} ${rateUnit}; Pooled RMSE (${summary.pooled.rmse.toFixed(2)}) is ${(summary.pooled.rmse / Math.max(1e-6, analysis.pure.sPure)).toFixed(2)}× the irreducible replicate noise floor.`,
           summary.id === 'shared'
-            ? `Notice the wide vertical split between Treated (+) and Untreated (−) residuals at high [S]—direct proof that a single shared curve underpredicts Treated and overpredicts Untreated.`
-            : `Residual scatter across interior concentrations closely approaches replicate noise, with remaining error concentrated at low-dose boundary holdouts.`,
+            ? `Notice the wide vertical split between Treated (+) and Untreated (−) residuals at high [S]—direct proof that a single shared curve misses condition-specific kinetics.`
+            : `Residual scatter across interior concentrations closely approaches replicate noise, with remaining error concentrated at boundary holdouts.`,
         ],
       },
       parity: {
@@ -816,7 +916,7 @@
         body: `Standard across molecular property benchmarks (molML), parity plots test alignment with the 45° y = x identity line. Unlike Pearson correlation, Lin’s Concordance Correlation Coefficient (CCC) penalizes both scale compression and vertical location bias.`,
         bullets: [
           `Displayed observations achieve R² = ${m.r2.toFixed(3)} and Lin’s CCC = ${m.ccc.toFixed(3)} within a ±${summary.pooled.rmse.toFixed(1)} ${rateUnit} RMSE corridor.`,
-          `Systematic tilt away from 45° indicates underpredicted high-rate plateaus or unmodeled cooperativity.`,
+          `Systematic tilt or hook away from 45° indicates unmodeled cooperativity or high-dose substrate inhibition.`,
         ],
       },
       qq: {
@@ -832,11 +932,15 @@
       },
       active: {
         title: 'Active-Learning Next-Dose Fisher Information Design',
-        eq: 'argmax_[S] I(Km, Vmax; [S])',
-        body: `Inspired by active-learning loops in self-driving molecular labs (molML), Fisher sensitivity reveals where a new measurement carries maximum mechanistic leverage: Km information (blue) peaks sharply at [S] = Km (${fit.treated.km.toFixed(3)} ${concUnit}), whereas Vmax information (green) saturates only above [S] > 5·Km.`,
+        eq: hasKi ? 'argmax_[S] I(Km, Vmax, Ki; [S])' : 'argmax_[S] I(Km, Vmax; [S])',
+        body: hasKi
+          ? `Under Haldane substrate inhibition, parameter identifiability splits across three concentration regimes: Km sensitivity (blue) peaks on the rising limb near Km, Vmax sensitivity (green) peaks near [S]opt = √(Km·Ki), and Ki inhibition sensitivity (crimson) surges on the falling high-[S] limb above Ki!`
+          : `Inspired by active-learning loops in self-driving molecular labs (molML), Fisher sensitivity reveals where a new measurement carries maximum mechanistic leverage: Km information (blue) peaks sharply at [S] = Km (${fit.treated.km.toFixed(3)} ${concUnit}), whereas Vmax information (green) saturates only above [S] > 5·Km.`,
         bullets: [
           `To tighten half-saturation Km most efficiently, add replicates near [S] ≈ ${fit.treated.km.toFixed(3)}–${fit.untreated.km.toFixed(3)} ${concUnit}.`,
-          `To resolve subtle Vmax vs. Hill-exponent extrapolation, add a high-saturation anchor above ${(analysis.maxConc * 1.4).toFixed(2)} ${concUnit} across independent biological runs.`,
+          hasKi
+            ? `To pin down dead-end ESS inhibition constant Ki without collinearity with Vmax, sample high-dose points on the descending limb ([S] ≥ ${(Math.min(fit.untreated.ki || Infinity, fit.treated.ki || Infinity) * 1.5).toFixed(2)} ${concUnit}).`
+            : `To resolve subtle Vmax vs. Hill-exponent or high-dose inhibition effects, add a high-saturation anchor above ${(analysis.maxConc * 1.4).toFixed(2)} ${concUnit} across independent biological runs.`,
         ],
       },
     };
@@ -900,7 +1004,7 @@
       };
     });
 
-    // Grouped Bar Chart: In-Domain RMSE vs OOD Extrapolation RMSE across all 5 models
+    // Grouped Bar Chart: In-Domain RMSE vs OOD Extrapolation RMSE across all 6 models
     const barSvg = byId('regime-bars');
     const BW = 620, BH = 185, bp = { l: 54, r: 18, t: 22, b: 36 };
     const bpw = BW - bp.l - bp.r, bph = BH - bp.t - bp.b;
@@ -927,18 +1031,19 @@
       split_km: 'Cond. Km',
       split_both: 'Cond. Both',
       hill_both: 'Hill (n)',
+      haldane_both: 'Sub. Inhib',
     };
     const slotW = bpw / models.length;
     models.forEach((m, i) => {
       const s = analysis.summaryByModel[m.id];
       const cx = bp.l + slotW * (i + 0.5);
-      const bw = Math.min(24, slotW * 0.32);
+      const bw = Math.min(20, slotW * 0.31);
       const hIn = bph - (sy(s.interp.rmse) - bp.t);
       const hOod = bph - (sy(s.ood.rmse) - bp.t);
       const isSel = m.id === mId;
-      bParts.push(`<rect x="${(cx - bw - 2).toFixed(1)}" y="${sy(s.interp.rmse).toFixed(1)}" width="${bw}" height="${hIn.toFixed(1)}" rx="3" fill="#0d9488" opacity="${isSel ? '1' : '0.68'}" data-tip="${esc(`${m.name} · In-Domain Interpolation RMSE: ${s.interp.rmse.toFixed(2)} ${rateUnit}`)}"/>`);
-      bParts.push(`<rect x="${(cx + 2).toFixed(1)}" y="${sy(s.ood.rmse).toFixed(1)}" width="${bw}" height="${hOod.toFixed(1)}" rx="3" fill="#7c3aed" opacity="${isSel ? '1' : '0.68'}" data-tip="${esc(`${m.name} · OOD Boundary Extrapolation RMSE: ${s.ood.rmse.toFixed(2)} ${rateUnit}`)}"/>`);
-      bParts.push(`<text x="${cx.toFixed(1)}" y="${BH - 11}" text-anchor="middle" style="font-size:11.5px;font-weight:${isSel ? '700' : '500'}">${esc(barLabels[m.id] || m.short)}</text>`);
+      bParts.push(`<rect x="${(cx - bw - 1.5).toFixed(1)}" y="${sy(s.interp.rmse).toFixed(1)}" width="${bw}" height="${hIn.toFixed(1)}" rx="3" fill="#0d9488" opacity="${isSel ? '1' : '0.68'}" data-tip="${esc(`${m.name} · In-Domain Interpolation RMSE: ${s.interp.rmse.toFixed(2)} ${rateUnit}`)}"/>`);
+      bParts.push(`<rect x="${(cx + 1.5).toFixed(1)}" y="${sy(s.ood.rmse).toFixed(1)}" width="${bw}" height="${hOod.toFixed(1)}" rx="3" fill="#7c3aed" opacity="${isSel ? '1' : '0.68'}" data-tip="${esc(`${m.name} · OOD Boundary Extrapolation RMSE: ${s.ood.rmse.toFixed(2)} ${rateUnit}`)}"/>`);
+      bParts.push(`<text x="${cx.toFixed(1)}" y="${BH - 11}" text-anchor="middle" style="font-size:11px;font-weight:${isSel ? '700' : '500'}">${esc(barLabels[m.id] || m.short)}</text>`);
     });
     bParts.push(`<rect x="${bp.l + 8}" y="4" width="10" height="10" rx="2" fill="#0d9488"/><text x="${bp.l + 22}" y="13" style="font-size:11.5px;font-weight:600">In-Domain Interp</text>`);
     bParts.push(`<rect x="${bp.l + 138}" y="4" width="10" height="10" rx="2" fill="#7c3aed"/><text x="${bp.l + 152}" y="13" style="font-size:11.5px;font-weight:600">OOD Boundary Extrap</text>`);
@@ -946,15 +1051,16 @@
     attachSvgTooltips(barSvg);
 
     const activeS = analysis.summaryByModel[mId];
+    const bestHighFold = Object.values(analysis.foldFits.at(-1).models).sort((a, b) => a.metrics.rmse - b.metrics.rmse)[0];
     byId('regime-analysis').innerHTML = `
       <div class="kw-explain-top">
         <span class="kw-explain-title">Interpolation vs. Out-of-Distribution (OOD) Cliff Analysis</span>
         <span class="kw-eq-pill">OOD / In-Domain = ${activeS.oodRatio.toFixed(2)}×</span>
       </div>
-      <p>Holding out interior concentrations (${analysis.levels.slice(1, -1).join(', ')} ${esc(concUnit)}) lets models interpolate between bracketing neighbors, whereas holding out ${analysis.minConc} or ${analysis.maxConc} ${esc(concUnit)} forces genuine OOD extrapolation into the low-dose catalytic slope or high-dose saturation ceiling.</p>
+      <p>Holding out interior concentrations (${analysis.levels.slice(1, -1).join(', ')} ${esc(concUnit)}) lets models interpolate between bracketing neighbors, whereas holding out ${analysis.minConc} or ${analysis.maxConc} ${esc(concUnit)} forces genuine OOD extrapolation into the low-dose catalytic slope or high-dose saturation/inhibition regime.</p>
       <ul>
         <li>Under <strong>${esc(activeS.short)}</strong>, interior interpolation RMSE is <strong>${activeS.interp.rmse.toFixed(2)}</strong> vs. OOD extrapolation RMSE <strong>${activeS.ood.rmse.toFixed(2)} ${esc(rateUnit)}</strong>.</li>
-        <li>Notice at high saturation (${analysis.maxConc} ${esc(concUnit)}), Shared Vmax &amp; Km suffers ${analysis.foldFits.at(-1).models.shared.metrics.rmse.toFixed(1)} RMSE while Condition Vmax drops error to ${analysis.foldFits.at(-1).models.split_vmax.metrics.rmse.toFixed(1)} ${esc(rateUnit)}.</li>
+        <li>At the highest concentration holdout (${analysis.maxConc} ${esc(concUnit)}), Shared Vmax &amp; Km suffers ${analysis.foldFits.at(-1).models.shared.metrics.rmse.toFixed(1)} RMSE while the best high-dose model lowers error to ${bestHighFold.metrics.rmse.toFixed(1)} ${esc(rateUnit)}.</li>
       </ul>
     `;
   }
@@ -997,6 +1103,7 @@
     let minU = Infinity, minT = Infinity, loLog = Infinity, hiLog = -Infinity;
 
     const nU = fit.untreated.n, nT = fit.treated.n;
+    const alphaU = fit.untreated.alpha || 0, alphaT = fit.treated.alpha || 0;
 
     for (let iy = 0; iy < GY; iy++) {
       const vmax = vMax - ((vMax - vMin) * iy) / (GY - 1);
@@ -1006,13 +1113,15 @@
         const knU = nU === 1 ? km : Math.pow(km, nU);
         const knT = nT === 1 ? km : Math.pow(km, nT);
         for (let k = 0; k < uRows.length; k++) {
-          const sn = nU === 1 ? uRows[k].conc : Math.pow(uRows[k].conc, nU);
-          const e = uRows[k].rate - (vmax * sn) / (knU + sn);
+          const s = uRows[k].conc;
+          const sn = nU === 1 ? s : Math.pow(s, nU);
+          const e = uRows[k].rate - (vmax * sn) / (knU + sn + (alphaU > 0 ? alphaU * s * s : 0));
           su += e * e;
         }
         for (let k = 0; k < tRows.length; k++) {
-          const sn = nT === 1 ? tRows[k].conc : Math.pow(tRows[k].conc, nT);
-          const e = tRows[k].rate - (vmax * sn) / (knT + sn);
+          const s = tRows[k].conc;
+          const sn = nT === 1 ? s : Math.pow(s, nT);
+          const e = tRows[k].rate - (vmax * sn) / (knT + sn + (alphaT > 0 ? alphaT * s * s : 0));
           st += e * e;
         }
         const idx = iy * GX + ix;
@@ -1173,18 +1282,18 @@
         <span class="kw-explain-title">Exact F-Test 95% Joint Confidence Regions &amp; Collinearity</span>
         <span class="kw-eq-pill">${disjoint ? '95% Regions Disjoint' : '95% Regions Overlap'}</span>
       </div>
-      <p>Nonlinear saturation models exhibit classic banana-shaped confidence contours tilted upward to the right: raising trial Km requires raising trial Vmax to fit the same intermediate rates (positive parameter collinearity).</p>
+      <p>Nonlinear kinetic models exhibit banana-shaped confidence contours tilted upward to the right: raising trial Km requires raising trial Vmax to fit intermediate rates (positive parameter collinearity).</p>
       <ul>
         <li>${disjoint
-          ? 'The Treated and Untreated 95% joint confidence regions are completely disjoint—strong statistical evidence against a single shared curve.'
-          : 'The 95% joint confidence regions partially overlap; review ΔAICc and holdout RMSE before claiming two distinct parameter sets.'}</li>
-        <li>Notice whether separation occurs vertically (distinct Vmax plateaus) or horizontally (distinct Km affinities)—directly explaining which 3-parameter model captures the biological shift.</li>
+          ? 'The Treated and Untreated 95% joint (Km, Vmax) confidence regions are completely disjoint—strong statistical evidence against a single shared curve.'
+          : 'The 95% joint (Km, Vmax) confidence regions overlap—for example when conditions share identical catalytic Vmax & Km and differ only in high-dose inhibition constant Ki!'}</li>
+        <li>Notice whether separation occurs vertically (distinct Vmax plateaus), horizontally (distinct Km affinities), or in high-dose Ki curvature.</li>
       </ul>
     `;
   }
 
   // ---------------------------------------------------------------------------
-  // 6. RENDER 5-MODEL LEADERBOARD & OBSERVATION INSPECTOR TABLES
+  // 6. RENDER 6-MODEL LEADERBOARD & OBSERVATION INSPECTOR TABLES
   // ---------------------------------------------------------------------------
   function renderTables(ctx) {
     const { analysis, mId, isPooled, foldObj, allObs } = ctx;
@@ -1218,23 +1327,31 @@
       cells.forEach(html => { const td = tr.insertCell(); td.innerHTML = html; });
     }
 
-    // Synthesis callout comparing MM parsimony vs extended Hill
+    // Synthesis callout comparing MM parsimony vs Cooperative Hill vs Haldane Substrate Inhibition
     const sShared = analysis.summaryByModel.shared;
     const sVmax = analysis.summaryByModel.split_vmax;
     const sKm = analysis.summaryByModel.split_km;
     const sBoth = analysis.summaryByModel.split_both;
     const sHill = analysis.summaryByModel.hill_both;
+    const sHaldane = analysis.summaryByModel.haldane_both;
     const bestMm = [sShared, sVmax, sKm, sBoth].sort((a, b) => a.aicc - b.aicc)[0];
+
+    let extNote = '';
+    if (sHaldane.deltaAicc === 0 && bestMm.aicc - sHaldane.aicc > 6) {
+      extNote = `Crucially, all monotonic Michaelis–Menten and Hill models fail on the high-[S] velocity decline, whereas <strong>Haldane Substrate Inhibition</strong> slashes AICc by ${(bestMm.aicc - sHaldane.aicc).toFixed(1)} units and drops Pooled LOO RMSE from ${bestMm.pooled.rmse.toFixed(2)} to <strong>${sHaldane.pooled.rmse.toFixed(2)} ${esc(rateUnit)}</strong> (Untreated Ki = ${fmtNum(sHaldane.fullFit.untreated.ki, 2)}, Treated Ki = ${fmtNum(sHaldane.fullFit.treated.ki, 2)} ${esc(concUnit)}).`;
+    } else if (sHill.deltaAicc === 0 && bestMm.aicc - sHill.aicc > 6) {
+      extNote = `However, the 6-parameter <strong>Cooperative Hill</strong> model reduces AICc by ${(bestMm.aicc - sHill.aicc).toFixed(1)} units (Hill n = ${sHill.fullFit.treated.n.toFixed(2)}), confirming strong sigmoidal cooperativity, while Haldane Substrate Inhibition is penalized (ΔAICc = +${sHaldane.deltaAicc.toFixed(1)}).`;
+    } else if (sHill.pooled.rmse < bestMm.pooled.rmse) {
+      extNote = `Allowing sub-hyperbolic Hill exponents (n ≈ ${sHill.fullFit.treated.n.toFixed(2)}) lowers LOO RMSE further to ${sHill.pooled.rmse.toFixed(2)} (near replicate floor ${analysis.pure.sPure.toFixed(2)}), whereas Haldane Substrate Inhibition finds no high-dose drop (Ki → ∞, ΔAICc = +${sHaldane.deltaAicc.toFixed(1)})—retain <strong>${esc(bestMm.short)}</strong> unless independent high-dose or binding assays support cooperativity.`;
+    } else {
+      extNote = `Both 6-parameter extensions—Cooperative Hill (ΔAICc = +${sHill.deltaAicc.toFixed(1)}) and Haldane Substrate Inhibition (ΔAICc = +${sHaldane.deltaAicc.toFixed(1)})—are cleanly penalized by AICc, confirming parsimonious n = 1 hyperbolic saturation without high-dose ESS inhibition.`;
+    }
 
     byId('leaderboard-synthesis').innerHTML =
       `<strong>Automated Audit Synthesis (${esc(analysis.meta.title)}):</strong> ` +
-      `Among the four canonical Michaelis–Menten (n = 1) models, <strong>${esc(bestMm.name)}</strong> achieves the strongest information-theoretic support ` +
+      `Among the four canonical Michaelis–Menten (n = 1) models, <strong>${esc(bestMm.name)}</strong> leads ` +
       `(AICc = ${bestMm.aicc.toFixed(1)}, Pooled LOO RMSE = ${bestMm.pooled.rmse.toFixed(2)} ${esc(rateUnit)} vs. ${sShared.pooled.rmse.toFixed(2)} for Shared). ` +
-      (sHill.deltaAicc === 0 && bestMm.aicc - sHill.aicc > 6
-        ? `However, the 6-parameter <strong>Cooperative Hill</strong> model reduces AICc by ${(bestMm.aicc - sHill.aicc).toFixed(1)} units (Hill n = ${sHill.fullFit.treated.n.toFixed(2)}), confirming strong sigmoidal cooperativity.`
-        : sHill.pooled.rmse < bestMm.pooled.rmse
-        ? `Allowing sub-hyperbolic Hill exponents (n ≈ ${sHill.fullFit.treated.n.toFixed(2)}) lowers LOO RMSE further to ${sHill.pooled.rmse.toFixed(2)} (near replicate floor ${analysis.pure.sPure.toFixed(2)}), though extrapolated Vmax rises above measured concentrations—retain <strong>${esc(bestMm.short)}</strong> unless independent high-dose or binding assays support heterogeneity/cooperativity.`
-        : `Adding Hill exponents (k = 6) incurs an AICc penalty (ΔAICc = +${sHill.deltaAicc.toFixed(1)}) without improving generalization, confirming n = 1 hyperbolic saturation.`);
+      extNote;
 
     // Observation & Leverage Inspector Table
     const repBody = byId('replicates');
@@ -1286,6 +1403,12 @@
 
   byId('dataset').onchange = e => {
     state.datasetKey = e.target.value;
+    if (defaultModelForDataset[state.datasetKey]) {
+      state.modelId = defaultModelForDataset[state.datasetKey];
+    } else {
+      const customBest = Object.values(getAnalysis(state.datasetKey).summaryByModel).sort((a, b) => a.aicc - b.aicc)[0];
+      if (customBest) state.modelId = customBest.id;
+    }
     populateSelectors(true);
     renderAll();
   };
@@ -1363,7 +1486,7 @@
       return;
     }
     byId('custom-csv').value = await file.text();
-    byId('csv-status').textContent = `Loaded ${file.name}. Click "Fit all 5 models on CSV" to analyze.`;
+    byId('csv-status').textContent = `Loaded ${file.name}. Click "Fit all 6 models on CSV" to analyze.`;
   };
 
   byId('apply-csv').onclick = () => {
@@ -1383,9 +1506,11 @@
       };
       analysisCache.delete('custom');
       state.datasetKey = 'custom';
+      const customBest = Object.values(getAnalysis('custom').summaryByModel).sort((a, b) => a.aicc - b.aicc)[0];
+      if (customBest) state.modelId = customBest.id;
       populateSelectors(true);
       byId('csv-status').style.color = '#14532d';
-      byId('csv-status').textContent = `Analyzed ${parsed.length} custom observations across all 5 kinetic models.`;
+      byId('csv-status').textContent = `Analyzed ${parsed.length} custom observations across all 6 kinetic models.`;
       renderAll();
     } catch (err) {
       byId('csv-status').style.color = '#991b1b';
@@ -1395,6 +1520,7 @@
 
   byId('reset-puromycin').onclick = () => {
     state.datasetKey = 'puromycin';
+    state.modelId = 'split_vmax';
     populateSelectors(true);
     byId('csv-drawer').hidden = true;
     byId('toggle-csv-drawer').setAttribute('aria-expanded', 'false');
@@ -1437,7 +1563,7 @@
       `- **Observations:** ${analysis.rows.length} across ${analysis.levels.length} concentrations (${analysis.levels.join(', ')} ${concUnit})`,
       `- **Pure Replicate Noise Floor (s_pure):** ${analysis.pure.sPure.toFixed(3)} ${rateUnit}`,
       ``,
-      `## 5-Model Generalization & Information-Criteria Leaderboard`,
+      `## 6-Model Generalization & Information-Criteria Leaderboard`,
       ``,
       `| Model | k | In-Domain RMSE | OOD Extrap RMSE | Pooled LOO RMSE | AICc | ΔAICc | Weight | CCC | Verdict |`,
       `|---|---:|---:|---:|---:|---:|---:|---:|---:|---|`,

@@ -18,7 +18,7 @@ The labs use bundled assets and run in the browser. The original references and 
 | `studio/index.html` | Studio landing page, Cosmos-curated 3D specimen gallery, audience pathways, and 13-lab grid |
 | `studio/structure.html`, `studio/structure.css`, `studio/structure.js`, `studio/mol3d-engine.js` | AlphaFold-style 18-model 3D Molecular Studio, Catmull–Rom cartoon ribbon renderer, PAE matrix, local `.pdb` parser, and accessibility modes |
 | `studio/dna.html`, `studio/gene-model.js`, `studio/folds/*.js` | 10-gene 3D DNA double-helix lab, codon-to-protein translation bridge, and bundled AlphaFold DB v6 gene folds |
-| `studio/kinetics.html`, `studio/kinetics.css`, `studio/kinetics-analytics.js`, `studio/kinetics-workbench.js` | 5-model Enzyme Kinetics & OOD Benchmark Workbench, 9 diagnostic graph views, 2D SSE confidence contours, and Fisher active-learning curves |
+| `studio/kinetics.html`, `studio/kinetics.css`, `studio/kinetics-analytics.js`, `studio/kinetics-workbench.js` | 6-model Enzyme Kinetics & OOD Benchmark Workbench (including Cooperative Hill & Haldane Substrate Inhibition), 9 diagnostic graph views, 2D SSE confidence contours, and Fisher active-learning curves |
 | `studio/molecular.html`, `studio/molecular-scene.js` | Enzyme simulator controls and rendering |
 | `ml/MolecularLearning.ipynb` | Reproduce the CPU training and compare supervised and RL approaches |
 
