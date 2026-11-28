@@ -1,5 +1,309 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Transport in 3D · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="studio-nav.css"><style>
-#world{width:100%;height:auto;background:#102f33;border-radius:14px;touch-action:none;cursor:grab}.bench{display:grid;grid-template-columns:2fr 1fr;gap:16px}.bench section{margin:8px 0}.panel label{display:grid;margin:10px 0}.panel input{width:100%}#metric{font-size:1.25rem;color:#205949}#world:focus{outline:3px solid #e9ac54}button{cursor:pointer}@media(max-width:760px){.bench{grid-template-columns:1fr}}
-</style></head><body><a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="transport.html" data-mission="transport" data-methods="transport" data-related-href="simulation.html" data-related-label="Simulation &amp; ML force-field workbench →"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header><main id="main"><h1>Molecular transport in 3D</h1><p>Follow 96 ideal tracer particles released at the origin. Compare random motion, directed transport and confinement, including directional diffusion and periodic flow, under the same random kicks.</p>
-<div class="bench"><section><canvas id="world" width="760" height="460" tabindex="0" aria-label="Rotatable particle trajectories. Drag or use arrow keys."></canvas><div class="controls"><button id="play">Play</button><button id="reset">Rewind</button><label>Time <input id="time" type="range" min="0" max="160" value="40"></label><output id="clock"></output></div><label><input type="checkbox" id="spread" checked> Show spread and centroid trail</label><p>Teal rings show one standard deviation along the coordinate axes. Pink traces the ensemble centroid. Depth shading indicates distance from the camera. Gold highlights one tracer and its recent path. Axis marks are 1 μm from the origin. Drag to orbit.</p></section><section class="panel"><h2>Experiment</h2><label>Transport model<select id="mode"><option value="free">Free diffusion</option><option value="drift">Diffusion with drift</option><option value="trap">Harmonic confinement</option><option value="axis">Axis-dependent diffusion</option><option value="wave">Periodic flow</option></select></label><label>Diffusivity (μm²/s)<input id="D" type="range" min=".05" max=".5" step=".05" value=".2"></label><output id="dval"></output><label id="forceLabel"><span id="forceName"></span><input id="strength" type="range" min="0" max="2" step=".1" value=".8"></label><output id="fval"></output><label>Random seed<input id="seed" type="number" min="1" max="999999" step="1" value="41"></label><button id="run">Run experiment</button><p id="message" role="status"></p><div class="controls"><button id="export">Export run CSV</button><button id="save-evidence" type="button">Save to workspace</button><a href="workspace.html">Open workspace</a></div><p id="save-status" role="status"></p></section></div>
-<section><h2>Mean squared displacement</h2><p id="metric"></p><svg id="graph" viewBox="0 0 660 200" role="img" aria-label="Mean squared displacement versus time. Solid green is the ensemble and dashed brown is theory."></svg><p>Solid green shows the particle average. Dashed brown shows the theoretical expectation. The vertical cursor follows the animation.</p><p id="formula"></p><p id="investigate"></p></section><section><h2>Infer motion from trajectories</h2><p>Each candidate fits increments from 64 tracers. The table ranks models by average negative log predictive density per coordinate on the other 32. Lower is better. All candidates use the same split. Axis and oscillation period are supplied. Coefficients and noise are estimated from training positions.</p><div class="table-wrap"><table><thead><tr><th>Candidate</th><th>Held-out loss</th><th>Estimated D: x / y / z (μm²/s)</th><th>Speed or restoring rate</th></tr></thead><tbody id="fit"></tbody></table></div><p>Repeat with a second seed. Weak drift or anisotropy can yield close scores across candidates. Compare the fitted parameters with the settings that generated your run.</p></section><p>Ideal independent tracers in three dimensions, sampled every 0.025 s. Parameters are illustrative. The animation uses simulated positions. <a href="methods.html#transport">Equations and sources</a></p></main><script src="motion-fit.js"></script><script src="evidence-records.js"></script><script src="transport.js"></script><script src="studio-nav.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="3D Single-Particle Tracking (SPT), Anomalous Diffusion (AnDi), Stokes–Einstein Macromolecular Hydrodynamics, Michalet–Berglund CVE &amp; CRLB, Spot-On Chromatin Kinetics, and 7-Model Trajectory Inference.">
+  <title>3D Molecular Transport &amp; SPT Workbench · Assay Evidence Studio</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="studio-nav.css">
+  <link rel="stylesheet" href="transport.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="studio-header" data-page="transport.html" data-mission="transport" data-methods="transport" data-related-href="simulation.html" data-related-label="Simulation &amp; ML force-field workbench →">
+    <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+  </header>
+
+  <main id="main" class="tp-main">
+    <div class="tp-topbar">
+      <div class="tp-title-wrap">
+        <p class="tp-eyebrow">3D Single-Particle Tracking · Anomalous Diffusion (AnDi) · Cellular Biophysics</p>
+        <h1>Molecular Transport &amp; SPT Workbench</h1>
+        <p class="tp-subtitle">Track ensembles of 3D macromolecules across 8 stochastic transport regimes—Brownian, motor drift, harmonic traps, viscoelastic <code>fBm</code>, ergodicity-breaking <code>CTRW</code>, and <code>Spot-On</code> chromatin state switching—coupled to AlphaFold/PDB Stokes–Einstein hydrodynamics and Michalet–Berglund camera noise estimation.</p>
+      </div>
+      <div class="tp-top-actions">
+        <div class="tp-seg" role="group" aria-label="Audience explanation depth">
+          <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+          <button type="button" data-audience="student" aria-pressed="true">Student</button>
+          <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+        </div>
+        <button id="cb-toggle" class="tp-btn" type="button" aria-pressed="false">Okabe–Ito Palette</button>
+        <button id="export" class="tp-btn" type="button">Export CSV</button>
+        <button id="export-json" class="tp-btn" type="button">Export JSON</button>
+        <button id="save-evidence" class="tp-btn primary" type="button">Save to Workspace</button>
+        <a class="tp-btn" href="workspace.html">Open Workspace</a>
+      </div>
+    </div>
+
+    <div id="save-status" class="tp-status" role="status" aria-live="polite"></div>
+
+    <!-- Curated Cellular Biophysics Presets -->
+    <section class="tp-preset-bar" aria-label="Biophysical experiment presets">
+      <span class="tp-preset-label">Presets:</span>
+      <button type="button" class="tp-preset-chip active" data-preset="brownian">Brownian Reference</button>
+      <button type="button" class="tp-preset-chip" data-preset="fbm_sub">Viscoelastic Chromatin (fBm α=0.50)</button>
+      <button type="button" class="tp-preset-chip" data-preset="ctrw_trap">Transient Traps (CTRW α=0.58 · EB)</button>
+      <button type="button" class="tp-preset-chip" data-preset="spoton_tf">Spot-On p53 Bound ⇌ Free (48%)</button>
+      <button type="button" class="tp-preset-chip" data-preset="noisy_scmos">Noisy sCMOS Camera (σ=50 nm, R=1/6)</button>
+      <button type="button" class="tp-preset-chip" data-preset="kinesin_drift">Directed Motor Drift</button>
+      <button type="button" class="tp-preset-chip" data-preset="optical_trap">Optical Tweezer Trap</button>
+    </section>
+
+    <!-- 6-Card Real-Time Biophysical KPI Strip -->
+    <section class="tp-kpi-grid" aria-label="Key biophysical diagnostics">
+      <article class="tp-kpi">
+        <span class="tp-kpi-label">EA-MSD at Current Frame</span>
+        <strong id="kpi-msd" class="tp-kpi-val">—</strong>
+        <span id="kpi-msd-sub" class="tp-kpi-sub">Expected theory &amp; RMS radius</span>
+      </article>
+      <article class="tp-kpi">
+        <span class="tp-kpi-label">Anomalous Exponent α̂</span>
+        <strong id="kpi-alpha" class="tp-kpi-val">—</strong>
+        <span id="kpi-alpha-sub" class="tp-kpi-sub">EA vs. TA scaling regime</span>
+      </article>
+      <article class="tp-kpi">
+        <span class="tp-kpi-label">Unbiased CVE D̂ ± CRLB</span>
+        <strong id="kpi-cve" class="tp-kpi-val">—</strong>
+        <span id="kpi-cve-sub" class="tp-kpi-sub">vs. Naive 1-lag &amp; σ̂_loc</span>
+      </article>
+      <article class="tp-kpi">
+        <span class="tp-kpi-label">Ergodicity EB &amp; α₂</span>
+        <strong id="kpi-ergo" class="tp-kpi-val">—</strong>
+        <span id="kpi-ergo-sub" class="tp-kpi-sub">TA-MSD scatter &amp; Van Hove kurtosis</span>
+      </article>
+      <article class="tp-kpi">
+        <span class="tp-kpi-label">Spot-On Bound Pool f̂_b</span>
+        <strong id="kpi-spoton" class="tp-kpi-val">—</strong>
+        <span id="kpi-spoton-sub" class="tp-kpi-sub">2-state Maxwell D̂_b / D̂_f</span>
+      </article>
+      <article class="tp-kpi">
+        <span class="tp-kpi-label">Top Held-Out Model</span>
+        <strong id="kpi-winner" class="tp-kpi-val">—</strong>
+        <span id="kpi-winner-sub" class="tp-kpi-sub">Test NLL &amp; Akaike weight</span>
+      </article>
+    </section>
+
+    <!-- Interactive 3D Live-Cell SPT Viewport + Biophysics Controls -->
+    <div class="tp-stage-grid">
+      <section class="tp-viewport-card" aria-label="3D live-cell single-particle tracking viewport">
+        <div class="tp-viewport-head">
+          <span class="tp-viewport-title">3D Live-Cell Single-Particle Tracking Stage (40 Hz · Δt = 25 ms)</span>
+          <div class="tp-cam-bar">
+            <label for="color-mode" class="skip-link">Particle coloring</label>
+            <select id="color-mode" class="tp-dark-select" aria-label="Particle coloring mode">
+              <option value="state">Color: Kinetic State &amp; Speed</option>
+              <option value="radial">Color: Radial Distance ‖r‖</option>
+              <option value="track">Color: Tracer Cohort Split</option>
+            </select>
+            <button type="button" class="tp-cam-btn" data-cam="iso">3D Orbit</button>
+            <button type="button" class="tp-cam-btn" data-cam="xy">XY Plane</button>
+            <button type="button" class="tp-cam-btn" data-cam="xz">XZ Plane</button>
+          </div>
+        </div>
+
+        <div class="tp-canvas-wrap">
+          <canvas id="world" width="760" height="460" tabindex="0" aria-label="Rotatable 3D single-particle trajectories. Drag with pointer or use arrow keys to orbit."></canvas>
+        </div>
+
+        <div class="tp-transport-bar">
+          <button id="play" class="tp-cam-btn" type="button">Play</button>
+          <button id="reset" class="tp-cam-btn" type="button">Rewind</button>
+          <label for="time" style="font-size:12px;font-weight:600;">Frame</label>
+          <input id="time" type="range" min="0" max="160" value="56" aria-label="Trajectory frame time">
+          <output id="clock" class="tp-clock-pill">1.400 s</output>
+        </div>
+
+        <div class="tp-overlay-toggles">
+          <label><input type="checkbox" id="spread" checked> ±1σ covariance ellipsoids &amp; centroid trail</label>
+          <label><input type="checkbox" id="show-tails" checked> 25-frame comet tails</label>
+          <label><input type="checkbox" id="show-frap-roi"> Virtual FRAP bleach &amp; FPT spheres</label>
+        </div>
+
+        <p id="metric" class="tp-legend-note" aria-live="polite"></p>
+        <div class="tp-formula-banner">
+          <p id="formula"></p>
+          <p id="investigate"></p>
+        </div>
+      </section>
+
+      <section class="tp-card tp-controls-card" aria-label="Transport and microscope controls">
+        <h2>Stochastic Physics &amp; Camera Setup</h2>
+        <div class="tp-control-group">
+          <div class="tp-field">
+            <div class="tp-field-head"><label for="mode">3D Transport Regime</label></div>
+            <select id="mode" class="tp-select">
+              <option value="free">Isotropic Brownian diffusion (α = 1)</option>
+              <option value="drift">Directed motor / advective drift</option>
+              <option value="trap">Harmonic confinement (Ornstein–Uhlenbeck)</option>
+              <option value="axis">Anisotropic channel / filament diffusion</option>
+              <option value="wave">Oscillatory pulsatile flow</option>
+              <option value="fbm">Viscoelastic fractional Brownian (AnDi fBm)</option>
+              <option value="ctrw">Transient binding traps (AnDi CTRW · EB)</option>
+              <option value="two_state">Spot-On chromatin Bound ⇌ Free switching</option>
+            </select>
+          </div>
+
+          <div class="tp-subcard">
+            <div class="tp-subcard-title">
+              <span>Stokes–Einstein Macromolecule</span>
+              <a id="mol-structure-link" href="structure.html" style="font-size:11.5px;">View in 3D Studio →</a>
+            </div>
+            <div class="tp-field">
+              <label for="macromolecule" class="skip-link">Macromolecular tracer</label>
+              <select id="macromolecule" class="tp-select"></select>
+            </div>
+            <div class="tp-field">
+              <label for="compartment" class="skip-link">Cellular compartment viscosity</label>
+              <select id="compartment" class="tp-select"></select>
+            </div>
+            <div id="mol-meta" class="tp-mol-meta"></div>
+          </div>
+
+          <div class="tp-field">
+            <div class="tp-field-head">
+              <label for="D">Free Diffusivity D (μm²/s)</label>
+              <output id="dval">0.25 μm²/s</output>
+            </div>
+            <input id="D" type="range" min="0.04" max="1.20" step="0.01" value="0.25">
+          </div>
+
+          <div id="forceLabel" class="tp-field">
+            <div class="tp-field-head">
+              <label id="forceName" for="strength">Regime Parameter</label>
+              <output id="fval"></output>
+            </div>
+            <input id="strength" type="range" min="0" max="2" step="0.05" value="0.8">
+          </div>
+
+          <div class="tp-subcard">
+            <div class="tp-subcard-title"><span>sCMOS Camera Noise &amp; Blur (Michalet–Berglund)</span></div>
+            <div class="tp-field">
+              <div class="tp-field-head">
+                <label for="sigma-loc">Static Localization Error σ_loc</label>
+                <output id="sigma-val">0 nm</output>
+              </div>
+              <input id="sigma-loc" type="range" min="0" max="80" step="5" value="0">
+            </div>
+            <div class="tp-field">
+              <div class="tp-field-head"><label for="blur-mode">Illumination Shutter Blur R</label></div>
+              <select id="blur-mode" class="tp-select">
+                <option value="0">Stroboscopic pulse (R = 0 · zero motion blur)</option>
+                <option value="0.083333">Half-frame exposure (R = 1/12)</option>
+                <option value="0.166667">Continuous full-frame exposure (R = 1/6)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tp-inline-2">
+            <div class="tp-field">
+              <div class="tp-field-head"><label for="tracer-count">Ensemble Tracers</label></div>
+              <select id="tracer-count" class="tp-select">
+                <option value="64">64 tracers (42/22)</option>
+                <option value="96" selected>96 tracers (64/32)</option>
+                <option value="144">144 tracers (96/48)</option>
+              </select>
+            </div>
+            <div class="tp-field">
+              <div class="tp-field-head"><label for="seed">PRNG Seed</label></div>
+              <input id="seed" class="tp-input" type="number" min="1" max="999999" step="1" value="41">
+            </div>
+          </div>
+
+          <button id="run" class="tp-btn primary" type="button" style="width:100%;min-height:38px;">Run 3D Transport Experiment</button>
+          <p id="message" class="tp-status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Dual-Stage 10-Tab Publication Diagnostic Graph Suite -->
+    <section class="tp-analytics-grid" aria-label="10-panel SPT and anomalous diffusion diagnostic charts">
+      <!-- Left Stage: Ensemble Scaling, Ergodicity, Kurtosis & Hydrodynamics -->
+      <article class="tp-card tp-chart-card">
+        <div class="tp-chart-top">
+          <div class="tp-tab-strip" role="tablist" aria-label="Ensemble and ergodicity diagnostics">
+            <button type="button" class="tp-tab" role="tab" data-left-tab="msd" aria-selected="true">EA vs. TA-MSD</button>
+            <button type="button" class="tp-tab" role="tab" data-left-tab="scaling" aria-selected="false">Log–Log α(τ) &amp; EB</button>
+            <button type="button" class="tp-tab" role="tab" data-left-tab="vanhove" aria-selected="false">Van Hove &amp; α₂</button>
+            <button type="button" class="tp-tab" role="tab" data-left-tab="spoton" aria-selected="false">Spot-On Jump CDF</button>
+            <button type="button" class="tp-tab" role="tab" data-left-tab="stokes" aria-selected="false">14-Protein D(R_h)</button>
+          </div>
+          <button id="export-left-svg" class="tp-btn sm" type="button">SVG</button>
+        </div>
+        <div class="tp-svg-wrap">
+          <svg id="graph" viewBox="0 0 600 320" role="img" aria-label="Primary ensemble and anomalous diffusion diagnostic chart"></svg>
+        </div>
+        <div id="left-explain" class="tp-explain-box"></div>
+      </article>
+
+      <!-- Right Stage: Memory, Optimal Camera Estimators, Virtual FRAP, First-Passage & Model Selection -->
+      <article class="tp-card tp-chart-card">
+        <div class="tp-chart-top">
+          <div class="tp-tab-strip" role="tablist" aria-label="Correlation, optimal estimator, and bulk reciprocity diagnostics">
+            <button type="button" class="tp-tab" role="tab" data-right-tab="vacf" aria-selected="true">VACF &amp; Angles</button>
+            <button type="button" class="tp-tab" role="tab" data-right-tab="cve" aria-selected="false">CVE vs. OLS &amp; CRLB</button>
+            <button type="button" class="tp-tab" role="tab" data-right-tab="frap" aria-selected="false">Virtual 3D FRAP</button>
+            <button type="button" class="tp-tab" role="tab" data-right-tab="fpt" aria-selected="false">First-Passage S(t)</button>
+            <button type="button" class="tp-tab" role="tab" data-right-tab="inference" aria-selected="false">7-Model Weights</button>
+          </div>
+          <button id="export-right-svg" class="tp-btn sm" type="button">SVG</button>
+        </div>
+        <div class="tp-svg-wrap">
+          <svg id="right-graph" viewBox="0 0 600 320" role="img" aria-label="Secondary velocity correlation, optimal estimator, and trajectory inference chart"></svg>
+        </div>
+        <div id="right-explain" class="tp-explain-box"></div>
+      </article>
+    </section>
+
+    <!-- 7-Candidate Out-of-Sample Trajectory Inference Leaderboard -->
+    <section class="tp-card" aria-labelledby="inference-heading">
+      <div class="tp-section-head">
+        <div>
+          <h2 id="inference-heading">7-Candidate Out-of-Sample Trajectory Inference Leaderboard</h2>
+          <p id="inference-split-note">Parameters are fitted strictly on the first two-thirds of trajectories (training cohort) and evaluated by exact conditional negative log predictive density (<code>nats/coord</code>), complexity-penalized <code>AIC</code>, and Akaike weights on the held-out third.</p>
+        </div>
+      </div>
+      <div class="tp-table-wrap">
+        <table class="tp-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Candidate Mechanism</th>
+              <th>Model Family</th>
+              <th>Held-Out NLL</th>
+              <th>ΔNLL</th>
+              <th>ΔAIC</th>
+              <th>Akaike Weight</th>
+              <th>Dx / Dy / Dz (μm²/s)</th>
+              <th>Kinetic Parameter</th>
+            </tr>
+          </thead>
+          <tbody id="fit"></tbody>
+        </table>
+      </div>
+      <p class="tp-footnote">
+        Independent 3D single-particle tracks sampled at 40 Hz (Δt = 0.025 s, 160 steps = 4.0 s). Stokes–Einstein coupling evaluates real Cα / atom radii of gyration from the 10 bundled KEGG/AlphaFold DB v6 monomers and 4 RCSB PDB complexes at 310.15 K.
+        <a href="methods.html#transport">Mathematical equations, AnDi &amp; Michalet–Berglund references →</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="dna-data.js"></script>
+  <script src="fold-catalog.js"></script>
+  <script src="folds/P00846.js"></script>
+  <script src="folds/P0A7J3.js"></script>
+  <script src="folds/P00359.js"></script>
+  <script src="folds/Q31BY4.js"></script>
+  <script src="folds/O23290.js"></script>
+  <script src="folds/P04637.js"></script>
+  <script src="folds/P68871.js"></script>
+  <script src="folds/P01308.js"></script>
+  <script src="folds/P0A7G6.js"></script>
+  <script src="folds/P00441.js"></script>
+  <script src="experimental.js"></script>
+  <script src="evidence-records.js"></script>
+  <script src="transport-engine.js"></script>
+  <script src="transport-workbench.js"></script>
+  <script src="studio-nav.js"></script>
+</body>
+</html>

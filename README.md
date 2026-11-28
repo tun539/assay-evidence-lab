@@ -88,6 +88,10 @@ Open [the Simulation & ML Force-Field Workbench](https://tun539.github.io/assay-
 
 Open [Inside the Specimen](https://tun539.github.io/assay-evidence-lab/tomography.html) (`studio/tomography.html`) to reconstruct **16 macromolecular & calibration specimens** (10 KEGG/AlphaFold DB v6 folds, 4 multi-entity RCSB PDB complexes including `8AW3` & `1MBO`, and the Modified Shepp–Logan phantom) across **6 canonical solvers** (`SIRT`, `SART`, `FBP Ram-Lak`, `WBP Hann`, `Poisson MLEM`, and `CS-TV FISTA` compressed sensing). Audit **Gold-Standard $\text{FRC}_{0.143}$ resolution (Å)** vs. the Crowther limit, **2D Fourier Central-Slice Missing-Wedge cones** ($120^\circ$ Cryo-ET $\pm 60^\circ$ & $90^\circ$ limits), **300 kV Cryo-EM CTF phase-flipping**, **low-dose shot noise** ($12\text{–}200\text{ e}^-/\text{Å}^2$), **Leave-One-Tilt-Out validation**, **Hansen's L-curve**, and a **120-run 10-gene Leave-One-Protein-Out + Kaipio & Somersalo Inverse-Crime discretization benchmark**.
 
+## 3D Molecular Transport, Single-Particle Tracking (SPT) & Anomalous Diffusion Workbench
+
+Open [the 3D Molecular Transport & SPT Workbench](https://tun539.github.io/assay-evidence-lab/transport.html) (`studio/transport.html`) to track ensembles of 3D macromolecules at 40 Hz across **8 generative stochastic regimes** (`Isotropic Brownian`, `Directed Motor Drift`, `Harmonic Confinement`, `Anisotropic Filament Diffusion`, `Periodic Flow`, exact Toeplitz–Cholesky **Viscoelastic Fractional Brownian Motion `AnDi fBm`**, Pareto renewal **Transient Traps `AnDi CTRW`** demonstrating Weak Ergodicity Breaking, and **`Spot-On` Chromatin Bound $\rightleftharpoons$ Free Markov Switching**). Couple real 3D radii of gyration $R_g$ from 14 bundled AlphaFold DB v6 & RCSB PDB structures via **Stokes–Einstein hydrodynamics** ($D = k_B T / 6\pi\eta_{\text{eff}} R_h$), benchmark **Michalet–Berglund / Vestergaard Covariance-Based Estimation (`CVE`)** & **Cramér–Rao Lower Bounds (`CRLB`)** under camera localization error $\sigma_{\text{loc}}$ and shutter motion blur $R$, and rank **7 candidate stochastic laws** by out-of-sample predictive NLL (`nats/coord`), `AIC`, and Akaike weights across **10 interactive diagnostic views**.
+
 ## Classroom and research practical
 
 [Download the classroom files](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip), extract the ZIP and open `studio/practical.html`. Choose the undergraduate or graduate track, fit the published example or a local CSV, inspect held-concentration errors, and export your lab record and predictions. The [instructor guide](TEACHING.md) includes learning goals, submission requirements, a reference result and marking criteria. Run `node studio/test-fit.cjs` to check the browser fits against the SciPy benchmark.
@@ -133,6 +137,7 @@ python research/verify.py
 node studio/test-fit.cjs
 node studio/test-simulation.cjs
 node studio/test-tomography.cjs
+node studio/test-transport.cjs
 node studio/test-evidence-records.cjs
 node studio/test-studio-config.cjs
 node studio/test-studio-pages.cjs

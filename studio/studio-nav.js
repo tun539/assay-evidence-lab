@@ -88,6 +88,7 @@
       ['kinetics.html', 'Kinetics & OOD workbench (6 models)'],
       ['simulation.html', 'Simulation & ML force-field lab'],
       ['tomography.html', 'Inside the specimen · Cryo-ET (6 solvers)'],
+      ['transport.html', '3D molecular transport & SPT lab'],
       ['molecular.html', 'Molecular learning lab'],
       ['linked.html', 'Linked protein explorer'],
       ['customize.html', 'Customize & deploy', true],
