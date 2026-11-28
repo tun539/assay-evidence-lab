@@ -40,6 +40,7 @@ jobs:
           node studio/test-tomography.cjs
           node studio/test-transport.cjs
           node studio/test-audit.cjs
+          node studio/test-expression.cjs
           node studio/test-evidence-records.cjs
           node studio/test-studio-config.cjs
           node studio/test-studio-pages.cjs

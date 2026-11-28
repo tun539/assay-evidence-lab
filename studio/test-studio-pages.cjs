@@ -42,7 +42,7 @@ const ctx = vm.createContext({ window: {}, globalThis: {} });
 const loadInVm = relPath => {
   const code = fs.readFileSync(path.join(studioDir, relPath), 'utf8');
   // Expose top-level const bindings on the sandbox by converting const -> var for inspection
-  const script = code.replace(/^\s*const\s+(dnaRecords|codingDNA|foldIds|bundledFolds|experimental|residues|Mol3D|Mol3DWebGL|StudioPrefs)\s*=/gm, 'var $1 =');
+  const script = code.replace(/^\s*const\s+(dnaRecords|codingDNA|foldIds|bundledFolds|experimental|residues|Mol3D|Mol3DWebGL|StudioPrefs|ExpressionEngine)\s*=/gm, 'var $1 =');
   vm.runInContext(script, ctx, { filename: relPath });
 };
 
@@ -54,6 +54,7 @@ loadInVm('ubiquitin.js');
 loadInVm('mol3d-webgl.js');
 loadInVm('mol3d-engine.js');
 loadInVm('studio-prefs.js');
+loadInVm('expression-engine.js');
 
 assert.equal(ctx.dnaRecords.length, 10, `Expected 10 KEGG dnaRecords, got ${ctx.dnaRecords.length}`);
 assert.equal(ctx.foldIds.length, 10, `Expected 10 AlphaFold foldIds, got ${ctx.foldIds.length}`);
@@ -101,6 +102,7 @@ assert.ok(ctx.Mol3D && typeof ctx.Mol3D.createViewer === 'function', 'Mol3D.crea
 assert.ok(typeof ctx.Mol3D.parsePDB === 'function', 'Mol3D.parsePDB must be exported');
 assert.ok(typeof ctx.Mol3D.parseCIF === 'function', 'Mol3D.parseCIF must be exported');
 assert.ok(typeof ctx.Mol3D.renderThumbnail === 'function', 'Mol3D.renderThumbnail must be exported');
+assert.ok(ctx.ExpressionEngine && typeof ctx.ExpressionEngine.computeCohortSummary === 'function', 'ExpressionEngine.computeCohortSummary must be exported');
 
 // Verify StudioPrefs global accessibility, EN/VI i18n, and glossary contracts
 assert.ok(ctx.StudioPrefs && Array.isArray(ctx.StudioPrefs.GLOSSARY) && ctx.StudioPrefs.GLOSSARY.length >= 7, 'StudioPrefs.GLOSSARY must include >= 7 terms');
@@ -115,17 +117,18 @@ for (const page of ['structure.html', 'linked.html', 'tomography.html', 'transpo
     assert.ok(html.includes(`folds/${acc}.js`), `${page}: missing script tag for folds/${acc}.js`);
   }
 }
-for (const page of ['structure.html', 'molecular.html', 'linked.html', 'simulation.html', 'index.html']) {
+for (const page of ['structure.html', 'molecular.html', 'linked.html', 'simulation.html', 'index.html', 'expression.html']) {
   const html = fs.readFileSync(path.join(studioDir, page), 'utf8');
   assert.ok(html.includes('mol3d-webgl.js'), `${page}: missing WebGL2 engine script mol3d-webgl.js`);
 }
-for (const page of ['structure.html', 'molecular.html', 'linked.html', 'atlas.html', 'dna.html', 'index.html']) {
+for (const page of ['structure.html', 'molecular.html', 'linked.html', 'atlas.html', 'dna.html', 'index.html', 'expression.html']) {
   const html = fs.readFileSync(path.join(studioDir, page), 'utf8');
   assert.ok(html.includes('studio-prefs.js'), `${page}: missing global StudioPrefs integration`);
 }
 assert.ok(fs.readFileSync(path.join(studioDir, 'molecular.html'), 'utf8').includes('folds/P00359.js'), 'molecular.html must bundle GAPDH P00359 fold');
+assert.ok(fs.readFileSync(path.join(studioDir, 'expression.html'), 'utf8').includes('expression-engine.js'), 'expression.html must include expression-engine.js');
 
 console.log(
   `Verified ${htmlFiles.length} Studio HTML pages, ${jsFiles.length} JS scripts, ` +
-  `WebGL2 + StudioPrefs EN/VI modules, 10 KEGG + AlphaFold DB v6 gene folds, and 8 experimental PDB complexes.`
+  `ExpressionEngine + WebGL2 + StudioPrefs EN/VI modules, 10 KEGG + AlphaFold DB v6 gene folds, and 8 experimental PDB complexes.`
 );

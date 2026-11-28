@@ -1,0 +1,551 @@
+/* Gene Expression & Transcriptomics Atlas — Flagship Dual-Cohort & 3D Bridge Workbench */
+:root {
+  --ex-bg: #f4f7f3;
+  --ex-surface: #ffffff;
+  --ex-soft: #eef5f0;
+  --ex-border: #cedcd2;
+  --ex-border-strong: #87aa98;
+  --ex-ink: #12312a;
+  --ex-muted: #435f53;
+  --ex-accent: #16483b;
+  --ex-accent-hover: #1f6351;
+  --ex-stage-bg: #081b21;
+  --ex-stage-card: #0e272f;
+  --ex-stage-border: #234c57;
+  --ex-aml: #10946d;
+  --ex-all: #d96b27;
+}
+
+body.cb-mode {
+  --ex-accent: #005a8d;
+  --ex-accent-hover: #0072b2;
+  --ex-aml: #009e73;
+  --ex-all: #d55e00;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ex-bg);
+  color: var(--ex-ink);
+  font: 15px/1.55 "Inter", system-ui, -apple-system, Arial, sans-serif;
+}
+
+main.ex-main {
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 16px clamp(14px, 3vw, 38px) 56px;
+}
+
+a { color: #185743; text-underline-offset: 0.18em; }
+button, select, input { font: inherit; color: inherit; max-width: 100%; }
+button, select { cursor: pointer; }
+:focus-visible { outline: 3px solid #c97924; outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Topbar */
+.ex-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ex-border);
+}
+.ex-title-wrap { min-width: 0; flex: 1 1 430px; }
+.ex-eyebrow {
+  margin: 0 0 4px;
+  font: 700 11.5px/1.3 monospace;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #0053d6;
+}
+.ex-title-wrap h1 {
+  margin: 0 0 6px;
+  font: normal clamp(28px, 3.6vw, 44px)/1.06 Georgia, serif;
+  letter-spacing: -0.025em;
+}
+.ex-subtitle {
+  margin: 0;
+  color: var(--ex-muted);
+  font-size: 14.8px;
+  max-width: 840px;
+}
+.ex-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.ex-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--ex-border-strong);
+  background: var(--ex-surface);
+  color: var(--ex-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ex-btn:hover { background: #e9f2ec; border-color: #5b8772; }
+.ex-btn.primary { background: var(--ex-accent); border-color: var(--ex-accent); color: #ffffff; }
+.ex-btn.primary:hover { background: var(--ex-accent-hover); }
+.ex-btn[aria-pressed="true"] { background: #0053d6; border-color: #0053d6; color: #ffffff; }
+
+.ex-status {
+  margin: 8px 0 0;
+  min-height: 1.2em;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #195b45;
+}
+
+/* Presets & Audience Ribbon */
+.ex-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 12px 0;
+  padding: 11px 14px;
+  background: var(--ex-surface);
+  border: 1px solid var(--ex-border);
+  border-radius: 14px;
+}
+.ex-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.ex-ribbon-lbl {
+  font: 700 11.5px/1 monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ex-muted);
+  margin-right: 4px;
+}
+.ex-chip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid #b6cabd;
+  background: #f6faf7;
+  color: var(--ex-ink);
+  font-size: 12.2px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ex-chip:hover { background: #e7f2eb; border-color: #67977e; }
+.ex-chip.active, .ex-chip[aria-pressed="true"] {
+  background: var(--ex-accent);
+  border-color: var(--ex-accent);
+  color: #ffffff;
+}
+
+.ex-access-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ex-segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--ex-soft);
+  border: 1px solid var(--ex-border);
+  gap: 2px;
+}
+.ex-segmented button {
+  min-height: 29px;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #2f5145;
+  font-size: 12.2px;
+  font-weight: 600;
+}
+.ex-segmented button[aria-pressed="true"] {
+  background: var(--ex-accent);
+  color: #ffffff;
+}
+
+/* Primary Controls Bar */
+.ex-controls-bar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.8fr) minmax(170px, 1fr) minmax(190px, 1.1fr) auto;
+  gap: 10px 14px;
+  align-items: end;
+  padding: 13px 15px;
+  background: var(--ex-surface);
+  border: 1px solid var(--ex-border);
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+.ex-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ex-muted);
+  margin: 0;
+}
+.ex-field select,
+.ex-field input[type="range"] {
+  min-height: 36px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #adc2b3;
+  background: #f9fcfa;
+  color: var(--ex-ink);
+  font-size: 13.5px;
+}
+.ex-range-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #adc2b3;
+  background: #f9fcfa;
+}
+.ex-range-wrap input[type="range"] {
+  flex: 1;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  accent-color: var(--ex-accent);
+}
+.ex-range-val {
+  font: 700 13px/1 monospace;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* 6-Card KPI Grid */
+.ex-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ex-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px;
+  background: var(--ex-surface);
+  border: 1px solid var(--ex-border);
+  border-radius: 13px;
+}
+.ex-kpi-lbl {
+  font-size: 11.2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ex-muted);
+}
+.ex-kpi-val {
+  font: 700 clamp(17px, 1.8vw, 22px)/1.15 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+  color: var(--ex-ink);
+}
+.ex-kpi-sub {
+  font-size: 11.8px;
+  color: #4f6b5f;
+}
+
+/* Dual Analytical Workbench Stages */
+.ex-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ex-stage-card {
+  background: var(--ex-stage-bg);
+  color: #edf7f3;
+  border: 1px solid var(--ex-stage-border);
+  border-radius: 16px;
+  padding: 15px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ex-stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.ex-stage-head h2 {
+  margin: 0;
+  font: normal 20px/1.15 Georgia, serif;
+  color: #ffffff;
+}
+.ex-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(164, 214, 200, 0.22);
+}
+.ex-tabs button {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #c3e2da;
+  font-size: 12.2px;
+  font-weight: 600;
+}
+.ex-tabs button[aria-selected="true"] {
+  background: #88e6c1;
+  color: #092228;
+}
+
+.ex-plot-frame {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(138, 212, 198, 0.22);
+  background: #06151a;
+  min-height: 360px;
+}
+.ex-plot-frame canvas,
+.ex-plot-frame svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ex-plot-frame canvas { cursor: crosshair; }
+
+.ex-hover-hud {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(6, 18, 24, 0.92);
+  border: 1px solid rgba(101, 203, 243, 0.45);
+  color: #ebf8f5;
+  font-size: 12.2px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.ex-panel-matrix-wrap {
+  padding: 12px;
+  background: #ffffff;
+  color: var(--ex-ink);
+  border-radius: 10px;
+  max-height: 380px;
+  overflow: auto;
+}
+
+.ex-3d-bridge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  height: 100%;
+}
+.ex-3d-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #cae6de;
+}
+.ex-3d-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.ex-3d-links a {
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: #1a4b52;
+  border: 1px solid #48838a;
+  color: #e9fbf5;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ex-stage-note {
+  margin: 0;
+  font-size: 13px;
+  color: #b7d8cf;
+  line-height: 1.45;
+}
+
+/* Light Inspect Cards (Cohort Contrast, Signature Builder, Probe Explorer, Models) */
+.ex-card {
+  background: var(--ex-surface);
+  border: 1px solid var(--ex-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.ex-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ex-card-head h2 {
+  margin: 0;
+  font: normal 24px/1.15 Georgia, serif;
+}
+
+.ex-split-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.ex-story-box {
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: var(--ex-soft);
+  border: 1px solid #c9dcd0;
+  font-size: 14px;
+  color: #1c4438;
+  margin-bottom: 10px;
+}
+
+.ex-sig-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fbf9;
+  border: 1px solid var(--ex-border);
+}
+.ex-sig-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ex-sig-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #e3f1e9;
+  border: 1px solid #96bfa9;
+  font: 600 12px/1.2 monospace;
+  color: #123a2e;
+}
+.ex-sig-chip button {
+  border: 0;
+  background: transparent;
+  padding: 0 2px;
+  font-weight: 700;
+  color: #7c2d12;
+}
+
+.ex-table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.ex-table-controls input[type="search"] {
+  min-width: 240px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid #a7bdb0;
+}
+
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 13.8px;
+}
+th, td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #dce6df;
+  text-align: left;
+}
+th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #3d5d50;
+  background: #f5f9f6;
+}
+tr.ex-row-selected { background: #e8f5ee; }
+.ex-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font: 700 11px/1.3 monospace;
+}
+.ex-badge.aml { background: #dcf5ec; color: #0b5d44; }
+.ex-badge.all { background: #fbeadd; color: #9a3e0d; }
+.ex-badge.panel { background: #e4eefc; color: #0044b0; }
+.ex-badge.bridge { background: #efe8fc; color: #56279c; }
+
+.ex-leak-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  color: #edf7f3;
+}
+.ex-leak-box {
+  padding: 14px;
+  border-radius: 11px;
+  border: 1px solid rgba(164, 214, 200, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+.ex-leak-box.warn {
+  border-color: rgba(251, 146, 60, 0.55);
+  background: rgba(194, 65, 12, 0.16);
+}
+.ex-leak-box h3 { margin: 0 0 8px; font-size: 15px; color: #ffffff; }
+.ex-leak-stat { font: 700 24px/1.15 Georgia, serif; margin: 4px 0; }
+
+.ex-waterfall-info {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(164, 214, 200, 0.2);
+  font-size: 12.8px;
+  color: #d3ede5;
+}
+
+@media (max-width: 1120px) {
+  .ex-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ex-controls-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 920px) {
+  .ex-stage-grid, .ex-split-2, .ex-leak-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .ex-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ex-controls-bar { grid-template-columns: 1fr; }
+}
