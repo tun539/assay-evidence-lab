@@ -29,7 +29,7 @@
 | Area | What the tools do here |
 | --- | --- |
 | Scientific computing | **NumPy** generates synthetic assays and computes metrics. **Pandas** prepares training data in the notebooks. **SciPy** fits Michaelis–Menten curves. |
-| Model training | **scikit-learn** supplies classical baselines. **PyTorch** trains the molecular estimator. **TensorFlow**, PyTorch, and NumPy implement the same bilingual classifier in the companion notebook. The assay simulator implements tabular Q-learning for selecting a second measurement. |
+| Model training &amp; RL suite | **scikit-learn**, **PyTorch Deep Learning** (`KinResNet` heteroscedastic GaussianNLL + MC Dropout, `GolubAttentionNet` gene saliency, `PredictedLDDTHead` L-BFGS calibration, Conservative Neural Potential `F=-∇U`), and **Reinforcement Learning** (Tabular Q-learning, **Double DQN** with Polyak target net, and continuous-dose **PPO-Clip** with Fisher D-optimality) in [`ml/BioAI_PyTorch_ML_RL_Suite.ipynb`](ml/BioAI_PyTorch_ML_RL_Suite.ipynb) ([Open in Colab](https://colab.research.google.com/github/tun539/assay-evidence-lab/blob/main/ml/BioAI_PyTorch_ML_RL_Suite.ipynb)). |
 | Structure and prediction audits | The **Cellpose** metric routines score segmentation overlap. **AlphaFold DB** supplies predicted structures for the 3D explorer. The audit also includes upstream routines for residue confidence. |
 | App and design | **HTML, CSS, JavaScript, and Canvas** power the offline labs and 3D playback. **Lovable** was used for a separate mission-control UI prototype. |
 

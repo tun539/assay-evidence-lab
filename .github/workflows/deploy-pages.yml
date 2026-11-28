@@ -57,6 +57,7 @@ jobs:
           python -m unittest discover -s evidence
           python NucleusAudit/verify.py
           python research/verify.py
+          python ml/verify_notebooks.py
 
       - name: Verify site build and offline ZIP packaging
         run: |
