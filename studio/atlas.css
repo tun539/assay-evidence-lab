@@ -1,3 +1,375 @@
-.atlas-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:16px}.atlas-layout section{margin:0;min-width:0}.map-panel{color:#d9f5e9;background:#102d34;border-color:#29534e;padding:12px}.map-panel canvas{display:block;width:100%;aspect-ratio:820/550;border-radius:9px;touch-action:none;cursor:grab}.map-panel canvas:active{cursor:grabbing}.map-tools,#stations{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0}.map-tools span{font-size:.86rem;color:#bbd8d3}.map-panel button{background:#1d4448;color:#effbf5;border-color:#648d80;min-height:40px}.map-panel button[aria-pressed=true]{background:#a5e5c7;color:#112f31}.mission h3{margin:1.3rem 0 .5rem}.mission fieldset{margin:0 0 .8rem;padding:0;border:0}.mission legend{font-weight:650;margin-bottom:.5rem}.mission label{display:flex;gap:.55rem;align-items:flex-start;margin:.4rem 0}.mission input{margin-top:.35rem}.filled{display:inline-block;padding:.55rem .85rem;color:white;background:#175846;border-radius:7px}.tracks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:10px}.tracks article{background:#eaf2ec;border-radius:9px;padding:12px}.tracks h3{margin:0}.mission #progress{color:#446b5e;font-size:.92rem;margin-top:0}@media(max-width:850px){.atlas-layout{grid-template-columns:1fr}}
+.atlas-intro {
+  background: linear-gradient(145deg, #0b1f27 0%, #123339 58%, #16443d 100%);
+  color: #f1fbf4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  padding: clamp(22px, 4vw, 38px);
+  border-color: #255250;
+  border-radius: 18px;
+}
 
-.atlas-intro{background:#122f34;color:#f1fbf4;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.25rem;padding:clamp(20px,4vw,39px);border-color:#2e514d}.atlas-intro h1{margin:0}.atlas-intro .intro{margin:.65rem 0 0;color:#c6e2d6;max-width:33rem}.atlas-actions{display:grid;gap:.6rem;min-width:min(100%,13rem)}.atlas-actions a{color:#e1f4e9}.atlas-actions .filled{background:#a8e5c8;color:#102f30;text-align:center;font-weight:700}.atlas-actions a:not(.filled){padding:.35rem 0}.mission #progress{margin-bottom:.35rem}.mission progress{width:100%;height:.65rem;accent-color:#236e59;margin-bottom:1rem}.mission label{padding:.55rem .7rem;border:1px solid #d9e5dc;border-radius:8px;cursor:pointer}.mission label:has(input:checked){background:#e0f2e8;border-color:#458b72}.mission button{min-height:44px}.map-panel button{min-height:44px}
+.atlas-eyebrow {
+  margin: 0 0 6px;
+  font: 700 11.5px/1.3 monospace;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #65cbf3;
+}
+
+.atlas-intro h1 {
+  margin: 0;
+  color: #ffffff;
+}
+
+.atlas-intro .intro {
+  margin: 0.65rem 0 0;
+  color: #c5e2d8;
+  max-width: 40rem;
+  font-size: 16px;
+}
+
+.atlas-actions {
+  display: grid;
+  gap: 0.55rem;
+  min-width: min(100%, 15.5rem);
+}
+
+.atlas-actions a {
+  color: #dcf3ea;
+  font-size: 14px;
+}
+
+.atlas-actions .filled {
+  background: #8ee5c1;
+  color: #0c2628;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-decoration: none;
+}
+
+.atlas-actions .filled:hover {
+  background: #b1f1d6;
+}
+
+.atlas-action-row {
+  display: flex;
+  gap: 8px;
+}
+
+.atlas-ghost-btn {
+  flex: 1;
+  min-height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #edf8f3;
+  border: 1px solid rgba(181, 224, 212, 0.35);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font: 600 13px/1.2 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.atlas-ghost-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.atlas-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+
+.atlas-filter {
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #bfd1c4;
+  background: #ffffff;
+  color: #194136;
+  font: 600 13px/1.2 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.atlas-filter.active,
+.atlas-filter[aria-pressed="true"] {
+  background: #16483b;
+  border-color: #16483b;
+  color: #ffffff;
+}
+
+.atlas-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.atlas-layout section {
+  margin: 0;
+  min-width: 0;
+}
+
+.map-panel {
+  color: #d9f5e9;
+  background: #0c2128;
+  border-color: #264f52;
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.map-canvas-wrap {
+  position: relative;
+}
+
+.map-panel canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 840 / 560;
+  border-radius: 10px;
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-panel canvas:active {
+  cursor: grabbing;
+}
+
+.map-hud {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(8, 22, 28, 0.9);
+  border: 1px solid rgba(101, 203, 243, 0.45);
+  color: #edf9f5;
+  font: 600 13px/1.3 "Inter", system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.map-tools,
+#stations {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 10px 0 0;
+}
+
+.map-tools span {
+  font-size: 0.85rem;
+  color: #b4d5ce;
+}
+
+.map-panel button {
+  background: #183d42;
+  color: #effbf5;
+  border: 1px solid #487771;
+  border-radius: 8px;
+  padding: 6px 11px;
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map-panel button:hover {
+  background: #215157;
+}
+
+.map-panel button[aria-pressed="true"] {
+  background: #8ee5c1;
+  border-color: #8ee5c1;
+  color: #0b2628;
+}
+
+.map-panel button.dimmed {
+  opacity: 0.45;
+}
+
+.mission-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.mission #progress {
+  color: #365f52;
+  font-size: 0.92rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+#reset-progress {
+  font-size: 12.5px;
+  padding: 4px 10px;
+  min-height: 30px;
+}
+
+.mission progress {
+  width: 100%;
+  height: 0.65rem;
+  accent-color: #196b54;
+  margin: 0.45rem 0 0.7rem;
+}
+
+#workspace-summary {
+  font-size: 13.5px;
+  color: #3b5d50;
+  margin: 0 0 12px;
+}
+
+.station-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.station-cat-pill,
+.station-meta-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font: 700 11px/1.3 monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.station-cat-pill {
+  background: #e6f0fc;
+  color: #0047ba;
+}
+
+.station-meta-pill {
+  background: #e7f4ec;
+  color: #17543f;
+}
+
+.mission-launch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.filled {
+  display: inline-block;
+  padding: 0.6rem 1rem;
+  color: white;
+  background: #175846;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.filled:hover {
+  background: #206d57;
+}
+
+.secondary-link {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mission h3 {
+  margin: 1.2rem 0 0.5rem;
+}
+
+.mission fieldset {
+  margin: 0 0 0.8rem;
+  padding: 0;
+  border: 0;
+}
+
+.mission legend {
+  font-weight: 650;
+  margin-bottom: 0.5rem;
+}
+
+.mission label {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  margin: 0.45rem 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d5e3d9;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.mission label:has(input:checked) {
+  background: #e2f2e9;
+  border-color: #3f886e;
+}
+
+.mission input {
+  margin-top: 0.3rem;
+}
+
+.mission form button {
+  min-height: 42px;
+  padding: 8px 16px;
+  background: #16483b;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.learning-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.learning-head p {
+  margin: 4px 0 0;
+  max-width: 700px;
+  color: #415d52;
+}
+
+.tracks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 12px;
+}
+
+.tracks article {
+  background: #ebf4ee;
+  border: 1px solid #d0e1d5;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.tracks h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.tracks p {
+  margin: 0;
+  font-size: 14px;
+  color: #315044;
+}
+
+.learning-links {
+  margin: 14px 0 0;
+  font-size: 14.5px;
+}
+
+@media (max-width: 900px) {
+  .atlas-layout {
+    grid-template-columns: 1fr;
+  }
+}
