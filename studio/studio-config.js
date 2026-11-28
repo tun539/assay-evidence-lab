@@ -34,11 +34,11 @@ globalThis.STUDIO_CONFIG = {
     { id: 'simulation', title: 'Simulation & ML force-field workbench', href: 'simulation.html', description: 'Audit 5 MLIP force fields (MACE/GP/Committee), symplectic phase space, vibrational spectra, 2D Ramachandran & Müller–Brown landscapes, and 3D BioEmu ensembles.', savesToWorkspace: true },
     { id: 'tomography', title: 'Inside the specimen · Cryo-ET & tomography', href: 'tomography.html', description: 'Reconstruct 16 AlphaFold, PDB & Shepp–Logan specimens across 6 solvers (SIRT, SART, FBP, WBP, MLEM, CS-TV), FRC 0.143 resolution, and missing-wedge audits.', savesToWorkspace: true },
     { id: 'transport', title: '3D molecular transport & SPT workbench', href: 'transport.html', description: 'Track 3D macromolecules across 8 regimes (Brownian, viscoelastic fBm, CTRW traps, Spot-On 2-state), Michalet–Berglund CVE & CRLB, and 7-model held-out NLL.', savesToWorkspace: true },
+    { id: 'audit', title: 'Cellpose & AlphaFold prediction audit', href: 'audit.html', description: 'Audit 5 microscopy instance segmenters (Hungarian IoU, Panoptic PQ, merge/split taxonomy) alongside AlphaFold softmax logits, ECE calibration, and 48×48 PAE pTM.', savesToWorkspace: true },
     { id: 'molecular', title: 'Molecular learning lab', href: 'molecular.html', description: 'Compare random forest, PyTorch MLP, and RL second-dose selection in synchronized 3D playback.', savesToWorkspace: true },
     { id: 'expression', title: 'Gene expression atlas', href: 'expression.html', description: 'Explore 7,129 microarray probes and three classifiers across two Golub cohorts.', savesToWorkspace: true },
     { id: 'research', title: 'Research benchmark', href: 'research.html', description: 'Compare model families, probability reliability, and decision thresholds on 569 specimens.', savesToWorkspace: true },
     { id: 'practical', title: 'Enzyme kinetics practical', href: 'practical.html', description: 'Fit four hypotheses on the published assay or your own CSV and export held-out predictions.', savesToWorkspace: true },
-    { id: 'audit', title: 'Cellpose and AlphaFold audit', href: 'audit.html', description: 'Inspect one-to-one instance matching and per-residue pLDDT confidence distributions.', savesToWorkspace: true },
     { id: 'language', title: 'Language and physics lab', href: 'language.html', description: 'Trace a bilingual command from trained token weights to a 3D scene.', savesToWorkspace: false },
   ],
 };

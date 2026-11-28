@@ -89,6 +89,7 @@
       ['simulation.html', 'Simulation & ML force-field lab'],
       ['tomography.html', 'Inside the specimen · Cryo-ET (6 solvers)'],
       ['transport.html', '3D molecular transport & SPT lab'],
+      ['audit.html', 'Cellpose & AlphaFold audit lab'],
       ['molecular.html', 'Molecular learning lab'],
       ['linked.html', 'Linked protein explorer'],
       ['customize.html', 'Customize & deploy', true],
