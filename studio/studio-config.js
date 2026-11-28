@@ -14,7 +14,7 @@ globalThis.STUDIO_CONFIG = {
   brandMark: '∿',
   heroTitlePrefix: 'Assay',
   heroTitleAccent: 'Evidence Studio',
-  heroIntro: 'Explore 18 interactive 3D molecular & gene structures inspired by AlphaFold Server and Cosmos Biology, fit enzyme assays, audit ML predictions, and trace every claim back to primary data.',
+  heroIntro: 'Explore 18 interactive 3D molecular & gene structures inspired by AlphaFold Server and Cosmos Biology, audit 6-model enzyme kinetics & OOD holdouts, run MACE/BioEmu force-field & conformational ensemble simulations, and trace every claim back to primary data.',
   repoUrl: 'https://github.com/tun539/assay-evidence-lab',
   theme: {
     primary: '#18493c',
@@ -31,6 +31,7 @@ globalThis.STUDIO_CONFIG = {
     { id: 'structure', title: '3D Molecular & Gene Structure Studio', href: 'structure.html', description: 'AlphaFold-style 3D cartoon workbench with PDB 8AW3, 10 KEGG gene folds, real PAE maps, audience modes, and local .PDB upload.', savesToWorkspace: true },
     { id: 'dna', title: '3D Gene & DNA Lab (10 genes)', href: 'dna.html', description: 'Explore 10 KEGG genes in shaded 3D duplexes, jump from any codon straight into its AlphaFold residue, export FASTA, and assemble reads.', savesToWorkspace: false },
     { id: 'kinetics', title: 'Kinetics & OOD benchmark workbench', href: 'kinetics.html', description: 'Audit 6 rate laws (Michaelis–Menten, Hill cooperativity & Haldane substrate inhibition) across 9 diagnostic graphs and OOD holdouts.', savesToWorkspace: true },
+    { id: 'simulation', title: 'Simulation & ML force-field workbench', href: 'simulation.html', description: 'Audit 5 MLIP force fields (MACE/GP/Committee), symplectic phase space, vibrational spectra, 2D Ramachandran & Müller–Brown landscapes, and 3D BioEmu ensembles.', savesToWorkspace: true },
     { id: 'molecular', title: 'Molecular learning lab', href: 'molecular.html', description: 'Compare random forest, PyTorch MLP, and RL second-dose selection in synchronized 3D playback.', savesToWorkspace: true },
     { id: 'tomography', title: 'Inside the specimen', href: 'tomography.html', description: 'Reconstruct hidden slices across 10 AlphaFold gene proteins from parallel-beam projections across 4–48 angles.', savesToWorkspace: true },
     { id: 'transport', title: 'Molecular transport in 3D', href: 'transport.html', description: 'Follow moving tracers and test five physical models against theory and held-out NLL.', savesToWorkspace: true },
@@ -38,7 +39,6 @@ globalThis.STUDIO_CONFIG = {
     { id: 'research', title: 'Research benchmark', href: 'research.html', description: 'Compare model families, probability reliability, and decision thresholds on 569 specimens.', savesToWorkspace: true },
     { id: 'practical', title: 'Enzyme kinetics practical', href: 'practical.html', description: 'Fit four hypotheses on the published assay or your own CSV and export held-out predictions.', savesToWorkspace: true },
     { id: 'audit', title: 'Cellpose and AlphaFold audit', href: 'audit.html', description: 'Inspect one-to-one instance matching and per-residue pLDDT confidence distributions.', savesToWorkspace: true },
-    { id: 'simulation', title: 'Simulation & ML force-field workbench', href: 'simulation.html', description: 'Audit 5 MLIP force fields (MACE/GP/Committee), symplectic phase space, vibrational spectra, 2D Ramachandran & Müller–Brown landscapes, and 3D BioEmu ensembles.', savesToWorkspace: true },
     { id: 'language', title: 'Language and physics lab', href: 'language.html', description: 'Trace a bilingual command from trained token weights to a 3D scene.', savesToWorkspace: false },
   ],
 };

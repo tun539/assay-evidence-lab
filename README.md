@@ -35,17 +35,17 @@
 
 ## Evidence workspace
 
-[Open the workspace](https://tun539.github.io/assay-evidence-lab/workspace.html). Capture runs from all ten quantitative labs — Kinetics workbench, Molecular learning lab, Enzyme practical, Research benchmark, Gene expression atlas, Protein 3D structure viewer, Tomography, Molecular transport in 3D, Simulation lab, and Prediction audit. Filter by evidence type or dataset, search and sort saved runs, jump straight to matching peers with **Compare with match**, inspect side-by-side SVG bar charts and parameter diffs (with **Swap A ↔ B**), persist review notes in the browser, and export JSON packets, Markdown reports (download or copy to clipboard), or CSV summary tables. Run `node studio/test-evidence-records.cjs` to verify record validation, comparison, and export logic.
+[Open the workspace](https://tun539.github.io/assay-evidence-lab/workspace.html). Capture runs from all ten quantitative labs — Kinetics & OOD workbench, Simulation & ML force-field workbench, 3D Molecular Studio, Molecular learning lab, Enzyme practical, Research benchmark, Gene expression atlas, Tomography, Molecular transport in 3D, and Prediction audit. Filter by evidence type or dataset, search and sort saved runs, jump straight to matching peers with **Compare with match**, inspect side-by-side SVG bar charts and parameter diffs (with **Swap A ↔ B**), persist review notes in the browser, and export JSON packets, Markdown reports (download or copy to clipboard), or CSV summary tables. Run `node studio/test-evidence-records.cjs` to verify record validation, comparison, and export logic.
 
 ## Explore the studio
 
 | Research area | Open a lab | What to try |
 | --- | --- | --- |
 | Molecular structure (18 3D models) | [3D Molecular Studio](https://tun539.github.io/assay-evidence-lab/structure.html) · [Linked residue explorer](https://tun539.github.io/assay-evidence-lab/linked.html) | Inspect PDB 8AW3 (Protein–RNA–2×Zn²⁺) or 10 AlphaFold DB v6 gene folds with cartoon ribbons, real PAE maps, local `.pdb` upload, and Explorer/Student/Researcher modes. |
-| Imaging and transport | [Tomography](https://tun539.github.io/assay-evidence-lab/tomography.html) · [Transport in 3D](https://tun539.github.io/assay-evidence-lab/transport.html) | Reconstruct slices across 10 AlphaFold gene proteins or compare moving tracers with theory. |
-| Enzyme kinetics (9 diagnostic views) | [Kinetics & OOD Workbench](https://tun539.github.io/assay-evidence-lab/kinetics.html) · [Molecular Learning Lab](https://tun539.github.io/assay-evidence-lab/molecular.html) | Audit 6 rate laws (Michaelis–Menten, Cooperative Hill & Haldane Substrate Inhibition) across Log₁₀[S], Lineweaver–Burk, Hanes–Woolf, Parity, Q–Q, 2D SSE contours, Active-Learning Fisher curves, and OOD holdouts. |
-| Genomics (10 linked genes) | [3D Gene & DNA Lab](https://tun539.github.io/assay-evidence-lab/dna.html) · [Expression atlas](https://tun539.github.io/assay-evidence-lab/expression.html) | Orbit 10 full coding genes in shaded 3D duplexes, jump straight from any codon to its AlphaFold 3D residue, export FASTA, or compare microarray cohorts. |
-| Model evaluation | [Prediction audit](https://tun539.github.io/assay-evidence-lab/audit.html) · [Research benchmark](https://tun539.github.io/assay-evidence-lab/research.html) · [Simulation lab](https://tun539.github.io/assay-evidence-lab/simulation.html) | Inspect object matches, change decision thresholds, or test a learned force law outside its training interval. |
+| Enzyme kinetics (6 models · 9 views) | [Kinetics & OOD Workbench](https://tun539.github.io/assay-evidence-lab/kinetics.html) · [Molecular Learning Lab](https://tun539.github.io/assay-evidence-lab/molecular.html) | Audit 6 rate laws (Michaelis–Menten, Cooperative Hill & Haldane Substrate Inhibition) across Log₁₀[S], Lineweaver–Burk, Hanes–Woolf, Parity, Q–Q, 2D SSE contours, Active-Learning Fisher curves, and OOD holdouts. |
+| Molecular dynamics & ensembles | [Simulation & ML Force-Field Workbench](https://tun539.github.io/assay-evidence-lab/simulation.html) · [Transport in 3D](https://tun539.github.io/assay-evidence-lab/transport.html) | Benchmark 5 conservative MLIP force fields (MACE/GP/Committee), symplectic phase space & $S(\omega)$ spectra, 2D Ramachandran / Müller–Brown landscapes, 3D BioEmu protein ensembles, or 3D tracer diffusion. |
+| Genomics & imaging (10 linked genes) | [3D Gene & DNA Lab](https://tun539.github.io/assay-evidence-lab/dna.html) · [Expression atlas](https://tun539.github.io/assay-evidence-lab/expression.html) · [Tomography](https://tun539.github.io/assay-evidence-lab/tomography.html) | Orbit 10 full coding genes in shaded 3D B-DNA duplexes, jump straight from any codon to its AlphaFold 3D residue, reconstruct parallel-beam slices, or compare microarray cohorts. |
+| Model & segmentation audits | [Prediction audit](https://tun539.github.io/assay-evidence-lab/audit.html) · [Research benchmark](https://tun539.github.io/assay-evidence-lab/research.html) | Inspect Cellpose instance matching & AlphaFold pLDDT calibration, or compare calibrated classifiers and decision thresholds on shared outer folds. |
 
 ## Edit anywhere, deploy everywhere
 
@@ -75,6 +75,10 @@ Open [the 3D Molecular & Gene Structure Studio](https://tun539.github.io/assay-e
 - **Multi-audience accessibility:** Switch between **Explorer**, **Student**, and **Researcher** modes, toggle **Okabe–Ito colorblind-safe palettes**, **High Contrast**, **Reduced Motion**, light/dark stage themes, and full keyboard 3D navigation.
 
 Coordinates are derived from [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk/) predictions under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and deposited [RCSB PDB](https://www.rcsb.org/) structures. Run `python scripts/refresh_gene_models.py` and `python scripts/refresh_experimental_and_dna.py` to refresh bundled coordinates and PAE matrices from upstream APIs. Distances in predicted monomers describe model geometry.
+
+## Enzyme Kinetics & OOD Benchmark Workbench (6 models · 9 diagnostic views)
+
+Open [the Kinetics & OOD Benchmark Workbench](https://tun539.github.io/assay-evidence-lab/kinetics.html) (`studio/kinetics.html`) to audit **6 nonlinear rate laws** (`Shared MM`, `Separate Vmax`, `Separate Km`, `Separate Vmax & Km`, `Cooperative Hill` $n$, and `Haldane Substrate Inhibition` $K_i$) across **5 curated benchmarks** (Treloar 1974 Puromycin, Competitive Inhibitor, Allosteric Sigmoidal Cooperativity, Haldane High-$[S]$ Substrate Inhibition, and High-Noise Low-Replication Stress Test) or your own uploaded CSV. Compare `Random` vs. **Concentration-OOD Holdout** splits alongside **AICc / Akaike weights**, **500-draw parametric bootstrap 95% CIs**, **2D $(V_{\max}, K_m)$ SSE likelihood contours**, **D-optimal Fisher Information next-dose curves**, and auto-generated Mechanistic & Statistical Interpretation cards.
 
 ## Simulation & Conformational Ensemble Workbench
 
@@ -123,7 +127,9 @@ python NucleusAudit/train.py
 python NucleusAudit/verify.py
 python research/verify.py
 node studio/test-fit.cjs
+node studio/test-simulation.cjs
 node studio/test-evidence-records.cjs
+node studio/test-studio-config.cjs
 node studio/test-studio-pages.cjs
 ```
 

@@ -5,7 +5,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 EXTRAS = (
-    "PLAY.md", "LICENSE", "scripts/play_studio.py",
+    "PLAY.md", "SIMULATIONS.md", "LICENSE", "scripts/play_studio.py",
     "ml/requirements.txt", "ml/MolecularLearning.ipynb", "ml/molecular.py",
     "ml/MultilingualTraining.ipynb", "ml/train.py",
 )
