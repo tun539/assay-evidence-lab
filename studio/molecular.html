@@ -1,32 +1,308 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Molecular learning lab · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="studio-nav.css"><style>
-.scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1rem}.scenes figure{margin:0}.scenes canvas{display:block;width:100%;background:#0e2c31;border-radius:12px;touch-action:none}.scenes figcaption{padding:.6rem 0}#controls{display:flex;flex-wrap:wrap;align-items:end;gap:1rem}.bars progress{display:block;width:100%;accent-color:#17755e}.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:1rem}.bars label{padding:.6rem;background:#edf4ee;border-radius:6px} output{display:block;font-weight:600;margin:1rem 0}
-.scene-lab{background:#f1f6f1}.scene-heading,.scenes figcaption,.timeline{display:flex;justify-content:space-between;gap:.75rem;align-items:baseline}.scene-heading h3{font:normal clamp(24px,4vw,36px) Georgia,serif;margin:0}.scene-heading p{margin:.35rem 0 1rem;color:#395e51}.play-scene{background:#175746;color:#fff;padding:.65rem 1rem;white-space:nowrap}.scenes figure{background:#102d31;border:1px solid #294d48;border-radius:12px;color:#e6f7ed;padding:0 .75rem}.scenes figcaption{align-items:flex-start;flex-direction:column;gap:.2rem}.scenes figcaption span{font-size:.9rem;color:#c6e5d7}.scenes canvas{cursor:grab}.scenes canvas:active{cursor:grabbing}.phase{margin:.5rem 0;font-size:.9rem;color:#dbefe6}.timeline{margin:1rem 0;align-items:center}.timeline input{width:auto;flex:1;min-width:3rem}.timeline span{white-space:nowrap;font-variant-numeric:tabular-nums}.scene-lab button,.scene-lab select{min-height:44px}.scene-lab select:disabled{opacity:.7}.spin-control{display:flex;gap:.45rem;align-items:center}.scene-legend{display:flex;flex-wrap:wrap;gap:1rem;list-style:none;padding:0}.scene-legend li::before{content:'';display:inline-block;width:.75em;height:.75em;border-radius:50%;margin-right:.4rem;background:#33836d}.scene-legend li:nth-child(2)::before{background:#b66a17}.scene-legend li:nth-child(3)::before{background:#8264bd}.scene-hint{color:#426255;font-size:.9rem}
-@media(max-width:570px){.scene-heading{flex-wrap:wrap}.timeline{flex-wrap:wrap}.timeline input{order:3;flex-basis:100%}}
-</style></head><body><a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="molecular.html" data-methods="molecular" data-related-href="kinetics.html" data-related-label="Measured kinetics workbench →"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header><main id="main">
-<h1>Molecular learning lab</h1><p class="intro">How much can two substrate concentrations tell you about an enzyme? Choose a second measurement, compare it with a trained policy, and see which family of kinetic curves the two rates support.</p>
-<section><h2>Choose the next measurement</h2><p>All simulated assays start at 0.11 ppm. The policy groups the initial rate into a bin and estimates the chance of a correct family prediction for each remaining dose. Take one more measurement to submit the episode.</p>
-<div id="controls"><label>Held-out assay <select id="episode"></select></label><label>Second concentration <select id="dose"></select></label><button id="policy">Use learned policy</button><button id="measure">Reveal second rate</button></div>
-<output id="first"></output><div class="bars" id="actions"></div><output id="result" aria-live="polite"></output>
-<section class="scene-lab" aria-labelledby="scene-title">
-<div class="scene-heading"><div><h3 id="scene-title">Enzyme activity in 3D</h3><p id="scene-mode"></p></div><button id="play-scene" class="play-scene">Play simulation</button></div>
-<div class="scenes">
-<figure><figcaption><strong>Selected concentration</strong><span id="label-selected"></span></figcaption><canvas id="scene-selected" width="520" height="340" tabindex="0" aria-label="Rotatable enzyme scene for the selected dose"></canvas><p class="phase" id="phase-selected"></p></figure>
-<figure><figcaption><strong>Fixed-dose baseline</strong><span id="label-fixed"></span></figcaption><canvas id="scene-fixed" width="520" height="340" tabindex="0" aria-label="Rotatable enzyme scene for the fixed dose baseline"></canvas><p class="phase" id="phase-fixed"></p></figure>
-</div>
-<div class="timeline"><label for="scene-time">Playback time</label><input id="scene-time" type="range" min="0" max="8" value="0" step="0.001"><span id="time-readout" aria-hidden="true">0.0 / 8 s</span></div>
-<div id="motion-controls" class="controls">
-<label>Rate estimate <select id="rate-model"><option value="">Generating parameters</option></select></label>
-<label class="spin-control"><input id="auto-orbit" type="checkbox"> Auto-rotate</label><button id="reset-camera">Reset camera</button>
-</div>
-<p id="model-detail"></p>
-<ul class="scene-legend" aria-label="Molecular colors"><li>Enzyme</li><li>Substrate</li><li>Product</li></ul>
-<p class="scene-hint">Drag either view to orbit both scenes. With a view focused, use the arrow keys. Both scenes share a clock and rate scale.</p>
-<details><summary>How to interpret the animation</summary><p>The geometry and reaction stages are schematic. Playback speed scales with the Michaelis–Menten rate. The four rate estimators use six simulated observations per example. The learned policy uses only the first observation to choose its second dose.</p></details>
-</section>
-<p id="mechanism"></p><button id="save-evidence" disabled>Save to evidence workspace</button> <a href="workspace.html">Open workspace</a><p id="save-status" role="status"></p></section>
-<section><h2>Evaluate the trained models</h2><p>The nonlinear Michaelis–Menten fit, ridge regression, random forest, and two-hidden-layer PyTorch network estimate <i>V</i><sub>max</sub> and <i>K</i><sub>m</sub> from all six rates. The measurement policy gets two rates and predicts the generating family using a fitted Gaussian decoder. Both tasks use the same held-out assays.</p>
-<div class="table-wrap"><table><thead><tr><th>Parameter estimator</th><th>Vmax MAE (counts/min/min)</th><th>Km MAE (ppm)</th></tr></thead><tbody id="ml"></tbody></table></div>
-<div class="table-wrap"><table><thead><tr><th>Two-measurement policy</th><th>Family accuracy</th></tr></thead><tbody id="rl"></tbody></table></div>
-<p id="split"></p></section>
-<section><h2>Reproduce the experiment</h2><p>Simulate rates with v = Vmax × S / (Km + S) and additive Gaussian noise. The terminal reward is one for a correct family prediction and zero otherwise. Training uses epsilon-greedy exploration and sample-average Q updates. The labels describe synthetic parameter families. Experimental validation would require independent assay runs. Km is an apparent kinetic parameter and can depend on the reaction mechanism.</p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py">Training code and simulation</a> · <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb">Executed Jupyter notebook</a></section>
-</main><script src="molecular-data.js"></script><script src="molecular-scene.js"></script><script src="evidence-records.js"></script><script src="molecular.js"></script><script src="studio-nav.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Molecular Learning Lab: Active-learning Q-policy, 6-dose enzyme parameter estimation (Nonlinear MM, Ridge, Random Forest, PyTorch MLP), WebGL2 3D enzyme–substrate pocket docking, and molML cheminformatics & split integrity diagnostics.">
+<title>Molecular learning lab · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="studio-prefs.css">
+<link rel="stylesheet" href="molecular.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="molecular.html" data-mission="molecular" data-methods="molecular" data-related-href="kinetics.html" data-related-label="Measured kinetics workbench →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+
+<main class="ml-main" id="main">
+  <!-- Executive Topbar -->
+  <section class="ml-topbar" aria-label="Molecular learning lab overview">
+    <div class="ml-title-wrap">
+      <p class="ml-eyebrow">Active Learning, Enzyme Catalysis &amp; molML Diagnostics · Q-Learning × PyTorch MLP × WebGL2</p>
+      <h1 id="ml-heading">Molecular learning lab</h1>
+      <p class="ml-subtitle" id="ml-subtitle">Discover how an RL measurement policy chooses the most informative second substrate dose after observing a single anchor rate—and watch real 3D enzyme active-site turnover respond to learned kinetic parameters.</p>
+    </div>
+    <div class="ml-top-actions">
+      <button type="button" class="ml-btn" id="ml-tour">Guided Tour</button>
+      <button type="button" class="ml-btn" id="ml-share">Share Link</button>
+      <button type="button" class="ml-btn" id="ml-export-md">Export Audit (.md)</button>
+      <button type="button" class="ml-btn primary" id="save-evidence" disabled>Save to workspace</button>
+    </div>
+  </section>
+
+  <p id="save-status" role="status" class="ml-status"></p>
+
+  <!-- Presets, Audience Tiers & Accessibility Strip -->
+  <section class="ml-ribbon" aria-label="Assay presets and audience controls">
+    <div class="ml-presets" role="group" aria-label="Curated held-out assays">
+      <span class="ml-ribbon-lbl">Presets:</span>
+      <button type="button" class="ml-chip active" data-preset="0">Assay #1 · High-Km Discriminator</button>
+      <button type="button" class="ml-chip" data-preset="1">Assay #2 · Tight Binding (Low Km)</button>
+      <button type="button" class="ml-chip" data-preset="4">Assay #5 · Noisy Borderline</button>
+      <button type="button" class="ml-chip" data-preset="3">Assay #4 · High-Plateau Family 3</button>
+    </div>
+    <div class="ml-access-right">
+      <div class="ml-segmented" role="group" aria-label="Audience mode">
+        <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+        <button type="button" data-audience="student" aria-pressed="true">Student</button>
+        <button type="button" data-audience="biologist" aria-pressed="false">Biologist</button>
+        <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+      </div>
+      <button type="button" class="ml-chip" id="ml-toggle-cb" aria-pressed="false">Colorblind Okabe–Ito</button>
+    </div>
+  </section>
+
+  <!-- Experiment Control Bar -->
+  <section class="ml-control-bar" id="controls" aria-label="Two-measurement experiment controls">
+    <label class="ml-field">Held-out assay (18 test episodes)
+      <select id="episode"></select>
+    </label>
+    <label class="ml-field">Second substrate concentration
+      <select id="dose"></select>
+    </label>
+    <button id="policy" type="button" class="ml-btn">Use learned Q-policy</button>
+    <button id="measure" type="button" class="ml-btn primary">Reveal second rate</button>
+    <a href="workspace.html" class="ml-btn">Open workspace →</a>
+  </section>
+
+  <!-- 6-Card Live Telemetry KPI Strip -->
+  <section class="ml-kpi-grid" aria-label="Key molecular learning metrics">
+    <article class="ml-kpi">
+      <span class="ml-kpi-lbl">Anchor Observation (0.11 ppm)</span>
+      <strong class="ml-kpi-val" id="kpi-anchor">—</strong>
+      <span class="ml-kpi-sub" id="kpi-anchor-sub">Discretized RL state bin</span>
+    </article>
+    <article class="ml-kpi">
+      <span class="ml-kpi-lbl">Learned Q-Policy Recommendation</span>
+      <strong class="ml-kpi-val" id="kpi-policy">—</strong>
+      <span class="ml-kpi-sub" id="kpi-policy-sub">Estimated Q*(s, a*) accuracy</span>
+    </article>
+    <article class="ml-kpi">
+      <span class="ml-kpi-lbl">Observed 2nd Rate</span>
+      <strong class="ml-kpi-val" id="kpi-second">—</strong>
+      <span class="ml-kpi-sub" id="kpi-second-sub">Reveal 2nd dose to evaluate</span>
+    </article>
+    <article class="ml-kpi">
+      <span class="ml-kpi-lbl">Decoded Kinetic Family</span>
+      <strong class="ml-kpi-val" id="kpi-family">Pending</strong>
+      <span class="ml-kpi-sub" id="kpi-family-sub">Gaussian decoder vs truth</span>
+    </article>
+    <article class="ml-kpi">
+      <span class="ml-kpi-lbl">Best 6-Dose Parameter Estimator</span>
+      <strong class="ml-kpi-val" id="kpi-best-ml">Random forest</strong>
+      <span class="ml-kpi-sub" id="kpi-best-ml-sub">Lowest Vmax &amp; Km MAE on 800 curves</span>
+    </article>
+    <article class="ml-kpi">
+      <span class="ml-kpi-lbl">RL Policy Gain vs Fixed Dose</span>
+      <strong class="ml-kpi-val" id="kpi-gain">+1.00 pp</strong>
+      <span class="ml-kpi-sub" id="kpi-gain-sub">95% paired bootstrap CI</span>
+    </article>
+  </section>
+
+  <!-- Readout & Policy Action Rewards -->
+  <section class="ml-card ml-policy-strip" aria-label="Policy action values">
+    <div class="ml-policy-head">
+      <output id="first" class="ml-output-pill"></output>
+      <output id="result" class="ml-output-result" aria-live="polite"></output>
+    </div>
+    <div class="ml-bars" id="actions"></div>
+  </section>
+
+  <!-- Main Dual Workbench: Left = WebGL2 3D Enzyme Active-Site Docking | Right = molML Interactive Analytics -->
+  <div class="ml-workbench">
+    <!-- Left: WebGL2 3D Synchronized Enzyme–Substrate Catalysis -->
+    <section class="ml-card scene-lab" id="ml-3d-card" aria-labelledby="scene-title">
+      <div class="ml-card-head">
+        <div>
+          <h2 id="scene-title">3D Enzyme Active-Site Catalysis (AlphaFold TDH3 · P00359)</h2>
+          <p id="scene-mode" class="ml-sub-note"></p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <button id="play-scene" type="button" class="ml-btn primary">Play simulation</button>
+          <button id="ml-png" type="button" class="ml-btn">Snapshot PNG</button>
+        </div>
+      </div>
+
+      <div class="ml-3d-controls">
+        <label>3D Style
+          <select id="ml-rep">
+            <option value="cartoon" selected>Cartoon + Cys150 Pocket</option>
+            <option value="tube">Backbone Tube</option>
+            <option value="trace">All-Atom Pocket</option>
+            <option value="surface">Molecular Surface</option>
+          </select>
+        </label>
+        <label>Color by
+          <select id="ml-col">
+            <option value="plddt" selected>AlphaFold pLDDT</option>
+            <option value="ss">Secondary Structure</option>
+            <option value="spectrum">Spectrum (N→C)</option>
+            <option value="hydro">Hydrophobicity</option>
+          </select>
+        </label>
+        <label>Rate estimate
+          <select id="rate-model"><option value="">Generating parameters</option></select>
+        </label>
+        <button id="ml-theme" type="button" class="ml-btn" aria-pressed="true">Dark stage</button>
+        <label class="ml-check"><input id="auto-orbit" type="checkbox"> Auto-orbit</label>
+        <button id="reset-camera" type="button" class="ml-btn">Reset camera</button>
+      </div>
+
+      <div class="ml-scenes">
+        <figure>
+          <figcaption>
+            <strong>Selected concentration</strong>
+            <span id="label-selected"></span>
+          </figcaption>
+          <canvas id="scene-selected" width="520" height="340" tabindex="0" aria-label="Interactive WebGL2 3D enzyme active-site scene for selected dose"></canvas>
+          <p class="ml-phase" id="phase-selected"></p>
+        </figure>
+        <figure>
+          <figcaption>
+            <strong>Fixed-dose baseline (1.10 ppm)</strong>
+            <span id="label-fixed"></span>
+          </figcaption>
+          <canvas id="scene-fixed" width="520" height="340" tabindex="0" aria-label="Interactive WebGL2 3D enzyme active-site scene for fixed dose baseline"></canvas>
+          <p class="ml-phase" id="phase-fixed"></p>
+        </figure>
+      </div>
+
+      <div class="ml-timeline">
+        <label for="scene-time">Playback time</label>
+        <input id="scene-time" type="range" min="0" max="8" value="0" step="0.001">
+        <span id="time-readout" aria-hidden="true">0.0 / 8 s</span>
+      </div>
+
+      <div class="ml-scene-foot">
+        <p id="model-detail" style="margin:0;font-weight:600"></p>
+        <ul class="ml-legend" aria-label="Molecular entities">
+          <li>Enzyme Rossmann fold (P00359)</li>
+          <li>Substrate (hexose-P / amber)</li>
+          <li>Catalyzed Product (violet)</li>
+          <li>Cys150–His177 H-bonds</li>
+        </ul>
+      </div>
+      <p id="mechanism" class="ml-explain-box"></p>
+    </section>
+
+    <!-- Right: Interactive molML Analytics & Q-Learning Explorer (4 Views) -->
+    <section class="ml-card" id="ml-analytics-card" aria-labelledby="analytics-title">
+      <div class="ml-card-head">
+        <h2 id="analytics-title">molML &amp; Active-Learning Inspector</h2>
+        <div class="ml-tabs" role="group" aria-label="Analytics view">
+          <button type="button" data-ml-tab="curves" aria-pressed="true">Saturation</button>
+          <button type="button" data-ml-tab="qpolicy" aria-pressed="false">Q-Policy</button>
+          <button type="button" data-ml-tab="molml" aria-pressed="false">molforge / STRIPES</button>
+          <button type="button" data-ml-tab="chemlint" aria-pressed="false">ChemLint Audit</button>
+        </div>
+      </div>
+
+      <div id="ml-tab-curves" class="ml-tab-pane">
+        <div class="ml-svg-wrap">
+          <svg id="ml-curves-svg" viewBox="0 0 640 340" role="img" aria-label="Michaelis-Menten saturation curves comparing generating truth and trained ML estimators"></svg>
+        </div>
+        <p class="ml-pane-note" id="ml-curves-note">Compares the generating kinetic curve against all 4 estimators fitted on 6 noisy rates, highlighting the anchor (0.11 ppm) and your chosen 2nd dose.</p>
+      </div>
+
+      <div id="ml-tab-qpolicy" class="ml-tab-pane" hidden>
+        <div class="ml-svg-wrap">
+          <svg id="ml-qmap-svg" viewBox="0 0 640 360" role="img" aria-label="Q-learning policy matrix across 17 anchor rate bins and 5 candidate second concentrations"></svg>
+        </div>
+        <p class="ml-pane-note">Each row corresponds to an initial-rate state bin at 0.11 ppm; each column is a candidate second dose. Click any cell to test that concentration.</p>
+      </div>
+
+      <div id="ml-tab-molml" class="ml-tab-pane" hidden>
+        <div class="ml-molforge-box">
+          <div class="ml-molforge-head">
+            <div>
+              <strong style="font-size:15px">molforge · Enzymatic Reaction &amp; Descriptors</strong>
+              <span style="display:block;font-size:12.5px;color:var(--ml-muted)">G3P / Hexose-Phosphate Catalytic Conversion (EC 1.2.1.12 / Transferase Analog)</span>
+            </div>
+            <button type="button" class="ml-btn" id="copy-smiles">Copy SMILES</button>
+          </div>
+          <svg id="ml-2d-svg" viewBox="0 0 580 165" role="img" aria-label="2D skeletal structure diagram of substrate to product conversion"></svg>
+          <div class="ml-desc-grid">
+            <div><span>SMILES</span><code id="mol-smiles">O=CC(O)COP(=O)(O)O</code></div>
+            <div><span>MW</span><strong>170.06 g/mol</strong></div>
+            <div><span>TPSA</span><strong>115.0 Å²</strong></div>
+            <div><span>cLogP</span><strong>−2.41</strong></div>
+            <div><span>HBD / HBA</span><strong>3 / 6</strong></div>
+            <div><span>Pocket Pose</span><strong id="stripes-pose">Docking</strong></div>
+          </div>
+          <div class="ml-stripes-bar">
+            <strong>STRIPES Symbolic Interaction Timeline (synced to 3D playback):</strong>
+            <div id="stripes-track" class="ml-stripes-track"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ml-tab-chemlint" class="ml-tab-pane" hidden>
+        <div class="ml-chemlint-box">
+          <div class="ml-audit-checks" id="chemlint-checks"></div>
+          <div class="ml-svg-wrap" style="margin-top:10px">
+            <svg id="ml-bench-svg" viewBox="0 0 620 225" role="img" aria-label="Estimator MAE and RL policy accuracy comparison"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audience Insight Card inside Right Dock -->
+      <div class="ml-audience-box" id="ml-audience-box">
+        <strong id="ml-aud-title">Student insight</strong>
+        <p id="ml-aud-body"></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Quantitative Benchmark Tables & Reproducibility -->
+  <section class="ml-card ml-bench-section" aria-labelledby="bench-heading">
+    <div class="ml-card-head">
+      <div>
+        <h2 id="bench-heading">Evaluate the trained models (6-dose regression vs. 2-dose RL policy)</h2>
+        <p id="split" style="margin:4px 0 0;font-size:13.8px;color:var(--ml-muted)"></p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="ml-btn" href="structure.html?protein=P00359">Inspect TDH3 (P00359) in 3D Studio →</a>
+        <a class="ml-btn" href="kinetics.html">Open Kinetics &amp; OOD Lab →</a>
+      </div>
+    </div>
+
+    <div class="ml-tables-grid">
+      <div class="ml-table-wrap">
+        <table>
+          <caption>Six-dose parameter estimators (held-out MAE across 800 curves)</caption>
+          <thead><tr><th>Parameter estimator</th><th>Vmax MAE (counts/min/min)</th><th>Km MAE (ppm)</th></tr></thead>
+          <tbody id="ml"></tbody>
+        </table>
+      </div>
+      <div class="ml-table-wrap">
+        <table>
+          <caption>Two-measurement active-learning policies (4-family classification)</caption>
+          <thead><tr><th>Two-measurement policy</th><th>Family accuracy</th></tr></thead>
+          <tbody id="rl"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ml-prov-foot">
+      <p style="margin:0 0 8px;font-size:13.5px;color:var(--ml-muted)">Simulate rates with <code>v = Vmax × S / (Km + S)</code> + Gaussian noise. Terminal reward is 1 for a correct family prediction and 0 otherwise; training uses ε-greedy sample-average Q updates.</p>
+      <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/molecular.py" target="_blank" rel="noopener noreferrer">Training code &amp; simulation (ml/molecular.py)</a> ·
+      <a href="https://github.com/tun539/assay-evidence-lab/blob/main/ml/MolecularLearning.ipynb" target="_blank" rel="noopener noreferrer">Executed Jupyter notebook</a> ·
+      <a href="https://github.com/molML" target="_blank" rel="noopener noreferrer">molML (TU Eindhoven) inspiration</a>
+    </div>
+  </section>
+</main>
+
+<script src="studio-prefs.js"></script>
+<script src="fold-catalog.js"></script>
+<script src="folds/P00359.js"></script>
+<script src="mol3d-webgl.js"></script>
+<script src="mol3d-engine.js"></script>
+<script src="molecular-data.js"></script>
+<script src="molecular-scene.js"></script>
+<script src="evidence-records.js"></script>
+<script src="molecular.js"></script>
+<script src="studio-nav.js"></script>
+</body>
+</html>
