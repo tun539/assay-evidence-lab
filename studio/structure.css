@@ -1,4 +1,4 @@
-/* AlphaFold Server-inspired 3D workbench + Cosmos editorial gallery styling */
+/* AlphaFold Server-grade 3D workbench + Cosmos editorial gallery styling */
 :root {
   --af-bg: #f6f8f6;
   --af-surface: #ffffff;
@@ -54,7 +54,7 @@ button, select, input { font: inherit; color: inherit; }
 button, select { cursor: pointer; }
 :focus-visible { outline: 3px solid #c97924; outline-offset: 2px; }
 
-/* Specimen header bar (AlphaFold Server + Cosmos editorial) */
+/* Specimen header bar */
 .af-topbar {
   display: flex;
   flex-wrap: wrap;
@@ -64,7 +64,7 @@ button, select { cursor: pointer; }
   margin-bottom: 10px;
 }
 
-.af-title-wrap { min-width: 0; flex: 1 1 360px; }
+.af-title-wrap { min-width: 0; flex: 1 1 380px; }
 .af-eyebrow {
   font: 600 11.5px/1.3 "Inter", monospace;
   letter-spacing: 0.08em;
@@ -81,8 +81,29 @@ button, select { cursor: pointer; }
   margin: 0;
   color: var(--af-muted);
   font-size: 14px;
-  max-width: 740px;
+  max-width: 760px;
 }
+
+.af-entity-pills-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.af-mini-entity-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--af-border);
+  background: var(--af-surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--af-ink);
+}
+.af-mini-entity-btn:hover { background: var(--af-surface-soft); border-color: var(--af-border-strong); }
+.af-mini-entity-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 
 .af-top-actions {
   display: flex;
@@ -95,13 +116,13 @@ button, select { cursor: pointer; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 38px;
-  padding: 6px 13px;
+  min-height: 36px;
+  padding: 6px 12px;
   border-radius: 8px;
   border: 1px solid var(--af-border-strong);
   background: var(--af-surface);
   color: var(--af-ink);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   transition: background 0.14s ease, border-color 0.14s ease;
@@ -118,6 +139,36 @@ button, select { cursor: pointer; }
   border-color: #17483d;
   color: #fff;
 }
+
+.af-download-menu {
+  position: relative;
+}
+.af-download-menu summary { list-style: none; }
+.af-download-menu summary::-webkit-details-marker { display: none; }
+.af-download-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  min-width: 210px;
+  padding: 6px;
+  border-radius: 11px;
+  background: var(--af-surface);
+  border: 1px solid var(--af-border-strong);
+  box-shadow: 0 12px 28px rgba(14, 34, 30, 0.16);
+  display: grid;
+  gap: 3px;
+}
+.af-download-panel button {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.af-download-panel button:hover { background: #ebf4ee; }
 
 /* Audience & Accessibility Control Ribbon */
 .af-access-bar {
@@ -138,7 +189,7 @@ button, select { cursor: pointer; }
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  flex: 1 1 300px;
+  flex: 1 1 280px;
   min-width: 0;
 }
 .af-picker-group label {
@@ -148,7 +199,7 @@ button, select { cursor: pointer; }
   white-space: nowrap;
 }
 .af-picker-group select {
-  flex: 1 1 240px;
+  flex: 1 1 230px;
   min-width: 0;
   max-width: 100%;
   min-height: 38px;
@@ -169,8 +220,8 @@ button, select { cursor: pointer; }
 .af-segmented button {
   border: 0;
   background: transparent;
-  padding: 7px 12px;
-  font-size: 13px;
+  padding: 7px 11px;
+  font-size: 12.8px;
   font-weight: 600;
   color: var(--af-muted);
   min-height: 36px;
@@ -194,6 +245,8 @@ button, select { cursor: pointer; }
   background: var(--af-surface);
   font-size: 12.5px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
 }
 .af-chip-btn[aria-pressed="true"] {
   background: #18483c;
@@ -201,7 +254,7 @@ button, select { cursor: pointer; }
   color: #fff;
 }
 
-/* AlphaFold Confidence Ribbon (Exact 4-band legend + ipTM/pTM metrics) */
+/* AlphaFold Confidence Ribbon */
 .af-confidence-bar {
   display: flex;
   flex-wrap: wrap;
@@ -223,28 +276,14 @@ button, select { cursor: pointer; }
   font-size: 13px;
   font-weight: 550;
 }
-.af-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.af-swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
+.af-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.af-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 .af-swatch.vhigh { background: var(--af-vhigh); }
 .af-swatch.conf { background: var(--af-conf); }
 .af-swatch.low { background: var(--af-low); border: 1px solid #d1b300; }
 .af-swatch.vlow { background: var(--af-vlow); }
 
-.af-scores {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
+.af-scores { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .af-score-pill {
   display: inline-flex;
   align-items: center;
@@ -269,7 +308,7 @@ button, select { cursor: pointer; }
 }
 .af-band-meter span { height: 100%; transition: width 0.25s ease; }
 
-/* Main Split Workbench (60% 3D Stage | 40% PAE & Contact Matrix) */
+/* Main Split Workbench (60% WebGL2 Stage | 40% PAE Matrix) */
 .af-workbench {
   display: grid;
   grid-template-columns: minmax(0, 1.48fr) minmax(0, 1fr);
@@ -290,9 +329,19 @@ button, select { cursor: pointer; }
 .af-stage-wrap {
   position: relative;
   flex: 1 1 auto;
-  height: clamp(420px, 56vh, 520px);
+  height: clamp(430px, 58vh, 540px);
   background: #f8faf9;
 }
+.af-stage-wrap.is-fullscreen {
+  position: fixed;
+  inset: 14px;
+  z-index: 900;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(8, 22, 27, 0.38);
+  border: 1px solid var(--af-border-strong);
+}
+
 #view {
   display: block;
   width: 100%;
@@ -309,25 +358,50 @@ button, select { cursor: pointer; }
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 6px;
-  z-index: 4;
+  align-items: center;
+  gap: 5px;
+  z-index: 6;
 }
-.af-stage-toolbar button {
+.af-stage-toolbar button,
+.af-settings-pop summary {
   padding: 5px 9px;
   font-size: 12px;
   font-weight: 600;
   border-radius: 7px;
-  border: 1px solid rgba(25, 58, 49, 0.2);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(25, 58, 49, 0.22);
+  background: rgba(255, 255, 255, 0.93);
   color: #163a30;
   backdrop-filter: blur(6px);
+  list-style: none;
+  cursor: pointer;
 }
-.af-stage-toolbar button:hover { background: #e8f2eb; }
+.af-stage-toolbar button:hover,
+.af-settings-pop summary:hover { background: #e8f2eb; }
 .af-stage-toolbar button[aria-pressed="true"] {
   background: #17483d;
   color: #fff;
   border-color: #17483d;
 }
+
+.af-settings-pop { position: relative; }
+.af-settings-pop summary::-webkit-details-marker { display: none; }
+.af-settings-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 230px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--af-surface);
+  border: 1px solid var(--af-border-strong);
+  box-shadow: 0 12px 30px rgba(15, 36, 30, 0.18);
+  display: grid;
+  gap: 8px;
+  font-size: 12.8px;
+  font-weight: 600;
+  color: var(--af-ink);
+}
+.af-settings-menu label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
 
 .af-stage-badge {
   position: absolute;
@@ -335,12 +409,13 @@ button, select { cursor: pointer; }
   left: 12px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(25, 58, 49, 0.16);
   font-size: 12px;
   font-weight: 600;
   color: #173b32;
   pointer-events: none;
+  z-index: 4;
 }
 
 .af-hover-tip {
@@ -385,12 +460,9 @@ button, select { cursor: pointer; }
   font-size: 13px;
   font-weight: 600;
 }
-.af-controls-strip input[type="range"] {
-  width: 112px;
-  accent-color: #17483d;
-}
+.af-controls-strip input[type="range"] { width: 112px; accent-color: #17483d; }
 
-/* Right Dock: PAE / Contact / Profile Matrix */
+/* Right Dock: Chain-Tracked PAE / Contact / Profile / Accessible Table */
 .af-matrix-head {
   padding: 12px 16px 10px;
   border-bottom: 1px solid var(--af-border);
@@ -400,10 +472,7 @@ button, select { cursor: pointer; }
   align-items: center;
   gap: 8px;
 }
-.af-matrix-head h2 {
-  font: normal 20px/1.15 Georgia, serif;
-  margin: 0;
-}
+.af-matrix-head h2 { font: normal 20px/1.15 Georgia, serif; margin: 0; }
 .af-matrix-tabs {
   display: inline-flex;
   border: 1px solid var(--af-border-strong);
@@ -413,15 +482,12 @@ button, select { cursor: pointer; }
 .af-matrix-tabs button {
   border: 0;
   background: var(--af-surface-soft);
-  padding: 5px 10px;
-  font-size: 12.5px;
+  padding: 5px 9px;
+  font-size: 12.2px;
   font-weight: 600;
   color: var(--af-muted);
 }
-.af-matrix-tabs button[aria-pressed="true"] {
-  background: var(--af-accent);
-  color: #fff;
-}
+.af-matrix-tabs button[aria-pressed="true"] { background: var(--af-accent); color: #fff; }
 
 .af-matrix-body {
   padding: 14px 16px;
@@ -431,13 +497,38 @@ button, select { cursor: pointer; }
   flex: 1 1 auto;
 }
 .af-matrix-canvas-wrap {
-  position: relative;
-  width: min(100%, 340px);
+  width: min(100%, 350px);
   margin: 0 auto;
+  display: grid;
+  gap: 4px;
 }
+.af-pae-track.top {
+  margin-left: 12px;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  background: #e4ece6;
+}
+.af-pae-row-wrap {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+.af-pae-track.left {
+  width: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #e4ece6;
+  flex-shrink: 0;
+}
+.af-pae-track span { display: block; }
+
 #map {
   display: block;
-  width: 100%;
+  width: calc(100% - 12px);
   aspect-ratio: 1;
   border-radius: 8px;
   border: 1px solid var(--af-border-strong);
@@ -445,7 +536,7 @@ button, select { cursor: pointer; }
   image-rendering: pixelated;
 }
 .af-pae-scale {
-  width: min(100%, 340px);
+  width: min(100%, 350px);
   margin: 0 auto;
   display: grid;
   gap: 4px;
@@ -458,11 +549,12 @@ button, select { cursor: pointer; }
   border: 1px solid var(--af-border);
   background: linear-gradient(90deg, #004d28 0%, #248a52 30%, #8cd4a4 65%, #ffffff 100%);
 }
-.af-pae-ticks {
-  display: flex;
-  justify-content: space-between;
-  font-variant-numeric: tabular-nums;
-}
+.af-pae-ticks { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+
+.af-a11y-table-wrap { max-height: 290px; overflow: auto; border: 1px solid var(--af-border); border-radius: 9px; }
+.af-a11y-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.af-a11y-table th, .af-a11y-table td { padding: 7px 10px; border-bottom: 1px solid var(--af-border); text-align: left; }
+.af-a11y-table th { background: var(--af-surface-soft); font-weight: 700; }
 
 .af-pair-box {
   padding: 10px 12px;
@@ -472,20 +564,8 @@ button, select { cursor: pointer; }
   display: grid;
   gap: 8px;
 }
-.af-pair-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: end;
-}
-.af-pair-row label {
-  display: grid;
-  gap: 2px;
-  font-size: 12px;
-  font-weight: 650;
-  flex: 1 1 115px;
-  min-width: 0;
-}
+.af-pair-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.af-pair-row label { display: grid; gap: 2px; font-size: 12px; font-weight: 650; flex: 1 1 115px; min-width: 0; }
 .af-pair-row select {
   width: 100%;
   padding: 5px 7px;
@@ -509,14 +589,9 @@ button, select { cursor: pointer; }
   align-items: center;
   font-size: 13px;
 }
-.af-matrix-options label {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: 600;
-}
+.af-matrix-options label { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
 
-/* Audience-Adaptive Insight & Information Panel (AlphaFold Server Sequence Strip) */
+/* Bottom Information Entities & Sequence */
 .af-section {
   background: var(--af-surface);
   border: 1px solid var(--af-border);
@@ -524,25 +599,17 @@ button, select { cursor: pointer; }
   padding: clamp(14px, 2.5vw, 22px);
   margin-bottom: 18px;
 }
-.af-section h2 {
-  font: normal 24px/1.15 Georgia, serif;
-  margin: 0 0 10px;
-}
-.af-section h3 {
-  font-size: 15px;
-  margin: 12px 0 6px;
-}
+.af-section h2 { font: normal 24px/1.15 Georgia, serif; margin: 0 0 10px; }
+.af-section h3 { font-size: 15px; margin: 12px 0 6px; }
 
-.af-info-entities {
-  display: grid;
-  gap: 14px;
-}
+.af-info-entities { display: grid; gap: 14px; }
 .af-entity-block {
   border: 1px solid var(--af-border);
   border-radius: 10px;
   padding: 12px 14px;
   background: var(--af-surface-soft);
 }
+.af-entity-block.is-hidden-chain { opacity: 0.58; }
 .af-entity-head {
   display: flex;
   flex-wrap: wrap;
@@ -550,6 +617,26 @@ button, select { cursor: pointer; }
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+}
+.af-entity-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.af-entity-act {
+  min-height: 28px;
+  padding: 2px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--af-border-strong);
+  background: var(--af-surface);
+  font-size: 12px;
+  font-weight: 600;
+}
+.af-entity-act[aria-pressed="true"] {
+  background: var(--af-accent);
+  border-color: var(--af-accent);
+  color: #fff;
 }
 .af-entity-pill {
   display: inline-flex;
@@ -570,21 +657,9 @@ button, select { cursor: pointer; }
   overflow-y: auto;
   padding: 6px 2px;
 }
-.af-seq-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.af-seq-num {
-  font: 600 10.5px/1 monospace;
-  color: var(--af-muted);
-  text-align: right;
-  padding-right: 2px;
-}
-.af-seq-chunk {
-  display: inline-flex;
-  gap: 1px;
-}
+.af-seq-group { display: flex; flex-direction: column; gap: 2px; }
+.af-seq-num { font: 600 10.5px/1 monospace; color: var(--af-muted); text-align: right; padding-right: 2px; }
+.af-seq-chunk { display: inline-flex; gap: 1px; }
 .af-res-btn {
   width: 20px;
   height: 23px;
@@ -602,45 +677,72 @@ button, select { cursor: pointer; }
 .af-res-btn.is-a { box-shadow: 0 0 0 2px #e59a1a; z-index: 2; }
 .af-res-btn.is-b { box-shadow: 0 0 0 2px #7c3aed; z-index: 2; }
 
-/* Cosmos-Curated 3D Specimen Gallery Shelf */
+/* Cosmos-Curated 3D Specimen Gallery with Live 3D Thumbnails */
 .cosmos-head {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 12px;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
 }
-.cosmos-tabs {
+.cosmos-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  align-items: center;
 }
+.cosmos-search {
+  min-height: 36px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--af-border-strong);
+  background: var(--af-surface-soft);
+  font-size: 13px;
+  width: min(290px, 100%);
+}
+.cosmos-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .cosmos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 235px), 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 245px), 1fr));
+  gap: 14px;
 }
 .cosmos-card {
   text-align: left;
-  padding: 13px 14px;
-  border-radius: 12px;
+  padding: 10px 12px 13px;
+  border-radius: 14px;
   border: 1px solid var(--af-border);
   background: var(--af-surface-soft);
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+  gap: 6px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .cosmos-card:hover {
-  transform: translateY(-1px);
-  border-color: #5b8d77;
-  background: #edf5ef;
+  transform: translateY(-2px);
+  border-color: #4f856e;
+  box-shadow: 0 10px 24px rgba(17, 50, 42, 0.08);
 }
 .cosmos-card.active {
   border-color: #17483d;
-  box-shadow: 0 0 0 2px rgba(23, 72, 61, 0.22);
+  box-shadow: 0 0 0 2px rgba(23, 72, 61, 0.24);
   background: #e6f2ea;
+}
+.cosmos-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 9px;
+  overflow: hidden;
+  background: linear-gradient(155deg, #102a33, #0b1c24);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(25, 62, 58, 0.15);
+}
+.cosmos-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .cosmos-card-top {
   display: flex;
@@ -670,13 +772,7 @@ button, select { cursor: pointer; }
 }
 .af-insight-panel h3 { margin-top: 0; font-family: Georgia, serif; font-weight: normal; font-size: 19px; }
 
-.af-export-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-top: 12px;
-}
+.af-export-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
 
 [hidden] { display: none !important; }
 #load-status:empty, #save-status:empty { display: none; }

@@ -7,14 +7,17 @@
   const mapCtx = mapCanvas.getContext('2d');
   const picker = el('protein');
 
-  // Build unified catalog of all 18 built-in 3D biomolecular models
-  const catalog = [];
+  const AA3 = {
+    A:'ALA',R:'ARG',N:'ASN',D:'ASP',C:'CYS',Q:'GLN',E:'GLU',G:'GLY',H:'HIS',I:'ILE',
+    L:'LEU',K:'LYS',M:'MET',F:'PHE',P:'PRO',S:'SER',T:'THR',W:'TRP',Y:'TYR',V:'VAL',
+  };
 
-  // 1. Flagship AlphaFold Server Multi-Entity Reference (PDB 8AW3)
+  const catalog = [];
   if (experimental['8AW3']) {
     catalog.push({
       id: '8AW3',
       group: 'pdb',
+      multi: true,
       badge: 'AlphaFold Server Example · Multi-Entity',
       title: 'Protein–RNA–Ion Complex (PDB 8AW3)',
       species: 'Protein ×2 · tRNA ×1 · Zn²⁺ ×2',
@@ -22,14 +25,13 @@
       defaultColor: 'chain',
     });
   }
-
-  // 2. All 10 KEGG-linked AlphaFold DB v6 Gene Models
   dnaRecords.forEach((rec, i) => {
     const id = foldIds[i];
     const fold = bundledFolds[id];
     catalog.push({
       id,
       group: 'gene',
+      multi: false,
       dnaIndex: i,
       keggId: rec.id,
       badge: 'AlphaFold DB v6 · Gene Model',
@@ -40,11 +42,10 @@
       defaultColor: 'plddt',
     });
   });
-
-  // 3. Experimental PDB Reference Structures (1UBQ + 6 more in experimental.js)
   catalog.push({
     id: '1UBQ',
     group: 'pdb',
+    multi: false,
     badge: 'Experimental X-ray · 1.8 Å',
     title: 'Human Ubiquitin (PDB 1UBQ)',
     species: 'Homo sapiens · 76 residues',
@@ -56,6 +57,7 @@
     catalog.push({
       id,
       group: 'pdb',
+      multi: Boolean((m.ligands && m.ligands.length) || (m.chains && m.chains.length > 1)),
       badge: m.method + (m.resolution ? ' · ' + m.resolution : ''),
       title: m.name + ' (PDB ' + id + ')',
       species: m.subtitle || ('PDB ' + id),
@@ -64,14 +66,12 @@
     });
   }
 
-  // Populate grouped <select id="protein">
   const optFlagship = document.createElement('optgroup');
   optFlagship.label = 'AlphaFold Server Flagship Reference';
   const optGenes = document.createElement('optgroup');
   optGenes.label = '10 Gene-Linked AlphaFold DB v6 Models';
   const optPdb = document.createElement('optgroup');
   optPdb.label = 'Experimental PDB Structures (X-ray)';
-
   for (const item of catalog) {
     const opt = new Option(item.title + ' — ' + item.tag, item.id);
     if (item.id === '8AW3') optFlagship.append(opt);
@@ -82,28 +82,24 @@
 
   let active = null;
   let activeCatalog = null;
-  let matrixMode = 'pae'; // pae | contact | profile
-  let audience = 'student'; // explorer | student | researcher
+  let matrixMode = 'pae'; // pae | contact | profile | table
+  let audience = typeof StudioPrefs !== 'undefined' ? StudioPrefs.get().audience : 'student';
   let galleryFilter = 'all';
+  let galleryQuery = '';
   let orientStep = 0;
   let contacts = [];
   let degrees = [];
   let farthest = [0, 0, 0];
+  let hiddenChains = new Set();
   const baseMap = document.createElement('canvas');
+  const thumbCache = new Map();
 
   const viewer = Mol3D.createViewer(canvas, {
-    onZoom(z) {
-      el('zoom').value = Math.max(0.5, Math.min(2.8, z)).toFixed(2);
-    },
-    onSpinChange(spinning) {
-      el('toggle-spin').setAttribute('aria-pressed', String(spinning));
-    },
+    onZoom(z) { el('zoom').value = Math.max(0.5, Math.min(2.8, z)).toFixed(2); },
+    onSpinChange(spinning) { el('toggle-spin').setAttribute('aria-pressed', String(spinning)); },
     onHover(res) {
       const tip = el('hover-tip');
-      if (!res) {
-        tip.hidden = true;
-        return;
-      }
+      if (!res) { tip.hidden = true; return; }
       const ssName = res.chainType === 'rna' ? 'RNA' : res.chainType === 'dna' ? 'DNA' : (res.ss === 'H' ? 'α-helix' : res.ss === 'E' ? 'β-strand' : 'Loop / coil');
       const conf = res.plddt !== null ? ` · pLDDT ${res.plddt.toFixed(1)} (${Mol3D.plddtBandLabel(res.plddt)})` : '';
       tip.textContent = `${res.resName} ${res.resSeq} · Chain ${res.chainId} · ${ssName}${conf}`;
@@ -116,10 +112,30 @@
     },
   });
 
-  // Respect system reduced-motion preference on startup
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    el('toggle-motion').setAttribute('aria-pressed', 'true');
-    viewer.setReducedMotion(true);
+  function syncPrefs(p) {
+    if (!p) return;
+    audience = p.audience;
+    document.querySelectorAll('[data-audience]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.audience === audience)));
+    el('toggle-cb').setAttribute('aria-pressed', String(p.colorblind));
+    el('toggle-hc').setAttribute('aria-pressed', String(p.highContrast));
+    el('toggle-motion').setAttribute('aria-pressed', String(p.reducedMotion));
+    viewer.setReducedMotion(p.reducedMotion);
+    if (p.reducedMotion) el('toggle-spin').setAttribute('aria-pressed', 'false');
+    if (p.colorblind) {
+      el('color-mode').value = 'colorblind';
+      viewer.setColorMode('colorblind');
+    } else if (active && el('color-mode').value === 'colorblind') {
+      const def = activeCatalog?.defaultColor || (active.hasPlddt ? 'plddt' : 'chain');
+      el('color-mode').value = def;
+      viewer.setColorMode(def);
+    }
+    updateStageBadge();
+    if (active) {
+      renderEntitiesPanel();
+      drawProfile();
+      highlightSequenceButtons();
+      updateAudienceCopy();
+    }
   }
 
   function resLabel(r) {
@@ -127,22 +143,13 @@
   }
 
   function paeGreenRGB(errAngstrom, maxVal = 30) {
-    // Authentic AlphaFold Server PAE color ramp: deep emerald #004d28 (0 Å) -> fresh green -> crisp white (30 Å)
     const t = Math.max(0, Math.min(1, errAngstrom / maxVal));
     if (t < 0.35) {
       const f = t / 0.35;
-      return [
-        Math.round(0 + 42 * f),
-        Math.round(77 + 72 * f),
-        Math.round(40 + 50 * f),
-      ];
+      return [Math.round(0 + 42 * f), Math.round(77 + 72 * f), Math.round(40 + 50 * f)];
     }
     const f = (t - 0.35) / 0.65;
-    return [
-      Math.round(42 + 213 * f),
-      Math.round(149 + 106 * f),
-      Math.round(90 + 165 * f),
-    ];
+    return [Math.round(42 + 213 * f), Math.round(149 + 106 * f), Math.round(90 + 165 * f)];
   }
 
   function getPaeValue(i, j) {
@@ -153,7 +160,6 @@
       const c = Math.min(active.paeSize - 1, Math.floor(j * active.paeSize / n));
       return active.pae[r * active.paeSize + c];
     }
-    // For experimental PDB structures without predicted PAE, display true 3D Cα/C4' distance (clamped 0–30 Å)
     return Math.min(30, Mol3D.vDist(active.residues[i].xyz, active.residues[j].xyz));
   }
 
@@ -166,7 +172,6 @@
     contacts = [];
     farthest = [0, Math.min(1, n - 1), 0];
 
-    // Fast pairwise pass (sample stride for farthest if huge, full exact for <= 600)
     for (let i = 0; i < n; i++) {
       const ri = m.residues[i];
       for (let j = i + 1; j < n; j++) {
@@ -196,6 +201,31 @@
       + (order !== null ? ` · Relative contact order ${order.toFixed(3)}` : '');
   }
 
+  function renderChainTracks() {
+    const topT = el('pae-top-track');
+    const leftT = el('pae-left-track');
+    if (!topT || !leftT || !active) return;
+    topT.replaceChildren();
+    leftT.replaceChildren();
+    const total = Math.max(1, active.residues.length);
+    for (const ch of active.chains) {
+      const rgb = Mol3D.CHAIN_PALETTE[ch.index % Mol3D.CHAIN_PALETTE.length];
+      const pct = (100 * ch.length / total).toFixed(2) + '%';
+      const sTop = document.createElement('span');
+      sTop.style.width = pct;
+      sTop.style.height = '100%';
+      sTop.style.background = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+      sTop.title = ch.label;
+      const sLeft = document.createElement('span');
+      sLeft.style.height = pct;
+      sLeft.style.width = '100%';
+      sLeft.style.background = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+      sLeft.title = ch.label;
+      topT.append(sTop);
+      leftT.append(sLeft);
+    }
+  }
+
   function buildMatrix() {
     if (!active) return;
     const m = active;
@@ -216,8 +246,7 @@
         const rj = m.residues[j];
         let rgb;
         if (isPae) {
-          const val = getPaeValue(i, j);
-          rgb = paeGreenRGB(val, m.pae ? m.paeMax : 30);
+          rgb = paeGreenRGB(getPaeValue(i, j), m.pae ? m.paeMax : 30);
         } else {
           const d = Mol3D.vDist(ri.xyz, rj.xyz);
           const sameChain = ri.chainIndex === rj.chainIndex;
@@ -233,23 +262,45 @@
     }
     rctx.putImageData(img, 0, 0);
 
-    // Optional AlphaFold Server chain borders overlay
     if (el('chain-borders').checked && m.chains.length > 1) {
-      rctx.strokeStyle = 'rgba(15, 36, 31, 0.72)';
-      rctx.lineWidth = 1.5;
+      rctx.strokeStyle = 'rgba(15, 36, 31, 0.78)';
+      rctx.lineWidth = 1.6;
       for (const ch of m.chains.slice(1)) {
         const pos = Math.round(ch.start * dim / n);
         rctx.beginPath();
-        rctx.moveTo(pos, 0);
-        rctx.lineTo(pos, dim);
-        rctx.moveTo(0, pos);
-        rctx.lineTo(dim, pos);
+        rctx.moveTo(pos, 0); rctx.lineTo(pos, dim);
+        rctx.moveTo(0, pos); rctx.lineTo(dim, pos);
         rctx.stroke();
       }
     }
 
+    renderChainTracks();
     drawProfile();
+    renderA11yTable();
     drawMatrixOverlay();
+  }
+
+  function renderA11yTable() {
+    const body = el('a11y-summary-rows');
+    if (!body || !active) return;
+    body.replaceChildren();
+    for (const ch of active.chains) {
+      const sub = active.residues.slice(ch.start, ch.start + ch.length);
+      const pScores = sub.map(r => r.plddt).filter(Number.isFinite);
+      const meanP = pScores.length ? (pScores.reduce((a, b) => a + b, 0) / pScores.length).toFixed(1) : 'Experimental';
+      const tr = body.insertRow();
+      tr.insertCell().textContent = ch.label;
+      tr.insertCell().textContent = ch.type.toUpperCase();
+      tr.insertCell().textContent = String(ch.length);
+      tr.insertCell().textContent = pScores.length ? `pLDDT ${meanP}` : (active.resolution || 'Crystal / Cryo-EM');
+    }
+    if (active.ligands.length) {
+      const tr = body.insertRow();
+      tr.insertCell().textContent = 'Ions / Ligands';
+      tr.insertCell().textContent = 'HETATM';
+      tr.insertCell().textContent = String(active.ligands.length);
+      tr.insertCell().textContent = [...new Set(active.ligands.map(l => l.resName))].join(', ');
+    }
   }
 
   function drawProfile() {
@@ -258,34 +309,43 @@
     const n = m.residues.length;
     const width = 540 / Math.max(1, n);
     const cb = el('toggle-cb').getAttribute('aria-pressed') === 'true';
+    const svg = el('profile');
 
     if (m.hasPlddt) {
       const bars = m.residues.map((r, i) => {
         const s = r.plddt ?? 0;
         const rgb = Mol3D.plddtRGB(s, cb);
         const h = (s / 100) * 145;
-        return `<rect x="${(10 + i * width).toFixed(2)}" y="${(158 - h).toFixed(2)}" width="${Math.max(1, width).toFixed(2)}" height="${h.toFixed(2)}" fill="rgb(${rgb[0]},${rgb[1]},${rgb[2]})"><title>${resLabel(r)}: pLDDT ${s.toFixed(1)}</title></rect>`;
+        return `<rect data-idx="${i}" x="${(10 + i * width).toFixed(2)}" y="${(162 - h).toFixed(2)}" width="${Math.max(1.2, width).toFixed(2)}" height="${h.toFixed(2)}" fill="rgb(${rgb[0]},${rgb[1]},${rgb[2]})" style="cursor:pointer"><title>${resLabel(r)}: pLDDT ${s.toFixed(1)}</title></rect>`;
       }).join('');
-      const guide90 = 158 - 0.9 * 145;
-      const guide70 = 158 - 0.7 * 145;
-      const guide50 = 158 - 0.5 * 145;
-      el('profile').innerHTML =
+      const guide90 = 162 - 0.9 * 145;
+      const guide70 = 162 - 0.7 * 145;
+      const guide50 = 162 - 0.5 * 145;
+      svg.innerHTML =
         `<line x1="10" x2="550" y1="${guide90}" y2="${guide90}" stroke="#9db5a7" stroke-dasharray="3 3"/>`
         + `<line x1="10" x2="550" y1="${guide70}" y2="${guide70}" stroke="#9db5a7" stroke-dasharray="3 3"/>`
         + `<line x1="10" x2="550" y1="${guide50}" y2="${guide50}" stroke="#9db5a7" stroke-dasharray="3 3"/>`
         + bars
-        + `<text x="12" y="14" font-size="11" fill="#3b5a4e">Per-residue AlphaFold pLDDT (0–100)</text>`;
+        + `<text x="12" y="14" font-size="11" fill="#3b5a4e">Per-residue AlphaFold pLDDT (click any bar to focus 3D)</text>`;
       el('profile-caption').textContent = 'Each vertical bar shows AlphaFold residue confidence (pLDDT). Dashed lines mark 90, 70, and 50 thresholds.';
     } else {
       const peak = Math.max(1, ...degrees);
       const bars = degrees.map((deg, i) => {
         const h = (deg / peak) * 142;
         const c = Mol3D.CHAIN_PALETTE[m.residues[i].chainIndex % Mol3D.CHAIN_PALETTE.length];
-        return `<rect x="${(10 + i * width).toFixed(2)}" y="${(158 - h).toFixed(2)}" width="${Math.max(1, width).toFixed(2)}" height="${h.toFixed(2)}" fill="rgb(${c[0]},${c[1]},${c[2]})"><title>${resLabel(m.residues[i])}: ${deg} contacts</title></rect>`;
+        return `<rect data-idx="${i}" x="${(10 + i * width).toFixed(2)}" y="${(162 - h).toFixed(2)}" width="${Math.max(1.2, width).toFixed(2)}" height="${h.toFixed(2)}" fill="rgb(${c[0]},${c[1]},${c[2]})" style="cursor:pointer"><title>${resLabel(m.residues[i])}: ${deg} contacts</title></rect>`;
       }).join('');
-      el('profile').innerHTML = bars + `<text x="12" y="14" font-size="11" fill="#3b5a4e">Contact degree per residue (cutoff ${el('cut').value} Å, max ${peak})</text>`;
+      svg.innerHTML = bars + `<text x="12" y="14" font-size="11" fill="#3b5a4e">Contact degree per residue (cutoff ${el('cut').value} Å, click bar to select)</text>`;
       el('profile-caption').textContent = 'Experimental structure without predicted pLDDT; showing per-residue 3D contact degree colored by chain.';
     }
+
+    svg.onclick = e => {
+      const rect = e.target.closest('[data-idx]');
+      if (!rect) return;
+      el('a').value = rect.getAttribute('data-idx');
+      updateSelection();
+      viewer.focusResidue(Number(el('a').value), 1.45);
+    };
   }
 
   function drawMatrixOverlay() {
@@ -296,7 +356,7 @@
     mapCtx.drawImage(baseMap, 0, 0);
     const x = Math.round(b * dim / n);
     const y = Math.round(a * dim / n);
-    mapCtx.strokeStyle = 'rgba(213, 79, 32, 0.88)';
+    mapCtx.strokeStyle = 'rgba(213, 79, 32, 0.9)';
     mapCtx.lineWidth = 1.6;
     mapCtx.beginPath();
     mapCtx.moveTo(x, 0); mapCtx.lineTo(x, dim);
@@ -305,27 +365,92 @@
     mapCtx.strokeRect(x - 4, y - 4, 8, 8);
   }
 
+  function updateEntityVisibilityControls() {
+    viewer.setHiddenChains(hiddenChains);
+    el('show-all-chains').hidden = hiddenChains.size === 0;
+  }
+
   function renderEntitiesPanel() {
     const m = active;
     const host = el('entities-list');
+    const pillsBar = el('entity-summary-pills');
     host.replaceChildren();
+    pillsBar.replaceChildren();
     const cb = el('toggle-cb').getAttribute('aria-pressed') === 'true';
 
     for (const ch of m.chains) {
+      const cRGB = Mol3D.CHAIN_PALETTE[ch.index % Mol3D.CHAIN_PALETTE.length];
+      const topPill = document.createElement('button');
+      topPill.type = 'button';
+      topPill.className = 'af-mini-entity-btn';
+      topPill.innerHTML = `<span class="af-mini-entity-dot" style="background:rgb(${cRGB[0]},${cRGB[1]},${cRGB[2]})"></span>${ch.label} (${ch.length})`;
+      topPill.onclick = () => {
+        hiddenChains.delete(ch.id);
+        updateEntityVisibilityControls();
+        renderEntitiesPanel();
+        viewer.focusChain(ch.id);
+      };
+      pillsBar.append(topPill);
+
       const block = document.createElement('div');
-      block.className = 'af-entity-block';
+      const isHidden = hiddenChains.has(ch.id);
+      block.className = 'af-entity-block' + (isHidden ? ' is-hidden-chain' : '');
       const head = document.createElement('div');
       head.className = 'af-entity-head';
       const pill = document.createElement('span');
       pill.className = 'af-entity-pill';
-      const cRGB = Mol3D.CHAIN_PALETTE[ch.index % Mol3D.CHAIN_PALETTE.length];
       pill.style.background = `rgb(${cRGB[0]},${cRGB[1]},${cRGB[2]})`;
-      pill.textContent = `${ch.type.toUpperCase()} · ${ch.label}`;
-      const countSpan = document.createElement('span');
-      countSpan.style.fontSize = '13px';
-      countSpan.style.color = 'var(--af-muted)';
-      countSpan.textContent = ch.length + (ch.type === 'protein' ? ' residues' : ' nucleotides');
-      head.append(pill, countSpan);
+      pill.textContent = `${ch.type.toUpperCase()} · ${ch.label} (${ch.length})`;
+
+      const actions = document.createElement('div');
+      actions.className = 'af-entity-actions';
+
+      const eyeBtn = document.createElement('button');
+      eyeBtn.type = 'button';
+      eyeBtn.className = 'af-entity-act';
+      eyeBtn.setAttribute('aria-pressed', String(!isHidden));
+      eyeBtn.textContent = isHidden ? 'Show' : 'Hide';
+      eyeBtn.onclick = () => {
+        if (hiddenChains.has(ch.id)) hiddenChains.delete(ch.id);
+        else hiddenChains.add(ch.id);
+        updateEntityVisibilityControls();
+        renderEntitiesPanel();
+      };
+
+      const isoBtn = document.createElement('button');
+      isoBtn.type = 'button';
+      isoBtn.className = 'af-entity-act';
+      isoBtn.textContent = 'Isolate';
+      isoBtn.onclick = () => {
+        hiddenChains = new Set(m.chains.filter(c => c.id !== ch.id).map(c => c.id));
+        updateEntityVisibilityControls();
+        renderEntitiesPanel();
+        viewer.focusChain(ch.id);
+      };
+
+      const focBtn = document.createElement('button');
+      focBtn.type = 'button';
+      focBtn.className = 'af-entity-act';
+      focBtn.textContent = 'Focus 3D';
+      focBtn.onclick = () => {
+        hiddenChains.delete(ch.id);
+        updateEntityVisibilityControls();
+        renderEntitiesPanel();
+        viewer.focusChain(ch.id);
+      };
+
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'af-entity-act';
+      copyBtn.textContent = 'Copy Seq';
+      copyBtn.onclick = () => {
+        const seq = m.residues.slice(ch.start, ch.start + ch.length).map(r => r.oneLetter).join('');
+        navigator.clipboard?.writeText(`>${m.id}_${ch.id}\n${seq}`);
+        if (typeof StudioPrefs !== 'undefined') StudioPrefs.showToast(`Copied ${ch.label} sequence (${seq.length})`);
+      };
+
+      actions.append(eyeBtn, isoBtn, focBtn, copyBtn);
+      head.append(pill, actions);
       block.append(head);
 
       const grid = document.createElement('div');
@@ -369,7 +494,6 @@
       host.append(block);
     }
 
-    // List metal ions & bound ligands just like AlphaFold Server's Information table!
     if (m.ligands.length) {
       const grouped = new Map();
       for (const lig of m.ligands) {
@@ -379,6 +503,16 @@
       }
       const counts = new Map();
       for (const g of grouped.values()) counts.set(g.resName, (counts.get(g.resName) || 0) + 1);
+
+      const ligSummary = [...counts.entries()].map(([name, cnt]) => {
+        const pretty = name === 'ZN' ? 'Zn²⁺' : name === 'HEM' ? 'Heme (HEM)' : name === 'OXY' ? 'O₂' : name;
+        return `${pretty} ×${cnt}`;
+      }).join(' · ');
+
+      const topLig = document.createElement('span');
+      topLig.className = 'af-mini-entity-btn';
+      topLig.innerHTML = `<span class="af-mini-entity-dot" style="background:#5b6196"></span>${ligSummary}`;
+      pillsBar.append(topLig);
 
       const block = document.createElement('div');
       block.className = 'af-entity-block';
@@ -391,10 +525,7 @@
       const desc = document.createElement('span');
       desc.style.fontSize = '13.5px';
       desc.style.fontWeight = '600';
-      desc.textContent = [...counts.entries()].map(([name, cnt]) => {
-        const pretty = name === 'ZN' ? 'Zn²⁺ ion' : name === 'HEM' ? 'Heme porphyrin (HEM)' : name === 'OXY' ? 'Dioxygen (O₂)' : name;
-        return `${pretty} ×${cnt}`;
-      }).join(' · ');
+      desc.textContent = ligSummary;
       head.append(pill, desc);
       block.append(head);
       host.append(block);
@@ -414,23 +545,29 @@
     const m = active;
     const titleEl = el('audience-card-title');
     const lessonEl = el('lesson');
+    const isVi = typeof StudioPrefs !== 'undefined' && StudioPrefs.get().lang === 'vi';
     if (audience === 'explorer') {
-      titleEl.textContent = 'Explorer guide · What am I looking at?';
+      titleEl.textContent = isVi ? 'Chế độ Khám phá · Mô hình 3D này nói lên điều gì?' : 'Explorer guide · What am I looking at?';
+      lessonEl.textContent = isVi
+        ? `${m.summary || ''} Các đoạn màu xanh dương đậm (>90) là vùng cấu trúc rất chắc chắn, còn vòng màu vàng/cam là vùng linh động. Kéo chuột để xoay mô hình 3D và bấm vào bất kỳ điểm nào để đo khoảng cách bằng Ångström (1 Å = 0.1 nm).`
+        : (m.summary || 'This 3D ribbon traces the folded molecular backbone from start to finish.') + ' Blue sections indicate regions predicted with very high geometric certainty, while yellow or orange loops are flexible tails. Drag to spin and click any residue to measure distances in ångströms.';
+    } else if (audience === 'biologist') {
+      titleEl.textContent = isVi ? 'Chế độ Nhà sinh học · Túi gắn & Phối trí' : 'Biologist view · Active-site pockets & chains';
+      lessonEl.textContent = isVi
+        ? `Cấu trúc gồm ${m.chains.length} chuỗi (${m.ligands.length ? 'kèm ion/ligand phối trí' : 'đơn chuỗi'}). Dùng nút Isolate trên từng chuỗi hoặc bật "Active-site pocket sidechains" ở nút ⚙ để soi trực tiếp bộ khung nguyên tử quanh vị trí đang chọn.`
+        : `Assembly contains ${m.chains.length} polymer ${m.chains.length === 1 ? 'entity' : 'entities'}${m.ligands.length ? ' with bound ligands/ions' : ''}. Use Isolate/Focus per chain or toggle Active-site pocket sidechains (⚙) to inspect local coordination within 5.6 Å of Residue A.`;
+    } else if (audience === 'researcher') {
+      titleEl.textContent = isVi ? 'Chế độ Nhà nghiên cứu · Thống kê & Phạm vi độ tin cậy' : 'Researcher diagnostics · Structural & uncertainty scope';
       lessonEl.textContent =
-        (m.summary || 'This 3D ribbon traces the folded molecular backbone from start to finish.')
-        + ' Blue sections indicate regions AlphaFold predicts with very high geometric certainty, while yellow or orange loops are flexible or disordered tails. Drag to spin the molecule and click any ribbon segment to measure distances in ångströms (1 Å = 0.1 nm).';
-    } else if (audience === 'student') {
-      titleEl.textContent = 'Student investigation · Classroom prompt';
-      lessonEl.textContent = m.hasPlddt
-        ? 'Compare a deep-blue core residue (pLDDT > 90) with a lower-confidence tail or loop. Click two off-diagonal residues in the PAE or Contact matrix that are >15 positions apart in sequence yet <8 Å apart in 3D space, then save the pair to your Evidence Workspace.'
-        : 'Switch between Cartoon, Backbone Tube, and Spacefill views. Measure an intra-chain contact or an inter-chain interface pair (e.g. Protein–RNA in PDB 8AW3 or strand A–B in B-DNA 1BNA), export the CSV, and explain what the 3D fold adds beyond linear sequence order.';
-    } else {
-      titleEl.textContent = 'Researcher diagnostics · Structural & uncertainty scope';
-      lessonEl.textContent =
-        `Method: ${m.method}. Backbone radius of gyration Rg = ${m.rg.toFixed(2)} Å; maximum span = ${farthest[2].toFixed(2)} Å. `
+        `Method: ${m.method}. Rg = ${m.rg.toFixed(2)} Å; Max span = ${farthest[2].toFixed(2)} Å. `
         + (m.hasPlddt
-          ? `Global mean pLDDT = ${m.plddtMean.toFixed(2)} (Very high: ${m.bands[0]}, Confident: ${m.bands[1]}, Low: ${m.bands[2]}, Very low: ${m.bands[3]}). PAE values report expected relative alignment error (Å) for single-chain AlphaFold DB v6 predictions; oligomeric interfaces or ligand-induced shifts require experimental or complex-level modeling.`
-          : 'Experimental coordinates come from a deposited crystallographic/cryo-EM ensemble. Cα/C4′ proximity alone does not establish covalent bonding or conformational dynamics without atomic refinement data.');
+          ? `Mean pLDDT = ${m.plddtMean.toFixed(2)} (Very high: ${m.bands[0]}, Confident: ${m.bands[1]}, Low: ${m.bands[2]}, Very low: ${m.bands[3]}). Export AlphaFold 3 mmCIF (.cif), PDB, PAE JSON, or fetch live full-atom coordinates.`
+          : 'Experimental coordinates trace crystallographic/cryo-EM positions. Cα/C4′ proximity alone does not establish covalent bonding without atomic refinement.');
+    } else {
+      titleEl.textContent = isVi ? 'Chế độ Học tập · Thực hành đo lường' : 'Student investigation · Classroom prompt';
+      lessonEl.textContent = m.hasPlddt
+        ? 'Compare a deep-blue core residue (pLDDT > 90) with a lower-confidence loop. Hover across the PAE matrix to highlight domains in 3D, pick two off-diagonal residues <8 Å apart, and save the pair to your Evidence Workspace.'
+        : 'Switch between Cartoon, Tube, All-Atom Ball & Stick, and Molecular Surface. Inspect Protein–RNA or Zn²⁺ contacts in PDB 8AW3, export CSV/CIF, and test how 3D folding brings distant sequence positions together.';
     }
   }
 
@@ -463,7 +600,8 @@
   function updateStageBadge() {
     const repLabel = el('rep').selectedOptions[0]?.textContent || 'Cartoon';
     const colLabel = el('color-mode').selectedOptions[0]?.textContent || 'pLDDT';
-    el('stage-badge').textContent = `${repLabel} · ${colLabel}`;
+    const eng = typeof viewer.getBackend === 'function' && viewer.getBackend() === 'webgl2' ? 'WebGL2' : 'Canvas2D';
+    el('stage-badge').textContent = `${eng} · ${repLabel} · ${colLabel}`;
   }
 
   function renderConfidenceBar() {
@@ -478,9 +616,11 @@
       span.append(strong);
       scoresEl.append(span);
     };
-
     if (m.iptm !== null) addPill('ipTM', m.iptm.toFixed(2));
     if (m.ptm !== null) addPill('pTM', m.ptm.toFixed(2));
+    if (m.iptm !== null && m.ptm !== null) {
+      addPill('Ranking', (0.8 * m.iptm + 0.2 * m.ptm).toFixed(2));
+    }
     if (m.plddtMean !== null) addPill('Mean pLDDT', m.plddtMean.toFixed(1));
     if (m.resolution && m.iptm === null) {
       const span = document.createElement('span');
@@ -511,16 +651,14 @@
 
   function refLink(url, text) {
     const a = document.createElement('a');
-    a.href = url;
-    a.textContent = text;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
+    a.href = url; a.textContent = text; a.target = '_blank'; a.rel = 'noopener noreferrer';
     return a;
   }
 
   function presentModel(model, catItem, initialRes) {
     active = model;
     activeCatalog = catItem;
+    hiddenChains.clear();
 
     el('specimen-eyebrow').textContent = catItem?.badge || model.method;
     el('heading').textContent = model.name;
@@ -529,15 +667,12 @@
     el('load-status').textContent = `${model.residues.length} backbone positions · ${model.chains.length} ${model.chains.length === 1 ? 'entity' : 'entities'}${model.ligands.length ? ' + ions/ligands' : ''}`;
     el('save-status').textContent = '';
 
-    // Provenance & linked DNA button
     if (catItem && catItem.group === 'gene') {
       const afUrl = 'https://alphafold.ebi.ac.uk/entry/' + model.id;
       const keggUrl = 'https://www.kegg.jp/entry/' + catItem.keggId;
       el('provenance').replaceChildren(
         'AlphaFold DB v6 single-chain prediction (CC BY 4.0) paired with KEGG coding sequence. ',
-        refLink(afUrl, model.id + ' · AlphaFold DB'),
-        ' · ',
-        refLink(keggUrl, catItem.keggId + ' · KEGG')
+        refLink(afUrl, model.id + ' · AlphaFold DB'), ' · ', refLink(keggUrl, catItem.keggId + ' · KEGG')
       );
       el('dna-link').href = 'dna.html?protein=' + model.id;
       el('dna-link').textContent = `Inspect ${dnaRecords[catItem.dnaIndex].gene} 3D DNA →`;
@@ -554,14 +689,11 @@
       el('dna-link').textContent = 'Explore 10-Gene 3D DNA Lab →';
     }
 
-    // Choose default color scheme cleanly (respecting colorblind mode if enabled)
     const cbActive = el('toggle-cb').getAttribute('aria-pressed') === 'true';
     const defaultCol = cbActive ? 'colorblind' : (catItem?.defaultColor || (model.hasPlddt ? 'plddt' : (model.chains.length > 1 ? 'chain' : 'spectrum')));
     el('color-mode').value = defaultCol;
     viewer.setColorMode(defaultCol);
-    updateStageBadge();
 
-    // Populate Residue A / B dropdowns
     for (const id of ['a', 'b']) {
       const sel = el(id);
       sel.replaceChildren();
@@ -572,15 +704,15 @@
     el('a').value = String(initA);
     el('b').value = String(initB);
 
-    // Update matrix title & legend text
     const isRealPae = Boolean(model.pae);
     el('matrix-title').textContent = matrixMode === 'pae'
       ? (isRealPae ? 'Expected Position Error (PAE)' : 'Pairwise Distance Matrix (0–30 Å)')
-      : (matrixMode === 'contact' ? 'Cα / Backbone Contact Map' : (model.hasPlddt ? 'Per-Residue pLDDT Profile' : 'Residue Contact Degree'));
+      : (matrixMode === 'contact' ? 'Cα / Backbone Contact Map' : (matrixMode === 'table' ? 'Entity Confidence Summary' : (model.hasPlddt ? 'Per-Residue pLDDT Profile' : 'Residue Contact Degree')));
 
     renderConfidenceBar();
     computeContacts();
     viewer.setModel(model, { a: initA, b: initB });
+    updateStageBadge();
     renderEntitiesPanel();
     buildMatrix();
     updateSelection();
@@ -588,13 +720,9 @@
     renderGallery();
   }
 
-  function loadById(id, initialRes) {
-    const catItem = catalog.find(c => c.id === id) || catalog[0];
-    picker.value = catItem.id;
-    let model;
-
+  function buildNormalizedModel(catItem) {
     if (catItem.id === '1UBQ') {
-      model = Mol3D.normalize({
+      return Mol3D.normalize({
         id: '1UBQ',
         name: 'Human Ubiquitin (PDB 1UBQ)',
         subtitle: 'Experimental 1.8 Å X-ray structure · 76-residue β-grasp fold',
@@ -604,54 +732,78 @@
         resolution: '1.8 Å X-ray',
         rows: residues.map(([name, ...xyz], i) => [name, i + 1, ...xyz]),
       });
-    } else if (experimental[catItem.id]) {
+    }
+    if (experimental[catItem.id]) {
       const e = experimental[catItem.id];
-      model = Mol3D.normalize({
-        id: catItem.id,
-        name: e.name,
-        subtitle: e.subtitle,
-        summary: e.summary,
-        source: 'https://www.rcsb.org/structure/' + catItem.id,
-        method: e.method,
-        resolution: e.resolution,
-        iptm: e.iptm ?? null,
-        ptm: e.ptm ?? null,
-        chains: e.chains,
-        ligands: e.ligands,
-        rows: e.rows,
-      });
-    } else if (bundledFolds[catItem.id]) {
-      const f = bundledFolds[catItem.id];
-      const rec = dnaRecords[catItem.dnaIndex];
-      model = Mol3D.normalize({
-        id: catItem.id,
-        name: `${rec.gene} · ${rec.species}`,
-        subtitle: f.description || rec.note,
-        summary: rec.note,
-        source: f.source,
-        paeSource: f.paeSource,
-        method: 'AlphaFold DB v' + (f.version || 6) + ' monomer prediction',
-        hasPlddt: true,
-        plddtMean: f.plddtMean,
-        paeSize: f.paeSize,
-        paeMax: f.paeMax,
-        pae: f.pae,
-        chain: f.chain || 'A',
-        chainLabel: rec.gene + ' Protein (Chain A)',
-        rows: f.rows,
+      return Mol3D.normalize({
+        id: catItem.id, name: e.name, subtitle: e.subtitle, summary: e.summary,
+        source: 'https://www.rcsb.org/structure/' + catItem.id, method: e.method,
+        resolution: e.resolution, iptm: e.iptm ?? null, ptm: e.ptm ?? null,
+        chains: e.chains, ligands: e.ligands, rows: e.rows,
       });
     }
+    if (bundledFolds[catItem.id]) {
+      const f = bundledFolds[catItem.id];
+      const rec = dnaRecords[catItem.dnaIndex];
+      return Mol3D.normalize({
+        id: catItem.id, name: `${rec.gene} · ${rec.species}`,
+        subtitle: f.description || rec.note, summary: rec.note,
+        source: f.source, paeSource: f.paeSource,
+        method: 'AlphaFold DB v' + (f.version || 6) + ' monomer prediction',
+        hasPlddt: true, plddtMean: f.plddtMean, paeSize: f.paeSize, paeMax: f.paeMax,
+        pae: f.pae, chain: f.chain || 'A', chainLabel: rec.gene + ' Protein (Chain A)', rows: f.rows,
+      });
+    }
+    return null;
+  }
+
+  function loadById(id, initialRes) {
+    const catItem = catalog.find(c => c.id === id) || catalog[0];
+    picker.value = catItem.id;
+    const model = buildNormalizedModel(catItem);
     if (model) presentModel(model, catItem, initialRes);
+  }
+
+  function getThumbnailUrl(catItem) {
+    if (thumbCache.has(catItem.id)) return thumbCache.get(catItem.id);
+    const m = buildNormalizedModel(catItem);
+    if (!m) return '';
+    const url = Mol3D.renderThumbnail(m, { width: 280, height: 158, colorMode: catItem.defaultColor, theme: 'dark' });
+    thumbCache.set(catItem.id, url);
+    return url;
   }
 
   function renderGallery() {
     const grid = el('specimen-gallery');
     grid.replaceChildren();
-    const items = catalog.filter(c => galleryFilter === 'all' || c.group === galleryFilter);
+    const needle = galleryQuery.trim().toLowerCase();
+    const items = catalog.filter(c => {
+      if (galleryFilter === 'gene' && c.group !== 'gene') return false;
+      if (galleryFilter === 'pdb' && c.group !== 'pdb') return false;
+      if (galleryFilter === 'multi' && !c.multi) return false;
+      if (needle) {
+        const hay = `${c.id} ${c.title} ${c.species} ${c.tag} ${c.note || ''}`.toLowerCase();
+        if (!hay.includes(needle)) return false;
+      }
+      return true;
+    });
+
     for (const item of items) {
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'cosmos-card' + (active && active.id === item.id ? ' active' : '');
+
+      const thumbWrap = document.createElement('div');
+      thumbWrap.className = 'cosmos-thumb';
+      const thumbSrc = getThumbnailUrl(item);
+      if (thumbSrc) {
+        const img = document.createElement('img');
+        img.src = thumbSrc;
+        img.alt = '';
+        img.loading = 'lazy';
+        thumbWrap.append(img);
+      }
+
       const top = document.createElement('div');
       top.className = 'cosmos-card-top';
       const kind = document.createElement('span');
@@ -659,11 +811,13 @@
       const tag = document.createElement('span');
       tag.textContent = item.tag;
       top.append(kind, tag);
+
       const title = document.createElement('strong');
       title.textContent = item.title;
       const sp = document.createElement('span');
       sp.textContent = item.species;
-      card.append(top, title, sp);
+      card.append(thumbWrap, top, title, sp);
+
       card.onclick = () => {
         const url = new URL(location.href);
         url.searchParams.set('protein', item.id);
@@ -675,7 +829,7 @@
     }
   }
 
-  // Matrix interactions (hover readout + click to pick pair in 3D!)
+  // Bidirectional PAE Matrix Hover (highlights 3D regions live!) & Click
   function matrixCoords(event) {
     const rect = mapCanvas.getBoundingClientRect();
     const n = active.residues.length;
@@ -690,12 +844,18 @@
     const d = Mol3D.vDist(ri.xyz, rj.xyz);
     const pae = active.pae ? ` · PAE ${getPaeValue(i, j).toFixed(1)} Å` : '';
     el('matrix-hover').textContent = `Aligned ${resLabel(ri)} × Scored ${resLabel(rj)} · 3D Dist ${d.toFixed(2)} Å${pae}`;
+    const span = Math.max(3, Math.round(active.residues.length * 0.03));
+    viewer.setFocusRange([[Math.max(0, i - span), i + span], [Math.max(0, j - span), j + span]]);
+  };
+  mapCanvas.onmouseleave = () => {
+    viewer.setFocusRange(null);
   };
   mapCanvas.onclick = e => {
     if (!active) return;
     const [i, j] = matrixCoords(e);
     el('a').value = String(i);
     el('b').value = String(j);
+    viewer.setFocusRange(null);
     updateSelection();
   };
 
@@ -711,6 +871,7 @@
   el('color-mode').onchange = () => { viewer.setColorMode(el('color-mode').value); updateStageBadge(); };
   el('zoom').oninput = () => viewer.setZoom(Number(el('zoom').value));
   el('reset').onclick = () => viewer.resetCamera();
+  el('focus-a').onclick = () => viewer.focusResidue(Number(el('a').value), 1.75);
   el('orient-axes').onclick = () => {
     const presets = ['default', 'xy', 'xz', 'yz'];
     orientStep = (orientStep + 1) % presets.length;
@@ -727,11 +888,28 @@
     el('toggle-theme').textContent = nextDark ? 'Light stage' : 'Dark stage';
     viewer.setTheme(nextDark ? 'dark' : 'light');
   };
-  el('download-png').onclick = () => {
-    const a = document.createElement('a');
-    a.href = viewer.toDataURL();
-    a.download = (active?.id || 'structure') + '-3d.png';
-    a.click();
+  el('toggle-fullscreen').onclick = () => {
+    const wrap = el('stage-wrap');
+    const on = !wrap.classList.contains('is-fullscreen');
+    wrap.classList.toggle('is-fullscreen', on);
+    el('toggle-fullscreen').setAttribute('aria-pressed', String(on));
+    el('toggle-fullscreen').textContent = on ? 'Collapse' : 'Expand';
+    viewer.render();
+  };
+  ['opt-outline', 'opt-ao', 'opt-pocket', 'opt-ligands', 'opt-labels'].forEach(id => {
+    el(id).onchange = () => viewer.setRenderOptions({
+      outline: el('opt-outline').checked,
+      ao: el('opt-ao').checked,
+      showPocket: el('opt-pocket').checked,
+      showLigands: el('opt-ligands').checked,
+      showLabels: el('opt-labels').checked,
+    });
+  });
+
+  el('show-all-chains').onclick = () => {
+    hiddenChains.clear();
+    updateEntityVisibilityControls();
+    renderEntitiesPanel();
   };
   el('extent').onclick = () => {
     el('a').value = String(farthest[0]);
@@ -747,76 +925,89 @@
   el('chain-borders').onchange = buildMatrix;
   el('cut').onchange = el('sep').onchange = () => { computeContacts(); buildMatrix(); updateSelection(); };
 
-  // Matrix tab switching
   document.querySelectorAll('[data-matrix]').forEach(btn => {
     btn.onclick = () => {
       matrixMode = btn.dataset.matrix;
       document.querySelectorAll('[data-matrix]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
-      el('matrix-canvas-box').hidden = matrixMode === 'profile';
+      el('matrix-canvas-box').hidden = matrixMode === 'profile' || matrixMode === 'table';
       el('pae-scale').hidden = matrixMode !== 'pae';
       el('profile-box').hidden = matrixMode !== 'profile';
+      el('table-box').hidden = matrixMode !== 'table';
       el('cut-wrap').hidden = matrixMode !== 'contact';
       el('sep-wrap').hidden = matrixMode !== 'contact';
       el('matrix-title').textContent = matrixMode === 'pae'
         ? (active?.pae ? 'Expected Position Error (PAE)' : 'Pairwise Distance Matrix (0–30 Å)')
-        : (matrixMode === 'contact' ? 'Cα / Backbone Contact Map' : (active?.hasPlddt ? 'Per-Residue pLDDT Profile' : 'Residue Contact Degree'));
+        : (matrixMode === 'contact' ? 'Cα / Backbone Contact Map' : (matrixMode === 'table' ? 'Entity Confidence Summary' : (active?.hasPlddt ? 'Per-Residue pLDDT Profile' : 'Residue Contact Degree')));
       buildMatrix();
     };
   });
 
-  // Audience mode buttons
   document.querySelectorAll('[data-audience]').forEach(btn => {
     btn.onclick = () => {
       audience = btn.dataset.audience;
-      document.querySelectorAll('[data-audience]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      if (typeof StudioPrefs !== 'undefined') StudioPrefs.save({ audience });
+      document.querySelectorAll('[data-audience]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.audience === audience)));
       updateAudienceCopy();
     };
   });
 
-  // Accessibility toggles
   el('toggle-cb').onclick = () => {
     const on = el('toggle-cb').getAttribute('aria-pressed') !== 'true';
-    el('toggle-cb').setAttribute('aria-pressed', String(on));
-    document.body.classList.toggle('cb-mode', on);
-    if (on) {
-      el('color-mode').value = 'colorblind';
-      viewer.setColorMode('colorblind');
-    } else if (active) {
-      const def = activeCatalog?.defaultColor || (active.hasPlddt ? 'plddt' : 'chain');
-      el('color-mode').value = def;
-      viewer.setColorMode(def);
-    }
-    updateStageBadge();
-    if (active) { renderEntitiesPanel(); drawProfile(); highlightSequenceButtons(); }
+    if (typeof StudioPrefs !== 'undefined') StudioPrefs.save({ colorblind: on });
+    else syncPrefs({ ...StudioPrefs?.get?.(), colorblind: on, audience });
   };
   el('toggle-hc').onclick = () => {
     const on = el('toggle-hc').getAttribute('aria-pressed') !== 'true';
-    el('toggle-hc').setAttribute('aria-pressed', String(on));
-    document.body.classList.toggle('hc-mode', on);
+    if (typeof StudioPrefs !== 'undefined') StudioPrefs.save({ highContrast: on });
   };
   el('toggle-motion').onclick = () => {
     const on = el('toggle-motion').getAttribute('aria-pressed') !== 'true';
-    el('toggle-motion').setAttribute('aria-pressed', String(on));
-    viewer.setReducedMotion(on);
-    if (on) el('toggle-spin').setAttribute('aria-pressed', 'false');
+    if (typeof StudioPrefs !== 'undefined') StudioPrefs.save({ reducedMotion: on });
   };
 
-  // Local PDB file upload (just like AlphaFold Server's "Load File(s)")
+  // Local .PDB / .CIF file upload
   el('load-pdb').onchange = async e => {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      if (file.size > 8_000_000) throw Error('Choose a PDB file smaller than 8 MB.');
-      const model = Mol3D.parsePDB(await file.text(), file.name);
-      presentModel(model, { id: model.id, group: 'pdb', badge: 'Local PDB Upload', defaultColor: model.hasPlddt ? 'plddt' : (model.chains.length > 1 ? 'chain' : 'spectrum') });
+      if (file.size > 16_000_000) throw Error('Choose a .pdb or .cif file smaller than 16 MB.');
+      const text = await file.text();
+      const isCif = file.name.toLowerCase().endsWith('.cif') || file.name.toLowerCase().endsWith('.mmcif') || text.includes('_atom_site.');
+      const model = isCif ? Mol3D.parseCIF(text, file.name) : Mol3D.parsePDB(text, file.name);
+      presentModel(model, { id: model.id, group: 'pdb', badge: isCif ? 'Local mmCIF Upload' : 'Local PDB Upload', defaultColor: model.hasPlddt ? 'plddt' : (model.chains.length > 1 ? 'chain' : 'spectrum') });
     } catch (err) {
-      el('load-status').textContent = 'Could not load PDB file: ' + err.message;
+      el('load-status').textContent = 'Could not load structure file: ' + err.message;
     } finally {
       e.target.value = '';
     }
   };
 
-  // Gallery filter buttons
+  // Optional online full-atom fetch from RCSB PDB / AlphaFold DB
+  el('fetch-live').onclick = async () => {
+    if (!active) return;
+    const isGene = activeCatalog?.group === 'gene';
+    const url = isGene
+      ? `https://alphafold.ebi.ac.uk/files/AF-${active.id}-F1-model_v4.cif`
+      : `https://files.rcsb.org/download/${active.id.slice(0, 4).toUpperCase()}.cif`;
+    el('load-status').textContent = `Fetching full-atom mmCIF from ${isGene ? 'AlphaFold DB' : 'RCSB PDB'}...`;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw Error(`HTTP ${resp.status}`);
+      const cifText = await resp.text();
+      const fullModel = Mol3D.parseCIF(cifText, `${active.id}-full-atom.cif`);
+      fullModel.pae = active.pae;
+      fullModel.paeSize = active.paeSize;
+      fullModel.paeMax = active.paeMax;
+      fullModel.iptm = active.iptm;
+      fullModel.ptm = active.ptm;
+      presentModel(fullModel, { ...activeCatalog, badge: `${activeCatalog?.badge || ''} · Live Full-Atom mmCIF` });
+      el('load-status').textContent = `Loaded live full-atom mmCIF for ${active.id} (${fullModel.residues.length} residues + sidechains). Switch Representation to All-Atom or toggle Pocket!`;
+    } catch (err) {
+      el('load-status').textContent = `Offline / network fetch unavailable (${err.message}). Using bundled offline coordinates.`;
+    }
+  };
+
+  // Gallery filter + search
   document.querySelectorAll('[data-gallery]').forEach(btn => {
     btn.onclick = () => {
       galleryFilter = btn.dataset.gallery;
@@ -824,16 +1015,72 @@
       renderGallery();
     };
   });
+  el('gallery-search').oninput = e => {
+    galleryQuery = e.target.value;
+    renderGallery();
+  };
 
-  // Exports + Evidence Workspace Capture (100% compatible with assay-evidence/1!)
+  // Unified Download Menu (.CIF, .PDB, PAE JSON, FASTA, PNG, CSV, Workspace)
   function downloadBlob(name, content, type) {
     const url = URL.createObjectURL(new Blob([content], { type }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    a.click();
+    const a = document.createElement('a'); a.href = url; a.download = name; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  el('download-png').onclick = () => {
+    const a = document.createElement('a'); a.href = viewer.toDataURL(); a.download = (active?.id || 'structure') + '-3d.png'; a.click();
+    el('download-menu').open = false;
+  };
+  el('dl-pdb').onclick = () => {
+    if (!active) return;
+    let serial = 1;
+    const lines = [`HEADER    ASSAY EVIDENCE STUDIO                     ${active.id}`];
+    for (const r of active.residues) {
+      const atomName = r.chainType === 'protein' ? 'CA' : "C4'";
+      const res3 = (r.resName || 'UNK').padStart(3, ' ').slice(0, 3);
+      const b = Number.isFinite(r.plddt) ? r.plddt : 0;
+      lines.push(`ATOM  ${String(serial++).padStart(5)}  ${atomName.padEnd(3)} ${res3} ${r.chainId[0] || 'A'}${String(r.resSeq).padStart(4)}    ${r.xyz[0].toFixed(3).padStart(8)}${r.xyz[1].toFixed(3).padStart(8)}${r.xyz[2].toFixed(3).padStart(8)}  1.00${b.toFixed(2).padStart(6)}           C`);
+    }
+    for (const l of active.ligands) {
+      lines.push(`HETATM${String(serial++).padStart(5)} ${l.atomName.padEnd(4)} ${l.resName.padStart(3)} ${l.chainId[0] || 'A'}${String(l.resSeq).padStart(4)}    ${l.xyz[0].toFixed(3).padStart(8)}${l.xyz[1].toFixed(3).padStart(8)}${l.xyz[2].toFixed(3).padStart(8)}  1.00  0.00          ${l.element.padStart(2)}`);
+    }
+    lines.push('END');
+    downloadBlob(active.id + '.pdb', lines.join('\n') + '\n', 'text/plain');
+    el('download-menu').open = false;
+  };
+  el('dl-cif').onclick = () => {
+    if (!active) return;
+    let serial = 1;
+    const rows = [
+      `data_${active.id}`,
+      'loop_',
+      '_atom_site.group_PDB', '_atom_site.id', '_atom_site.type_symbol', '_atom_site.label_atom_id',
+      '_atom_site.label_comp_id', '_atom_site.auth_asym_id', '_atom_site.auth_seq_id',
+      '_atom_site.Cartn_x', '_atom_site.Cartn_y', '_atom_site.Cartn_z', '_atom_site.B_iso_or_equiv',
+    ];
+    for (const r of active.residues) {
+      const aname = r.chainType === 'protein' ? 'CA' : "C4'";
+      const b = Number.isFinite(r.plddt) ? r.plddt.toFixed(2) : '0.00';
+      rows.push(`ATOM ${serial++} C ${aname} ${r.resName} ${r.chainId} ${r.resSeq} ${r.xyz[0].toFixed(3)} ${r.xyz[1].toFixed(3)} ${r.xyz[2].toFixed(3)} ${b}`);
+    }
+    for (const l of active.ligands) {
+      rows.push(`HETATM ${serial++} ${l.element} ${l.atomName} ${l.resName} ${l.chainId} ${l.resSeq} ${l.xyz[0].toFixed(3)} ${l.xyz[1].toFixed(3)} ${l.xyz[2].toFixed(3)} 0.00`);
+    }
+    downloadBlob(active.id + '.cif', rows.join('\n') + '\n', 'text/plain');
+    el('download-menu').open = false;
+  };
+  el('dl-pae').onclick = () => {
+    if (!active) return;
+    const payload = { id: active.id, iptm: active.iptm, ptm: active.ptm, plddtMean: active.plddtMean, paeSize: active.paeSize, predicted_aligned_error: active.pae };
+    downloadBlob(active.id + '-pae.json', JSON.stringify(payload, null, 2), 'application/json');
+    el('download-menu').open = false;
+  };
+  el('dl-fasta').onclick = () => {
+    if (!active) return;
+    const fasta = active.chains.map(ch => `>${active.id}_${ch.id} ${ch.label}\n${active.residues.slice(ch.start, ch.start + ch.length).map(r => r.oneLetter).join('')}`).join('\n') + '\n';
+    downloadBlob(active.id + '.fasta', fasta, 'text/plain');
+    el('download-menu').open = false;
+  };
+
   el('save').onclick = () => {
     if (!active) return;
     const ra = active.residues[Number(el('a').value)], rb = active.residues[Number(el('b').value)];
@@ -843,12 +1090,7 @@
   };
   el('trace').onclick = () => {
     if (!active) return;
-    const out = {
-      accession: active.id,
-      source: active.source,
-      columns: ['chain', 'residue', 'position', 'x_angstrom', 'y_angstrom', 'z_angstrom', 'plddt'],
-      rows: active.residues.map(r => [r.chainId, r.resName, r.resSeq, ...r.xyz, r.plddt]),
-    };
+    const out = { accession: active.id, source: active.source, columns: ['chain', 'residue', 'position', 'x_angstrom', 'y_angstrom', 'z_angstrom', 'plddt'], rows: active.residues.map(r => [r.chainId, r.resName, r.resSeq, ...r.xyz, r.plddt]) };
     downloadBlob(active.id + '-coordinates.json', JSON.stringify(out, null, 2), 'application/json');
   };
   el('edges').onclick = () => {
@@ -864,10 +1106,9 @@
     const aIdx = Number(el('a').value), bIdx = Number(el('b').value);
     const ra = active.residues[aIdx], rb = active.residues[bIdx];
     const distance = Mol3D.vDist(ra.xyz, rb.xyz);
-    const isPredicted = Boolean(active.hasPlddt);
     try {
       evidenceRecords.capture({
-        kind: isPredicted ? 'simulated' : 'measured',
+        kind: active.hasPlddt ? 'simulated' : 'measured',
         title: `${active.id} · ${resLabel(ra)} – ${resLabel(rb)}`,
         dataset: active.name,
         method: active.method,
@@ -877,15 +1118,10 @@
         source: active.source,
         details: {
           comparisonKey: `structure-${active.id}-pair-${ra.chainId}${ra.resSeq}-${rb.chainId}${rb.resSeq}`,
-          accession: active.id,
-          residueA: resLabel(ra),
-          residueB: resLabel(rb),
-          plddtA: ra.plddt,
-          plddtB: rb.plddt,
-          meanPlddt: active.plddtMean,
+          accession: active.id, residueA: resLabel(ra), residueB: resLabel(rb),
+          plddtA: ra.plddt, plddtB: rb.plddt, meanPlddt: active.plddtMean,
           paeAngstrom: active.pae ? getPaeValue(aIdx, bIdx) : null,
-          radiusOfGyrationAngstrom: Number(active.rg.toFixed(3)),
-          contactCount: contacts.length,
+          radiusOfGyrationAngstrom: Number(active.rg.toFixed(3)), contactCount: contacts.length,
         },
       });
       el('save-status').textContent = `Saved ${active.id} (${resLabel(ra)} – ${resLabel(rb)}: ${distance.toFixed(2)} Å) to the Evidence Workspace.`;
@@ -894,15 +1130,52 @@
     }
   };
 
-  // Initialize from URL parameters (?protein=..., ?audience=..., ?res=...)
+  el('share-link').onclick = () => {
+    if (typeof StudioPrefs !== 'undefined') {
+      StudioPrefs.copyPermalink({ protein: active?.id, res: Number(el('a').value) + 1 });
+    }
+  };
+  el('start-tour').onclick = () => {
+    if (typeof StudioPrefs === 'undefined') return;
+    const isVi = StudioPrefs.get().lang === 'vi';
+    StudioPrefs.startTour([
+      {
+        selector: '#viewport-card',
+        title: isVi ? '1. Khung WebGL2 3D chuẩn Mol*' : '1. Mol*-grade WebGL2 3D Viewport',
+        body: isVi
+          ? 'Mô hình 8AW3 gồm 2 chuỗi protein, 1 chuỗi tRNA và 2 ion Zn²⁺. Kéo để xoay, bấm ⚙ để bật túi gắn nguyên tử (Pocket Sidechains) hoặc bấm Focus A để bay camera tới vị trí chọn.'
+          : 'Inspect multi-entity complexes (2 protein subunits + tRNA + 2 Zn²⁺ in 8AW3). Drag to orbit, open ⚙ for pocket sidechains/AO, or click Focus A.',
+      },
+      {
+        selector: '#confidence-legend',
+        title: isVi ? '2. Bảng màu pLDDT AlphaFold' : '2. AlphaFold pLDDT Confidence Scale',
+        body: isVi
+          ? 'Xanh dương đậm (>90) là vùng lõi chắc chắn; Xanh ngọc (70–90) là khung xương tin cậy; Vàng & Cam (<70) là vùng linh động hoặc vô định hình.'
+          : 'Dark blue (>90) denotes high sidechain accuracy, cyan (70–90) confident backbone, and yellow/orange (<70) flexible or disordered regions.',
+      },
+      {
+        selector: '#matrix-card',
+        title: isVi ? '3. Ma trận PAE đồng bộ 2 chiều' : '3. Chain-Tracked PAE Heatmap',
+        body: isVi
+          ? 'Rê chuột trên ô PAE để làm nổi bật cặp miền tương ứng trực tiếp trên mô hình 3D; bấm vào ô để đo khoảng cách thực (Å).'
+          : 'Hover across the PAE matrix to highlight matching domains directly in 3D; click any cell to measure exact 3D Ångström distances.',
+      },
+      {
+        selector: '#info-section',
+        title: isVi ? '4. Quản lý Thực thể & Chuỗi trình tự' : '4. Entities, Isolation & Sequence Track',
+        body: isVi
+          ? 'Ẩn/hiện hoặc cô lập riêng từng chuỗi (Protein / tRNA), sao chép FASTA, hoặc bấm vào từng ký tự amino acid/nucleotide để nhảy vị trí.'
+          : 'Hide, isolate, or focus individual chains, copy FASTA sequences, or click any residue tile to inspect.',
+      },
+    ]);
+  };
+
+  window.addEventListener('studio-prefs-change', e => syncPrefs(e.detail));
+
   const params = new URLSearchParams(location.search);
-  const reqAudience = params.get('audience');
-  if (['explorer', 'student', 'researcher'].includes(reqAudience)) {
-    audience = reqAudience;
-    document.querySelectorAll('[data-audience]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.audience === audience)));
-  }
   const reqId = params.get('protein');
   const reqRes = params.has('res') ? Math.max(0, parseInt(params.get('res'), 10) - 1) : null;
   const startId = catalog.some(c => c.id === reqId) ? reqId : '8AW3';
+  if (typeof StudioPrefs !== 'undefined') syncPrefs(StudioPrefs.get());
   loadById(startId, Number.isFinite(reqRes) ? reqRes : null);
 })();
