@@ -7,6 +7,7 @@
 <title>3D Gene &amp; DNA Lab · Assay Evidence Studio</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="studio-prefs.css">
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f5f7f3;color:#17352f;font:16px/1.55 Inter,system-ui,-apple-system,Arial,sans-serif}
@@ -43,7 +44,6 @@ figure{margin:0}
 .source{overflow-wrap:anywhere}
 pre{overflow:auto}
 
-/* AlphaFold-grade 3D DNA Stage */
 .dna-stage-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid #cad8ce;background:#f7faf9}
 #gene-stage{display:block;width:100%;height:clamp(380px,54vh,520px);image-rendering:auto;cursor:grab;touch-action:none}
 #gene-stage:active{cursor:grabbing}
@@ -90,6 +90,8 @@ pre{overflow:auto}
       <p class="dna-intro">Inspect ten real coding genes in biologically accurate right-handed B-DNA geometry—with asymmetric Major &amp; Minor grooves, purine/pyrimidine aromatic ring slabs, deoxyribose pentoses, all-atom ball-and-stick mode, Watson–Crick H-bonds, and live codon-to-protein residue linking.</p>
     </div>
     <div class="dna-hero-actions">
+      <button type="button" id="dna-tour">Guided Tour</button>
+      <button type="button" id="dna-share">Share Link</button>
       <a class="dna-cta" id="fold-link" href="structure.html?protein=P00846">Explore folded MT-ATP6 protein in 3D →</a>
     </div>
   </section>
@@ -110,7 +112,7 @@ pre{overflow:auto}
     </label>
   </div>
 
-  <section class="panel exercise" aria-labelledby="model-heading">
+  <section class="panel exercise" id="dna-stage-card" aria-labelledby="model-heading">
     <div class="model-head">
       <div>
         <h2 id="model-heading">Atomic-Detail B-DNA Double Helix in 3D</h2>
@@ -158,7 +160,7 @@ pre{overflow:auto}
       <span id="model-position" class="model-readout"></span>
     </div>
 
-    <div class="codon-bridge" aria-live="polite">
+    <div class="codon-bridge" id="codon-bridge-box" aria-live="polite">
       <div>
         <strong id="codon-readout">Codon 1 (ATG) → Met (M)</strong><br>
         <span id="codon-detail">Bases 1–3 encode residue 1 of the translated protein chain. Highlighted in gold on the 3D helix.</span>
@@ -196,7 +198,7 @@ pre{overflow:auto}
     </section>
   </div>
 
-  <section class="panel exercise">
+  <section class="panel exercise" id="dna-challenge-card">
     <h2>Strand &amp; read-assembly challenge</h2>
     <label style="max-width:420px">Exercise
       <select id="task">
@@ -220,6 +222,7 @@ pre{overflow:auto}
   <p class="hint">Each record begins with coding-sequence positions 1–60 in its published KEGG orientation; the 3D helix loads the full coding DNA sequence (318–1,416 bp) paired with its AlphaFold DB v6 protein fold. The assembly exercise uses two error-free simulated reads from the active 12 bp window.</p>
   <a class="dna-footer-link" href="structure.html">Open the 18-model AlphaFold-style 3D Molecular Studio →</a>
 </main>
+<script src="studio-prefs.js"></script>
 <script src="dna-data.js"></script>
 <script src="dna.js"></script>
 <script src="gene-sequences.js"></script>
@@ -227,5 +230,37 @@ pre{overflow:auto}
 <script src="gene-model.js"></script>
 <script src="dna-fold-link.js"></script>
 <script src="studio-nav.js"></script>
+<script>
+(() => {
+  const share = document.getElementById('dna-share');
+  const tour = document.getElementById('dna-tour');
+  const cbBtn = document.getElementById('dna-cb');
+  if (typeof StudioPrefs !== 'undefined') {
+    const syncDnaPrefs = p => {
+      if (cbBtn && (cbBtn.getAttribute('aria-pressed') === 'true') !== p.colorblind) cbBtn.click();
+    };
+    if (StudioPrefs.get().colorblind) syncDnaPrefs(StudioPrefs.get());
+    window.addEventListener('studio-prefs-change', e => syncDnaPrefs(e.detail));
+  }
+  if (share) {
+    share.onclick = () => {
+      const rec = document.getElementById('record');
+      const gene = typeof dnaRecords !== 'undefined' ? dnaRecords[rec.selectedIndex]?.gene : '';
+      if (typeof StudioPrefs !== 'undefined') StudioPrefs.copyPermalink({ gene });
+    };
+  }
+  if (tour) {
+    tour.onclick = () => {
+      if (typeof StudioPrefs === 'undefined') return;
+      const isVi = StudioPrefs.get().lang === 'vi';
+      StudioPrefs.startTour([
+        { selector: '#dna-stage-card', title: isVi ? '1. Xoắn kép B-DNA 3D thực thụ' : '1. Asymmetric B-DNA 3D Geometry', body: isVi ? 'Quan sát rãnh chính (22 Å) và rãnh phụ (12 Å), vòng Purine 5+6 cạnh và Pyrimidine 6 cạnh. Bấm bất kỳ cặp base nào để kiểm tra.' : 'Explore true 138°/222° minor/major grooves, 5+6 purine & 6-ring pyrimidine blocks, and click any base pair.' },
+        { selector: '#codon-bridge-box', title: isVi ? '2. Cầu nối Codon → Protein AlphaFold' : '2. Live Codon-to-Protein Bridge', body: isVi ? 'Mỗi bộ ba nucleotide dịch mã thành 1 amino acid—bấm nút xanh để nhảy thẳng vào đúng vị trí đó trên mô hình protein 3D.' : 'Every triplet translates live to its amino acid residue—click the button to jump straight to that residue in the 3D AlphaFold protein.' },
+        { selector: '#dna-challenge-card', title: isVi ? '3. Bài tập Ghép đọc & Mạch bổ sung' : '3. Strand & Read-Assembly Challenge', body: isVi ? 'Tự kiểm tra hiểu biết về tính đối song 5′→3′ và ghép đoạn đọc DNA thực tế.' : 'Practice 5′→3′ antiparallel complementarity and short-read overlap assembly.' },
+      ]);
+    };
+  }
+})();
+</script>
 </body>
 </html>

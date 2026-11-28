@@ -14,7 +14,7 @@ globalThis.STUDIO_CONFIG = {
   brandMark: '∿',
   heroTitlePrefix: 'Assay',
   heroTitleAccent: 'Evidence Studio',
-  heroIntro: 'Explore 18 interactive 3D molecular & gene structures inspired by AlphaFold Server and Cosmos Biology, audit 6-model enzyme kinetics & OOD holdouts, run MACE/BioEmu force-field & ensemble simulations, reconstruct Cryo-ET tomograms across 6 solvers, track 3D single-particle anomalous diffusion, and trace every claim back to primary data.',
+  heroIntro: 'Explore 18 AlphaFold & Cosmos 3D structures, train molML molecular learning policies in synchronized 3D catalysis, audit 6-model enzyme kinetics, run MACE/BioEmu ensembles, reconstruct Cryo-ET tomograms, and export reproducible evidence packets.',
   repoUrl: 'https://github.com/tun539/assay-evidence-lab',
   theme: {
     primary: '#18493c',
@@ -35,7 +35,7 @@ globalThis.STUDIO_CONFIG = {
     { id: 'tomography', title: 'Inside the specimen · Cryo-ET & tomography', href: 'tomography.html', description: 'Reconstruct 16 AlphaFold, PDB & Shepp–Logan specimens across 6 solvers (SIRT, SART, FBP, WBP, MLEM, CS-TV), FRC 0.143 resolution, and missing-wedge audits.', savesToWorkspace: true },
     { id: 'transport', title: '3D molecular transport & SPT workbench', href: 'transport.html', description: 'Track 3D macromolecules across 8 regimes (Brownian, viscoelastic fBm, CTRW traps, Spot-On 2-state), Michalet–Berglund CVE & CRLB, and 7-model held-out NLL.', savesToWorkspace: true },
     { id: 'audit', title: 'Cellpose & AlphaFold prediction audit', href: 'audit.html', description: 'Audit 5 microscopy instance segmenters (Hungarian IoU, Panoptic PQ, merge/split taxonomy) alongside AlphaFold softmax logits, ECE calibration, and 48×48 PAE pTM.', savesToWorkspace: true },
-    { id: 'molecular', title: 'Molecular learning lab', href: 'molecular.html', description: 'Compare random forest, PyTorch MLP, and RL second-dose selection in synchronized 3D playback.', savesToWorkspace: true },
+    { id: 'molecular', title: 'Molecular learning lab', href: 'molecular.html', description: 'Train active-learning Q-policies & PyTorch/RF models on enzyme kinetics in synchronized dual WebGL2 3D pocket catalysis, molforge SMILES & ChemLint audits.', savesToWorkspace: true },
     { id: 'expression', title: 'Gene expression atlas', href: 'expression.html', description: 'Explore 7,129 microarray probes and three classifiers across two Golub cohorts.', savesToWorkspace: true },
     { id: 'research', title: 'Research benchmark', href: 'research.html', description: 'Compare model families, probability reliability, and decision thresholds on 569 specimens.', savesToWorkspace: true },
     { id: 'practical', title: 'Enzyme kinetics practical', href: 'practical.html', description: 'Fit four hypotheses on the published assay or your own CSV and export held-out predictions.', savesToWorkspace: true },

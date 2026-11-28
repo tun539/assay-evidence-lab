@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="AlphaFold-inspired 3D protein, RNA, DNA, and ion structure studio featuring PDB 8AW3, ten KEGG-linked AlphaFold DB v6 gene folds, real PAE matrices, and audience-tailored accessibility modes.">
+<meta name="description" content="AlphaFold Server-grade 3D protein, RNA, DNA, and ion structure studio featuring WebGL2 Mol* rendering, PDB 8AW3, ten KEGG-linked AlphaFold DB v6 gene folds, chain-tracked PAE matrices, mmCIF/PDB export, and multi-audience accessibility.">
 <title>3D Molecular &amp; Gene Structure Studio · Assay Evidence Studio</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="studio-prefs.css">
 <link rel="stylesheet" href="structure.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="studio-header" data-page="structure.html" data-mission="structure" data-methods="structure" data-related-href="dna.html" data-related-label="10-Gene 3D DNA lab →">
+<header class="studio-header" data-page="structure.html" data-mission="structure" data-methods="structure" data-related-href="molecular.html" data-related-label="Molecular learning lab →">
   <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
 </header>
 
@@ -21,16 +22,28 @@
     <div class="af-title-wrap">
       <p class="af-eyebrow" id="specimen-eyebrow">AlphaFold Server Reference · Multi-Entity 3D Structure</p>
       <h1 id="heading">Protein–RNA–Ion Complex (PDB 8AW3)</h1>
-      <p class="af-subtitle" id="intro">Interactive 3D molecular studio comparing AlphaFold DB v6 gene predictions, real PAE confidence maps, and multi-entity macromolecular complexes.</p>
+      <p class="af-subtitle" id="intro">Interactive WebGL2 3D molecular workbench comparing AlphaFold DB v6 predictions, real chain-tracked PAE confidence matrices, and multi-entity complexes.</p>
+      <div id="entity-summary-pills" class="af-entity-pills-bar" aria-label="Molecular entities"></div>
     </div>
     <div class="af-top-actions">
+      <button class="af-btn" id="start-tour" type="button">Tour 8AW3</button>
+      <button class="af-btn" id="share-link" type="button">Share Link</button>
       <a class="af-btn" id="dna-link" href="dna.html">Inspect 3D Gene DNA →</a>
-      <button class="af-btn" id="download-png" type="button">Snapshot PNG</button>
+      <details class="af-download-menu" id="download-menu">
+        <summary class="af-btn">Download ▾</summary>
+        <div class="af-download-panel" role="menu">
+          <button type="button" id="dl-cif" role="menuitem">AlphaFold mmCIF (.cif)</button>
+          <button type="button" id="dl-pdb" role="menuitem">Coordinates (.pdb)</button>
+          <button type="button" id="dl-pae" role="menuitem">PAE Confidence (.json)</button>
+          <button type="button" id="dl-fasta" role="menuitem">Sequences (.fasta)</button>
+          <button type="button" id="download-png" role="menuitem">3D Snapshot (.png)</button>
+        </div>
+      </details>
       <button class="af-btn primary" id="save-evidence" type="button">Save to workspace</button>
     </div>
   </section>
 
-  <!-- Selector, Audience Modes, and Universal Accessibility Ribbon -->
+  <!-- Selector, Audience Modes, File Load & Live Fetch Ribbon -->
   <section class="af-access-bar" aria-label="Model selector and accessibility modes">
     <div class="af-picker-group">
       <label for="protein">3D Model (18)</label>
@@ -39,13 +52,15 @@
     <div class="af-segmented" role="group" aria-label="Audience mode">
       <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
       <button type="button" data-audience="student" aria-pressed="true">Student</button>
+      <button type="button" data-audience="biologist" aria-pressed="false">Biologist</button>
       <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
     </div>
     <div class="af-a11y-toggles">
-      <button id="toggle-cb" type="button" class="af-chip-btn" aria-pressed="false">Colorblind palette</button>
+      <button id="toggle-cb" type="button" class="af-chip-btn" aria-pressed="false">Colorblind</button>
       <button id="toggle-hc" type="button" class="af-chip-btn" aria-pressed="false">High contrast</button>
       <button id="toggle-motion" type="button" class="af-chip-btn" aria-pressed="false">Reduced motion</button>
-      <label class="af-chip-btn" style="cursor:pointer">Load .PDB <input id="load-pdb" type="file" accept=".pdb,.ent,.txt" hidden></label>
+      <label class="af-chip-btn" style="cursor:pointer" title="Load local AlphaFold .cif or .pdb coordinates">Load .CIF / .PDB <input id="load-pdb" type="file" accept=".pdb,.ent,.cif,.mmcif,.txt" hidden></label>
+      <button id="fetch-live" type="button" class="af-chip-btn" title="Optional online fetch of full-atom coordinates from RCSB PDB / AlphaFold DB">Fetch full-atom</button>
     </div>
   </section>
 
@@ -64,19 +79,31 @@
     <div class="af-band-meter" id="band-meter" aria-label="Confidence band distribution" hidden></div>
   </section>
 
-  <!-- Main Dual-Pane Workbench (60% 3D Canvas | 40% PAE / Contact Matrix) -->
+  <!-- Main Dual-Pane Workbench (60% WebGL2 3D Viewport | 40% Chain-Tracked PAE / Contact Matrix) -->
   <div class="af-workbench" id="workspace">
-    <!-- Left: Interactive 3D Viewport -->
-    <section class="af-card" aria-label="Interactive 3D molecular viewport">
-      <div class="af-stage-wrap">
-        <span class="af-stage-badge" id="stage-badge">Cartoon · AlphaFold pLDDT</span>
+    <!-- Left: Interactive WebGL2 Mol*-Grade 3D Viewport -->
+    <section class="af-card" id="viewport-card" aria-label="Interactive 3D molecular viewport">
+      <div class="af-stage-wrap" id="stage-wrap">
+        <span class="af-stage-badge" id="stage-badge">WebGL2 · Cartoon · AlphaFold pLDDT</span>
         <div class="af-stage-toolbar">
-          <button id="reset" type="button" title="Reset camera and zoom (R)">Reset zoom</button>
-          <button id="orient-axes" type="button" title="Cycle X/Y/Z orthographic views">Orient axes</button>
-          <button id="toggle-spin" type="button" aria-pressed="false" title="Toggle smooth rotation (Space)">Auto-orbit</button>
+          <button id="reset" type="button" title="Reset camera and zoom (R)">Reset</button>
+          <button id="orient-axes" type="button" title="Cycle X/Y/Z orthographic views">Axes</button>
+          <button id="focus-a" type="button" title="Fly camera smoothly to Residue A">Focus A</button>
+          <button id="toggle-spin" type="button" aria-pressed="false" title="Toggle smooth rotation (Space)">Spin</button>
           <button id="toggle-theme" type="button" aria-pressed="false" title="Switch light AlphaFold vs dark Cosmos stage">Dark stage</button>
+          <button id="toggle-fullscreen" type="button" aria-pressed="false" title="Expand 3D viewport">Expand</button>
+          <details class="af-settings-pop">
+            <summary title="Mol* Visual &amp; Pocket Settings">⚙</summary>
+            <div class="af-settings-menu">
+              <label><input type="checkbox" id="opt-outline" checked> Mol* silhouette outline</label>
+              <label><input type="checkbox" id="opt-ao" checked> Cavity ambient occlusion</label>
+              <label><input type="checkbox" id="opt-pocket" checked> Active-site pocket sidechains</label>
+              <label><input type="checkbox" id="opt-ligands" checked> Metal ions &amp; ligands</label>
+              <label><input type="checkbox" id="opt-labels" checked> Distance &amp; triad labels</label>
+            </div>
+          </details>
         </div>
-        <canvas id="view" width="760" height="520" tabindex="0" role="img" aria-label="Interactive 3D molecular model. Drag to orbit, scroll to zoom, Shift-drag to pan, or use arrow keys."></canvas>
+        <canvas id="view" width="760" height="540" tabindex="0" role="img" aria-label="Interactive 3D molecular model. Drag to orbit, scroll to zoom, Shift-drag to pan, click residue to inspect, or use arrow keys."></canvas>
         <div id="hover-tip" class="af-hover-tip" hidden></div>
       </div>
 
@@ -85,8 +112,8 @@
           <select id="rep">
             <option value="cartoon" selected>Cartoon / Ribbon</option>
             <option value="tube">Backbone Tube</option>
-            <option value="trace">Ball &amp; Stick (Cα)</option>
-            <option value="surface">Spacefill Surface</option>
+            <option value="trace">All-Atom / Ball &amp; Stick</option>
+            <option value="surface">Molecular Surface</option>
           </select>
         </label>
         <label>Color by
@@ -106,31 +133,45 @@
       </div>
     </section>
 
-    <!-- Right: PAE / Contact Map / pLDDT Profile Dock -->
-    <section class="af-card" aria-label="PAE matrix, contact map, and distance measurement">
+    <!-- Right: Chain-Tracked PAE / Contact Map / Interactive 1D pLDDT Profile Dock -->
+    <section class="af-card" id="matrix-card" aria-label="PAE matrix, contact map, and distance measurement">
       <div class="af-matrix-head">
         <h2 id="matrix-title">Expected Position Error (PAE)</h2>
         <div class="af-matrix-tabs" role="group" aria-label="Matrix mode">
           <button type="button" data-matrix="pae" aria-pressed="true">PAE</button>
           <button type="button" data-matrix="contact" aria-pressed="false">Contacts</button>
           <button type="button" data-matrix="profile" aria-pressed="false">Profile</button>
+          <button type="button" data-matrix="table" aria-pressed="false">Table</button>
         </div>
       </div>
 
       <div class="af-matrix-body">
         <div id="matrix-canvas-box" class="af-matrix-canvas-wrap">
-          <canvas id="map" width="320" height="320" aria-label="Interactive PAE and residue contact matrix. Click any cell to measure the pair in 3D."></canvas>
+          <div id="pae-top-track" class="af-pae-track top" aria-hidden="true"></div>
+          <div class="af-pae-row-wrap">
+            <div id="pae-left-track" class="af-pae-track left" aria-hidden="true"></div>
+            <canvas id="map" width="320" height="320" aria-label="Interactive PAE and residue contact matrix. Hover to highlight regions in 3D; click to measure pair."></canvas>
+          </div>
         </div>
 
         <div id="profile-box" hidden>
-          <svg id="profile" viewBox="0 0 560 175" role="img" aria-label="Per-residue pLDDT confidence or contact degree profile" style="width:100%;background:#f5f9f6;border-radius:8px;border:1px solid #d4dfd7"></svg>
+          <svg id="profile" viewBox="0 0 560 185" role="img" aria-label="Clickable per-residue pLDDT confidence or contact degree profile" style="width:100%;background:#f5f9f6;border-radius:8px;border:1px solid #d4dfd7"></svg>
           <p id="profile-caption" style="font-size:12.5px;color:var(--af-muted);margin:6px 0 0"></p>
+        </div>
+
+        <div id="table-box" hidden>
+          <div class="af-a11y-table-wrap">
+            <table class="af-a11y-table">
+              <thead><tr><th>Entity</th><th>Type</th><th>Length</th><th>Mean pLDDT / Span</th></tr></thead>
+              <tbody id="a11y-summary-rows"></tbody>
+            </table>
+          </div>
         </div>
 
         <div id="pae-scale" class="af-pae-scale">
           <div class="af-pae-gradient"></div>
           <div class="af-pae-ticks"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30 Å</span></div>
-          <div id="matrix-hover" style="font-weight:600;color:var(--af-ink)">Expected Position Error (Ångströms) · Click any cell to inspect in 3D</div>
+          <div id="matrix-hover" style="font-weight:600;color:var(--af-ink)">Expected Position Error (Ångströms) · Hover to highlight 3D · Click to measure</div>
         </div>
 
         <div class="af-matrix-options">
@@ -162,13 +203,16 @@
   </div>
 
   <!-- AlphaFold Server-Style Bottom "Information" Sequence & Entities Panel -->
-  <section class="af-section" aria-labelledby="info-heading">
+  <section class="af-section" id="info-section" aria-labelledby="info-heading">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px">
       <div>
         <h2 id="info-heading" style="margin-bottom:2px">Information · Entities &amp; Sequence</h2>
-        <p style="margin:0;font-size:13.5px;color:var(--af-muted)">Click any residue to set Residue A (Shift+click sets Residue B). Residues are colored by AlphaFold pLDDT or chain.</p>
+        <p style="margin:0;font-size:13.5px;color:var(--af-muted)">Toggle chain visibility (eye icon), isolate/focus entities in 3D, copy FASTA, or click any residue tile to set A (Shift+click sets B).</p>
       </div>
-      <span id="geometry" style="font-size:13.5px;font-weight:600;color:#1e4d3e"></span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span id="geometry" style="font-size:13.5px;font-weight:600;color:#1e4d3e"></span>
+        <button id="show-all-chains" type="button" class="af-btn" style="min-height:32px;padding:3px 10px;font-size:12.5px" hidden>Show all chains</button>
+      </div>
     </div>
     <div id="entities-list" class="af-info-entities"></div>
   </section>
@@ -183,35 +227,41 @@
         <p id="network" style="margin:0;font-size:13.5px;color:var(--af-muted)"></p>
       </div>
       <div class="af-insight-panel">
-        <h3>Provenance &amp; scientific scope</h3>
+        <h3>Provenance &amp; cross-lab pipeline</h3>
         <p id="provenance" style="margin:0 0 10px;font-size:14px"></p>
         <div class="af-export-row">
           <button id="save" type="button" class="af-btn">Measurement CSV</button>
           <button id="trace" type="button" class="af-btn">Cα Coordinates JSON</button>
           <button id="edges" type="button" class="af-btn">Contacts CSV</button>
+          <a href="audit.html" class="af-btn">Audit Confidence →</a>
           <a href="workspace.html" class="af-btn">Open workspace</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Cosmos-Inspired Curated 3D Specimen Gallery (All 18 Models) -->
-  <section class="af-section" aria-labelledby="gallery-heading">
+  <!-- Cosmos-Inspired Curated 3D Specimen Gallery with Live 3D Thumbnails -->
+  <section class="af-section" id="gallery-section" aria-labelledby="gallery-heading">
     <div class="cosmos-head">
       <div>
-        <h2 id="gallery-heading" style="margin-bottom:2px">Curated 3D specimen gallery</h2>
-        <p style="margin:0;font-size:14px;color:var(--af-muted)">10 real KEGG-linked AlphaFold DB v6 gene models + 8 experimental &amp; multi-entity PDB complexes.</p>
+        <h2 id="gallery-heading" style="margin-bottom:2px">Cosmos-Curated 3D Specimen Atlas</h2>
+        <p style="margin:0;font-size:14px;color:var(--af-muted)">10 real KEGG-linked AlphaFold DB v6 gene models + 8 experimental &amp; multi-entity PDB complexes, rendered from real 3D coordinates.</p>
       </div>
-      <div class="cosmos-tabs" role="group" aria-label="Filter gallery">
-        <button type="button" class="af-chip-btn" data-gallery="all" aria-pressed="true">All (18)</button>
-        <button type="button" class="af-chip-btn" data-gallery="gene" aria-pressed="false">Gene AlphaFold (10)</button>
-        <button type="button" class="af-chip-btn" data-gallery="pdb" aria-pressed="false">Complexes &amp; PDB (8)</button>
+      <div class="cosmos-controls">
+        <input type="search" id="gallery-search" class="cosmos-search" placeholder="Search gene, PDB, organism, or fold (e.g. TP53, RNA, Zn)..." aria-label="Search 3D specimens">
+        <div class="cosmos-tabs" role="group" aria-label="Filter gallery">
+          <button type="button" class="af-chip-btn" data-gallery="all" aria-pressed="true">All (18)</button>
+          <button type="button" class="af-chip-btn" data-gallery="gene" aria-pressed="false">Gene AlphaFold (10)</button>
+          <button type="button" class="af-chip-btn" data-gallery="pdb" aria-pressed="false">Complexes &amp; PDB (8)</button>
+          <button type="button" class="af-chip-btn" data-gallery="multi" aria-pressed="false">Multi-Entity / Ligands</button>
+        </div>
       </div>
     </div>
     <div id="specimen-gallery" class="cosmos-grid"></div>
   </section>
 </main>
 
+<script src="studio-prefs.js"></script>
 <script src="evidence-records.js"></script>
 <script src="studio-nav.js"></script>
 <script src="ubiquitin.js"></script>
@@ -228,6 +278,7 @@
 <script src="folds/P0A7G6.js"></script>
 <script src="folds/P00441.js"></script>
 <script src="experimental.js"></script>
+<script src="mol3d-webgl.js"></script>
 <script src="mol3d-engine.js"></script>
 <script src="structure.js"></script>
 </body>

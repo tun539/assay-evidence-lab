@@ -7,11 +7,14 @@
 <title>Simulation &amp; ML Force-Field Workbench · Assay Evidence Studio</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="studio-prefs.css">
 <link rel="stylesheet" href="simulation.css">
+<script defer src="studio-prefs.js"></script>
 <script defer src="ubiquitin.js"></script>
 <script defer src="experimental.js"></script>
 <script defer src="fold-catalog.js"></script>
 <script defer src="folds/P04637.js"></script>
+<script defer src="mol3d-webgl.js"></script>
 <script defer src="mol3d-engine.js"></script>
 <script defer src="sim-engine.js"></script>
 <script defer src="evidence-records.js"></script>
@@ -25,7 +28,6 @@
 </header>
 
 <main class="sw-main" id="main">
-  <!-- Executive Topbar -->
   <section class="sw-topbar" aria-label="Simulation workbench overview">
     <div class="sw-title-wrap">
       <p class="sw-eyebrow">Molecular Force Fields, Symplectic MD &amp; Equilibrium Ensembles · MACE · MDsim · BioEmu · molML</p>
@@ -46,7 +48,6 @@
     <option value="ensemble">Sampling two conformations</option>
   </select>
 
-  <!-- Two-Pillar Research Track Switcher -->
   <div class="sw-track-bar" role="group" aria-label="Simulation track">
     <button type="button" class="sw-track-card" id="track-force" aria-pressed="true">
       <span class="sw-track-tag">Track A · MACE &amp; MDsim ("Forces Are Not Enough")</span>
@@ -60,13 +61,11 @@
     </button>
   </div>
 
-  <!-- Dynamic Selectors & Continuous Sliders -->
   <section class="sw-control-panel" aria-label="Simulation parameters">
     <div class="sw-selectors-grid" id="selector-bar"></div>
     <div class="sw-sliders-grid" id="controls"></div>
   </section>
 
-  <!-- Audience Depth, Overlays, Active Learning & Live Trajectory Scrubber -->
   <div class="sw-toggles-row" aria-label="Audience mode, active learning, and live trajectory playback">
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
       <div class="sw-segmented" role="group" aria-label="Explanation audience depth">
@@ -75,50 +74,52 @@
         <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
       </div>
       <button type="button" class="sw-chip" id="toggle-unc" aria-pressed="true">±2σ Epistemic band</button>
-      <button type="button" class="sw-chip" id="toggle-cb" aria-pressed="false">Colorblind palette</button>
-      <button type="button" class="sw-btn accent-rose" id="add-active-anchor" style="min-height:32px;padding:4px 11px;font-size:12.5px">+ Add DFT Query x*</button>
-      <button type="button" class="sw-mini-btn" id="reset-anchors" hidden>Reset anchors</button>
+      <button type="button" class="sw-chip" id="toggle-cb" aria-pressed="false">Colorblind Okabe–Ito</button>
+      <button type="button" class="sw-chip" id="add-query">+ Add DFT Query x*</button>
+      <button type="button" class="sw-chip" id="clear-queries">Clear Queries (0)</button>
     </div>
-
-    <div class="sw-scrubber">
-      <button type="button" class="sw-mini-btn" id="play-sim" aria-pressed="false">▶ Play</button>
-      <label for="frame-slider" id="frame-label">Frame 0</label>
-      <input type="range" id="frame-slider" min="0" max="480" value="120">
-      <button type="button" class="sw-mini-btn" id="run" title="Re-compute simulation">Re-run</button>
+    <div class="sw-playback-box">
+      <button type="button" class="sw-btn primary" id="play-traj" aria-pressed="false">Play MD / Conformers</button>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:650">
+        <span>Frame</span>
+        <input id="traj-frame" type="range" min="0" max="480" value="120" style="width:120px;accent-color:#17493d">
+      </label>
+      <span id="frame-readout" style="font:600 12px/1 monospace;min-width:68px">step 120</span>
     </div>
   </div>
-  <output id="status" class="visually-hidden" style="position:absolute;left:-9999px" aria-live="polite"></output>
 
-  <!-- 6-Card Quantitative Telemetry Strip -->
-  <section class="sw-kpi-grid" id="sim-kpi-strip" aria-label="Simulation telemetry"></section>
+  <section class="sw-kpi-grid" aria-label="Real-time physics and ensemble metrics">
+    <article class="sw-kpi"><span class="sw-kpi-label" id="kpi-1-lbl">Metric 1</span><strong class="sw-kpi-val" id="kpi-1-val">—</strong><span class="sw-kpi-sub" id="kpi-1-sub"></span></article>
+    <article class="sw-kpi"><span class="sw-kpi-label" id="kpi-2-lbl">Metric 2</span><strong class="sw-kpi-val" id="kpi-2-val">—</strong><span class="sw-kpi-sub" id="kpi-2-sub"></span></article>
+    <article class="sw-kpi"><span class="sw-kpi-label" id="kpi-3-lbl">Metric 3</span><strong class="sw-kpi-val" id="kpi-3-val">—</strong><span class="sw-kpi-sub" id="kpi-3-sub"></span></article>
+    <article class="sw-kpi"><span class="sw-kpi-label" id="kpi-4-lbl">Metric 4</span><strong class="sw-kpi-val" id="kpi-4-val">—</strong><span class="sw-kpi-sub" id="kpi-4-sub"></span></article>
+    <article class="sw-kpi"><span class="sw-kpi-label" id="kpi-5-lbl">Metric 5</span><strong class="sw-kpi-val" id="kpi-5-val">—</strong><span class="sw-kpi-sub" id="kpi-5-sub"></span></article>
+    <article class="sw-kpi"><span class="sw-kpi-label" id="kpi-6-lbl">Metric 6</span><strong class="sw-kpi-val" id="kpi-6-val">—</strong><span class="sw-kpi-sub" id="kpi-6-sub"></span></article>
+  </section>
 
-  <!-- Primary Dual-Stage Multi-Graph Workbench -->
-  <div class="sw-dual-grid" id="sim-dual-grid">
-    <!-- Left Stage: Potential, Force & 1D/2D Free-Energy Surfaces -->
+  <div class="sw-stage-grid">
     <section class="sw-card" aria-labelledby="left-stage-title">
       <div class="sw-card-head">
-        <h2 id="left-stage-title">Potential, Force &amp; Free-Energy Surface</h2>
-        <div class="sw-tabs" id="left-tabs" role="group" aria-label="Left stage graph view"></div>
+        <h2 id="left-stage-title">Potential Energy &amp; Force Surrogate</h2>
+        <div class="sw-tabs" id="left-tabs" role="group" aria-label="Left chart views"></div>
       </div>
       <div class="sw-plot-stage">
-        <svg class="sim-plot" id="left-svg" viewBox="0 0 680 320" role="img" aria-label="Potential energy, force law, parity, or free-energy plot"></svg>
-        <canvas class="sw-canvas-2d" id="left-canvas" width="680" height="320" hidden role="img" aria-label="2D conformational free-energy contour landscape"></canvas>
+        <svg class="sw-plot" id="left-svg" viewBox="0 0 680 340" role="img" aria-label="Interactive simulation potential or free-energy landscape chart"></svg>
       </div>
       <div class="sw-legend-row">
         <div class="sw-legend-items" id="left-legend"></div>
-        <button type="button" class="sw-mini-btn" id="export-left-fig">Export Figure</button>
+        <button type="button" class="sw-mini-btn" id="export-left-svg">Export SVG</button>
       </div>
       <div class="sw-explain" id="left-analysis" aria-live="polite"></div>
     </section>
 
-    <!-- Right Stage: Trajectory, Phase Space, Hamiltonian Drift & VACF/Autocorrelation -->
     <section class="sw-card" aria-labelledby="right-stage-title">
       <div class="sw-card-head">
-        <h2 id="right-stage-title">Dynamics, Phase Space &amp; Spectral Diagnostics</h2>
-        <div class="sw-tabs" id="right-tabs" role="group" aria-label="Right stage graph view"></div>
+        <h2 id="right-stage-title">Dynamical Trajectory &amp; Phase Space</h2>
+        <div class="sw-tabs" id="right-tabs" role="group" aria-label="Right chart views"></div>
       </div>
       <div class="sw-plot-stage">
-        <svg class="sim-plot" id="right-svg" viewBox="0 0 680 320" role="img" aria-label="Trajectory, phase space, Hamiltonian energy drift, vibrational power spectrum, or autocorrelation plot"></svg>
+        <svg class="sw-plot" id="right-svg" viewBox="0 0 680 340" role="img" aria-label="Interactive trajectory, phase portrait, Hamiltonian energy drift, or vibrational spectrum chart"></svg>
       </div>
       <div class="sw-legend-row">
         <div class="sw-legend-items" id="right-legend"></div>
@@ -128,27 +129,21 @@
     </section>
   </div>
 
-  <!-- Deep Diagnostics Row: Sweep Matrix + 3D Biomolecular Conformational Breathing Stage -->
-  <div class="sw-deep-grid" id="sweep">
-    <!-- Left: Interactive Coverage / Barrier Sweep Matrix & Regime Bar Chart -->
-    <section class="sw-card" aria-labelledby="sweep-title">
+  <div class="sw-deep-grid">
+    <section class="sw-card" aria-labelledby="deep-left-title">
       <div class="sw-card-head">
-        <h2 id="sweep-title">OOD Generalization &amp; Barrier Sweep Matrix</h2>
-        <span class="sw-eq-pill">Click any cell to inspect regime</span>
+        <h2 id="deep-left-title">Diagnostic Matrix &amp; Sampling Convergence</h2>
+        <span class="sw-eq-pill" id="deep-left-pill">OOD Audit</span>
       </div>
-      <div class="sw-heatmap-wrap">
-        <table class="sw-heatmap-table" id="sweep-heatmap" aria-label="Parameter sweep matrix across training coverage or barrier heights"></table>
+      <div class="sw-plot-stage">
+        <svg class="sw-plot" id="deep-svg" viewBox="0 0 680 285" role="img" aria-label="OOD generalization curve or ensemble sampling convergence plot"></svg>
       </div>
-      <div class="sw-plot-stage" style="padding-top:2px">
-        <svg class="sim-plot" id="sweep-bars" viewBox="0 0 620 185" role="img" aria-label="Comparison of In-Domain vs Out-of-Distribution error or Sampler convergence"></svg>
-      </div>
-      <div class="sw-explain" id="sweep-analysis"></div>
+      <div class="sw-explain" id="deep-left-analysis"></div>
     </section>
 
-    <!-- Right: Live 3D Biomolecular Conformational Breathing Stage -->
     <section class="sw-card" aria-labelledby="stage3d-title">
       <div class="sw-card-head">
-        <h2 id="stage3d-title">3D Conformational Ensemble &amp; Mode Coupling</h2>
+        <h2 id="stage3d-title">Coupled 3D Protein Conformational Breathing</h2>
         <div class="sw-tabs" id="rep3d-tabs" role="group" aria-label="3D molecular representation">
           <button type="button" data-rep="cartoon" aria-pressed="true">Cartoon</button>
           <button type="button" data-rep="tube" aria-pressed="false">Tube</button>
@@ -163,16 +158,13 @@
         </div>
       </div>
       <div class="sw-legend-row">
-        <div class="sw-legend-items" id="stage3d-legend">
-          <span>Drag to orbit · Scroll to zoom · Scrub or Play to morph conformer</span>
-        </div>
+        <span style="font-size:12.5px;color:#4a6458">Drag to orbit · Scroll to zoom · Coupled live to active trajectory coordinate</span>
         <button type="button" class="sw-mini-btn" id="export-3d-png">Snapshot PNG</button>
       </div>
       <div class="sw-explain" id="stage3d-analysis"></div>
     </section>
   </div>
 
-  <!-- Quantitative Surrogate / Sampler Leaderboard -->
   <section class="sw-section-card" aria-labelledby="leaderboard-title">
     <div class="sw-card-head">
       <div>
@@ -190,7 +182,6 @@
     <div class="sw-synthesis-callout" id="leaderboard-synthesis"></div>
   </section>
 
-  <!-- Role-Based Peer-Review Protocol (Preserves Analyst / Reviewer / Lead Team Exercise!) -->
   <section class="sw-section-card" aria-labelledby="discussion-title">
     <div class="sw-card-head">
       <div>
@@ -219,7 +210,6 @@
     </div>
   </section>
 
-  <!-- Scientific Provenance & Reference Framing -->
   <section class="sw-section-card" aria-labelledby="methodology-title">
     <div class="sw-card-head">
       <h2 id="methodology-title">Scientific Provenance · MACE, MDsim, BioEmu &amp; Independent Verification</h2>
