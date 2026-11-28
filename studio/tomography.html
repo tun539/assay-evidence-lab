@@ -1,7 +1,418 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inside the specimen · Assay Evidence Studio</title><link rel="stylesheet" href="research.css"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="studio-nav.css"><style>
-.lab{background:#102e33;color:#e7f1e9;padding:18px;border-radius:16px}.panes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}.lab figure{margin:0}.lab canvas{width:100%;display:block;background:#0a2127;border-radius:8px}.lab figcaption{margin:7px 0;color:#ccded6}.controls label{display:grid;gap:3px}.controls input{accent-color:#23765c}#metrics{font-variant-numeric:tabular-nums}#volume{touch-action:none;cursor:grab}#volume:focus-visible{outline:3px solid gold}#survey table{border-collapse:collapse;margin:1rem 0}#survey th,#survey td{padding:.35rem;text-align:center}#heat button{width:100%;padding:.6rem;border:1px solid #628779;border-radius:5px;font-variant-numeric:tabular-nums}#survey label{display:inline-block;margin:.4rem}</style></head><body><a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="tomography.html" data-mission="tomography" data-methods="tomography" data-related-href="linked.html" data-related-label="Linked protein explorer →"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header><main id="main"><h1>Inside the specimen</h1><p class="intro">How much of a protein’s shape survives when it is viewed from only a few directions? Choose a protein, rotate its predicted backbone, then test how faithfully its central slice can be recovered.</p><section><label>Biological specimen <select id="specimen">
-<option value="P00846">Human · ATP synthase subunit a (MT-ATP6)</option><option value="P0A7J3">E. coli · ribosomal protein L10 (rplJ)</option><option value="P00359">Budding yeast · GAPDH (TDH3)</option><option value="Q31BY4">Marine cyanobacterium · RuBisCO large subunit (rbcL)</option><option value="O23290">Arabidopsis · zinc-binding ribosomal protein (AT4G14320)</option><option value="P04637">Human · Tumor suppressor p53 (TP53)</option><option value="P68871">Human · Hemoglobin subunit beta (HBB)</option><option value="P01308">Human · Preproinsulin (INS)</option><option value="P0A7G6">E. coli · Recombinase RecA (recA)</option><option value="P00441">Human · Cu/Zn Superoxide dismutase (SOD1)</option><option value="">Geometric calibration sample</option></select></label><h2 id="identity"></h2><p id="biology"></p><p id="question"></p><p id="measurement"></p><div id="sources"></div></section>
-<div class="controls"><label>Slice height <input type="range" id="slice" min="-80" max="80" value="0"></label><label>Projection angles<select id="angles"><option>4</option><option>8</option><option selected>24</option><option>48</option></select></label><label>Reconstruction passes<select id="steps"><option>1</option><option>5</option><option selected>20</option><option>60</option></select></label><label><input id="limited" type="checkbox"> Limit scan to 90°</label></div>
-<div class="lab panes"><figure><canvas id="volume" width="240" height="240" tabindex="0" aria-label="Rotatable specimen and highlighted slice"></canvas><figcaption>3D specimen · drag or use arrow keys</figcaption></figure><figure><canvas id="truth" width="64" height="64"></canvas><figcaption>Known slice · target density</figcaption></figure><figure><canvas id="sino" width="64" height="64"></canvas><figcaption>Detector signal · columns are angles, rows are detector bins</figcaption></figure><figure><canvas id="recon" width="64" height="64"></canvas><figcaption>Reconstructed slice · same density scale as target</figcaption></figure></div>
-<section id="survey"><h2>Which proteins are hardest to reconstruct?</h2><p>Compare five central slices at 20 reconstruction passes. Each cell gives the density error (RMSE). Darker green means higher error on a shared scale across both scan ranges. Select a cell to load its experiment above.</p><label>Survey scan range <select id="surveySpan"><option>180</option><option>90</option></select> degrees</label><div style="overflow:auto"><table id="heat"></table></div><p id="finding"></p><h3>Predict error for a held-out protein</h3><p>Choose a protein to hide its four outcomes at the selected scan range. Train on the other four proteins, then compare predictions with the hidden simulation results. The nearest-neighbor model uses mean density from the known reference slice, so using it requires a reference structure.</p><label>Hold out <select id="hold"></select></label> <label>Training method <select id="learner"><option value="mean">Mean error for each angle count</option><option value="neighbor">Nearest neighbor by mean slice density</option></select></label> <button id="train">Train and evaluate</button><div id="evaluation" aria-live="polite"></div><button id="surveyExport">Download all 40 observations (CSV)</button></section><section><h2>Reconstruction error</h2><p id="metrics" role="status"></p><svg id="curve" viewBox="0 0 600 125" role="img" aria-label="Density RMSE by reconstruction pass"></svg><div class="controls"><button id="save">Export experiment JSON</button><button id="save-evidence" type="button">Save to evidence workspace</button><a href="workspace.html">Open workspace</a></div><p id="save-status" role="status"></p></section>
-<section><h2>From AI prediction to a testable image</h2><p>The AI contribution is the published AlphaFold prediction of a single protein chain. Each vertex in the green trace represents one amino acid at its alpha carbon. Gold segments cross the selected slab. The camera rotates independently of the sampling plane.</p><p>For each slice we spread each alpha carbon into a Gaussian with a 2.5 Å standard deviation and divide the map by its peak. Brighter pixels indicate more nearby backbone points. The simulated detector sums this proxy along parallel lines. An iterative numerical solver uses those sums to estimate the slice. RMSE compares its output to the known input on the same grid. This exercise measures recovery of the predicted shape. Testing biological accuracy would require independent experimental data.</p></section><section><h2>Try the missing-angle experiment</h2><p>Keep the slice and pass count fixed. Compare 4 angles with 48, then restrict the scan to 90°. Inspect the small structures and record which change affects density error most. The detector records sums along parallel rays. Each solver pass projects its current estimate, compares those sums with the readings and distributes the residuals back to the pixels.</p><p>These noise-free, dimensionless measurements come from the same discretized operator used for reconstruction. This is a controlled inverse problem with known ground truth.</p></section></main><script src="dna-data.js"></script><script src="fold-catalog.js"></script><script src="folds/P00846.js"></script><script src="folds/P0A7J3.js"></script><script src="folds/P00359.js"></script><script src="folds/Q31BY4.js"></script><script src="folds/O23290.js"></script><script src="folds/P04637.js"></script><script src="folds/P68871.js"></script><script src="folds/P01308.js"></script><script src="folds/P0A7G6.js"></script><script src="folds/P00441.js"></script><script src="evidence-records.js"></script><script src="tomography.js"></script><script src="survey-data.js"></script><script src="survey.js"></script><script src="studio-nav.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Inside the specimen: interactive Cryo-ET and parallel-beam computational tomography workbench across 16 AlphaFold &amp; PDB macromolecular specimens, 6 solvers (SIRT, SART, FBP, WBP, MLEM, CS-TV), FRC 0.143 resolution, and inverse-crime audits.">
+<title>Inside the specimen · Cryo-ET &amp; Tomography Workbench · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="tomography.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="tomography.html" data-mission="tomography" data-methods="tomography" data-related-href="structure.html" data-related-label="3D Molecular Studio →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+
+<main id="main" class="tw-main">
+  <!-- Executive Header -->
+  <div class="tw-topbar">
+    <div class="tw-title-wrap">
+      <p class="tw-eyebrow">Cryo-ET &amp; Radon Inverse Problems · 16 Specimens · 6 Solvers · Gold-Standard FRC 0.143</p>
+      <h1>Inside the specimen</h1>
+      <p class="tw-subtitle">Audit how macromolecules and analytical phantoms are recovered from sparse, noisy, or missing-wedge tilt projections across analytical Fourier (<code>FBP</code>/<code>WBP</code>), algebraic (<code>SIRT</code>/<code>SART</code>), statistical Poisson (<code>MLEM</code>), and compressed-sensing Total Variation (<code>CS-TV</code>) solvers.</p>
+    </div>
+    <div class="tw-top-actions">
+      <div class="tw-seg" role="group" aria-label="Audience explanation depth">
+        <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+        <button type="button" data-audience="student" aria-pressed="true">Student</button>
+        <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+      </div>
+      <button id="toggle-cb" class="tw-btn" type="button" aria-pressed="false">Okabe–Ito</button>
+      <button id="save" class="tw-btn" type="button">Export JSON</button>
+      <button id="save-evidence" class="tw-btn primary" type="button">Save to workspace</button>
+    </div>
+  </div>
+  <p id="save-status" role="status" style="margin:0 0 10px;font-size:13px;font-weight:600;color:#14532d"></p>
+
+  <!-- Specimen Selection & Biological Context -->
+  <section class="tw-card" aria-labelledby="identity">
+    <div class="tw-specimen-grid">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="tw-field">
+          <label for="specimen">Biological specimen or calibration phantom (16 models)</label>
+          <select id="specimen">
+            <option value="P00846">MT-ATP6 · ATP synthase subunit a (Human)</option>
+          </select>
+        </div>
+        <div class="tw-field">
+          <label for="weight-mode">Scattering potential parameterization</label>
+          <select id="weight-mode">
+            <option value="uniform" selected>Atomic Z / uniform Cα electron scattering</option>
+            <option value="plddt">AlphaFold pLDDT confidence-weighted density</option>
+          </select>
+        </div>
+      </div>
+      <div class="tw-spec-meta">
+        <h2 id="identity">ATP synthase subunit a · Human mitochondrion</h2>
+        <p id="biology"></p>
+        <p id="question" class="tw-spec-question"></p>
+        <div class="tw-spec-foot">
+          <span id="measurement" class="tw-spec-chip"></span>
+          <span id="sources"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Acquisition Physics & Solver Control Ribbon -->
+  <section class="tw-card" aria-label="Tomographic acquisition and solver controls">
+    <div class="tw-controls-grid">
+      <div class="tw-field">
+        <label for="solver">Reconstruction algorithm (6 families)</label>
+        <select id="solver">
+          <option value="sirt" selected>SIRT · Simultaneous Iterative (x ≥ 0)</option>
+          <option value="sart">SART · Ordered-Angle Algebraic (x ≥ 0)</option>
+          <option value="fbp_ramlak">FBP · Filtered Back-Projection (Ram-Lak)</option>
+          <option value="wbp_hann">WBP · Cryo-ET Hann Windowed FBP</option>
+          <option value="mlem">MLEM · Poisson Maximum-Likelihood EM</option>
+          <option value="tv_fista">CS-TV · Compressed-Sensing Total Variation</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="angles">Projection views (Nθ)</label>
+        <select id="angles">
+          <option value="4">4 views (extreme sparse)</option>
+          <option value="8">8 views (sparse)</option>
+          <option value="16">16 views (moderate)</option>
+          <option value="24" selected>24 views (standard)</option>
+          <option value="36">36 views (dense)</option>
+          <option value="48">48 views (high angular)</option>
+          <option value="72">72 views (near-Crowther)</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="tilt-span">Angular tilt range &amp; missing wedge</label>
+        <select id="tilt-span">
+          <option value="180" selected>180° Full rotation (0° missing wedge)</option>
+          <option value="120">120° Cryo-ET holder (±60° · 60° missing wedge)</option>
+          <option value="90">90° Severe limited tilt (±45° · 90° missing wedge)</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="steps">Iterative passes (K)</label>
+        <select id="steps">
+          <option value="1">1 pass</option>
+          <option value="5">5 passes</option>
+          <option value="12">12 passes</option>
+          <option value="20" selected>20 passes</option>
+          <option value="40">40 passes</option>
+          <option value="60">60 passes</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="dose">Electron dose / detector shot noise</label>
+        <select id="dose">
+          <option value="inf" selected>Noise-free ideal (∞ e⁻/Å²)</option>
+          <option value="200">High dose (200 e⁻/Å² · synchrotron)</option>
+          <option value="40">Cryo-ET standard low dose (40 e⁻/Å²)</option>
+          <option value="12">Ultra-low dose (12 e⁻/Å² · severe shot noise)</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="ctf-mode">Microscope Contrast Transfer Function (CTF)</label>
+        <select id="ctf-mode">
+          <option value="none" selected>Direct absorption / ideal phase</option>
+          <option value="cryo_ctf">Weak-phase 300 kV CTF (uncorrected)</option>
+          <option value="ctf_flipped">300 kV CTF + Phase-Flip restoration</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="grid-size">Tomogram grid resolution</label>
+        <select id="grid-size">
+          <option value="64" selected>64 × 64 (standard · 94 bins/view)</option>
+          <option value="96">96 × 96 (high-res · 142 bins/view)</option>
+        </select>
+      </div>
+      <div class="tw-field">
+        <label for="seed">Noise random seed</label>
+        <input id="seed" type="number" min="1" max="999999" step="1" value="42">
+      </div>
+    </div>
+
+    <div class="tw-sliders-grid">
+      <div class="tw-field">
+        <div class="tw-slider-head"><label for="slice">Slice height z</label><output id="slice-out">0.00 (0.0 Å)</output></div>
+        <input id="slice" type="range" min="-80" max="80" step="2" value="0">
+      </div>
+      <div class="tw-field">
+        <div class="tw-slider-head"><label for="scanline">Crosshair scanline y₀</label><output id="scanline-out">Row 32</output></div>
+        <input id="scanline" type="range" min="0" max="63" step="1" value="32">
+      </div>
+      <div class="tw-field">
+        <div class="tw-slider-head"><label for="tv-lambda">CS-TV regularization λ</label><output id="tv-lambda-out">0.0035</output></div>
+        <input id="tv-lambda" type="range" min="0.0005" max="0.0400" step="0.0005" value="0.0035">
+      </div>
+      <div class="tw-field">
+        <div class="tw-slider-head"><label for="defocus">CTF defocus Δz (μm)</label><output id="defocus-out">1.5 μm</output></div>
+        <input id="defocus" type="range" min="0.5" max="3.5" step="0.1" value="1.5">
+      </div>
+    </div>
+
+    <div class="tw-toggles-bar">
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+        <label class="tw-check"><input id="honest-forward" type="checkbox"> Avoid Inverse Crime (2× fine forward + 0.35 px detector shift)</label>
+        <label class="tw-check"><input id="show-beams" type="checkbox" checked> Show 3D tilt-ray fan &amp; missing wedge</label>
+        <label class="tw-check" hidden><input id="limited" type="checkbox"> Limit scan to 90°</label>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button id="play-z" class="tw-btn" type="button">▶ Sweep Z-stack</button>
+        <button id="reset-view" class="tw-btn" type="button">Reset 3D view</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6-Card Executive Telemetry Strip -->
+  <section class="tw-kpi-grid" aria-label="Reconstruction telemetry">
+    <div class="tw-kpi">
+      <span class="tw-kpi-label">Density RMSE</span>
+      <span id="kpi-rmse" class="tw-kpi-val">—</span>
+      <span id="kpi-rmse-sub" class="tw-kpi-sub">MAE —</span>
+    </div>
+    <div class="tw-kpi">
+      <span class="tw-kpi-label">Structural SSIM</span>
+      <span id="kpi-ssim" class="tw-kpi-val">—</span>
+      <span id="kpi-ssim-sub" class="tw-kpi-sub">Lin CCC —</span>
+    </div>
+    <div class="tw-kpi">
+      <span class="tw-kpi-label">Peak SNR</span>
+      <span id="kpi-psnr" class="tw-kpi-val">—</span>
+      <span id="kpi-psnr-sub" class="tw-kpi-sub">Dose —</span>
+    </div>
+    <div class="tw-kpi">
+      <span class="tw-kpi-label">FRC₀.₁₄₃ Resolution</span>
+      <span id="kpi-frc" class="tw-kpi-val">—</span>
+      <span id="kpi-frc-sub" class="tw-kpi-sub">Crowther —</span>
+    </div>
+    <div class="tw-kpi">
+      <span class="tw-kpi-label">Sinogram Discrepancy</span>
+      <span id="kpi-sino" class="tw-kpi-val">—</span>
+      <span id="kpi-sino-sub" class="tw-kpi-sub">Best pass —</span>
+    </div>
+    <div class="tw-kpi">
+      <span class="tw-kpi-label">Imaging Regime</span>
+      <span id="kpi-verdict" class="tw-verdict good">High-Fidelity</span>
+      <span id="kpi-verdict-sub" class="tw-kpi-sub">Wedge anisotropy —</span>
+    </div>
+  </section>
+
+  <!-- 4-Pane Synchronized Cryo-ET Imaging Stage -->
+  <section class="tw-imaging-stage" aria-label="Synchronized 3D specimen, reference slice, sinogram, and reconstruction">
+    <div class="tw-stage-bar">
+      <strong id="metrics">Synchronized Tilt-Series &amp; Slice Reconstruction Stage</strong>
+      <div class="tw-stage-controls">
+        <label for="colormap">Colormap</label>
+        <select id="colormap">
+          <option value="cryo" selected>Cryo-Ice Cyan</option>
+          <option value="viridis">Viridis Perceptual</option>
+          <option value="magma">Magma Thermal</option>
+          <option value="gray">Grayscale Micrograph</option>
+        </select>
+        <div class="tw-mini-pills" role="group" aria-label="Pane 4 display mode">
+          <button type="button" data-recon-mode="recon" aria-pressed="true">Reconstruction x̂</button>
+          <button type="button" data-recon-mode="diff" aria-pressed="false">Signed Error (x̂ − x)</button>
+          <button type="button" data-recon-mode="contour" aria-pressed="false">Iso-Contour Overlay</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tw-panes">
+      <figure class="tw-pane">
+        <div class="tw-pane-head"><span>1 · 3D Specimen &amp; Tilt Geometry</span><span id="vol-tag" class="tw-pane-tag">Orbit / Keys</span></div>
+        <canvas id="volume" width="320" height="320" tabindex="0" aria-label="Rotatable 3D macromolecular specimen, slice slab, and tilt-beam fan"></canvas>
+        <figcaption>Gold highlights scatterers intersecting slab <em>z</em>; cyan rays show measured tilts and dashed rose marks any missing wedge.</figcaption>
+      </figure>
+      <figure class="tw-pane">
+        <div class="tw-pane-head"><span>2 · Ground-Truth Slice x(u, v)</span><span id="truth-tag" class="tw-pane-tag">64 × 64</span></div>
+        <canvas id="truth" width="256" height="256" aria-label="Ground-truth target slice density with interactive scanline"></canvas>
+        <figcaption>Click or drag vertically to reposition the dashed scanline <em>y₀</em> inspected in the 1D Profile tab.</figcaption>
+      </figure>
+      <figure class="tw-pane">
+        <div class="tw-pane-head"><span>3 · Radon Sinogram y(θ, s)</span><span id="sino-tag" class="tw-pane-tag">24 × 94</span></div>
+        <canvas id="sino" width="256" height="256" aria-label="Detector Radon sinogram across projection angles"></canvas>
+        <figcaption>Columns are measured tilt angles θ; rows are detector bins <em>s</em>. Hover any column to highlight its beam in 3D.</figcaption>
+      </figure>
+      <figure class="tw-pane">
+        <div class="tw-pane-head"><span id="recon-head-title">4 · Reconstructed Slice x̂(u, v)</span><span id="recon-tag" class="tw-pane-tag">SIRT</span></div>
+        <canvas id="recon" width="256" height="256" aria-label="Reconstructed tomogram slice or signed residual map"></canvas>
+        <figcaption id="recon-caption">Same physical density scale [0, 1] as ground truth; toggle Signed Error to inspect streak &amp; wedge residuals.</figcaption>
+      </figure>
+    </div>
+    <p id="stage-readout" class="tw-stage-readout">Hover over the slice or sinogram to inspect physical Ångström coordinates, measured ray sums, and local reconstruction error.</p>
+  </section>
+
+  <!-- Dual-Stage Multi-Graph Diagnostic Suite (10 Interactive Views + Analytical Commentary) -->
+  <section class="tw-dual-grid" aria-label="Spectral, Fourier, and optimization diagnostics">
+    <!-- Left Diagnostic Stage: Fourier Space, Resolution & Acquisition Physics -->
+    <div class="tw-stage-card">
+      <div class="tw-tabs" role="tablist" aria-label="Spectral and spatial diagnostics">
+        <button class="tw-tab" role="tab" type="button" data-ltab="frc" aria-selected="true">FRC(k) &amp; 0.143</button>
+        <button class="tw-tab" role="tab" type="button" data-ltab="kspace" aria-selected="false">2D K-Space &amp; Wedge</button>
+        <button class="tw-tab" role="tab" type="button" data-ltab="profile" aria-selected="false">1D Scanline Profile</button>
+        <button class="tw-tab" role="tab" type="button" data-ltab="loto" aria-selected="false">Leave-1-Tilt-Out CV</button>
+        <button class="tw-tab" role="tab" type="button" data-ltab="ctf" aria-selected="false">Cryo-EM CTF(k)</button>
+      </div>
+      <div class="tw-plot-head">
+        <h3 id="left-plot-title">Fourier Ring Correlation FRC(k) &amp; Gold-Standard 0.143 Cutoff</h3>
+        <button id="export-left-svg" class="tw-btn" type="button" style="min-height:30px;padding:3px 9px;font-size:11.5px">Export SVG/PNG</button>
+      </div>
+      <div class="tw-plot-wrap">
+        <svg id="left-svg" viewBox="0 0 580 310" role="img" aria-label="Left tomographic diagnostic chart"></svg>
+        <canvas id="left-canvas" width="580" height="310" style="display:none" aria-label="2D Fourier k-space log-power spectrum and missing wedge"></canvas>
+      </div>
+      <div id="left-explain" class="tw-explain"></div>
+    </div>
+
+    <!-- Right Diagnostic Stage: Convergence, Solvers, L-Curve & Anisotropy -->
+    <div class="tw-stage-card">
+      <div class="tw-tabs" role="tablist" aria-label="Convergence, solver Pareto, and residual diagnostics">
+        <button class="tw-tab" role="tab" type="button" data-rtab="conv" aria-selected="true">Pass Convergence</button>
+        <button class="tw-tab" role="tab" type="button" data-rtab="pareto" aria-selected="false">6-Solver Pareto</button>
+        <button class="tw-tab" role="tab" type="button" data-rtab="lcurve" aria-selected="false">TV L-Curve (λ*)</button>
+        <button class="tw-tab" role="tab" type="button" data-rtab="parity" aria-selected="false">Pixel Parity (CCC)</button>
+        <button class="tw-tab" role="tab" type="button" data-rtab="aniso" aria-selected="false">Wedge Anisotropy</button>
+      </div>
+      <div class="tw-plot-head">
+        <h3 id="right-plot-title">Iterative Convergence &amp; Morozov Semi-Convergence Audit</h3>
+        <button id="export-right-svg" class="tw-btn" type="button" style="min-height:30px;padding:3px 9px;font-size:11.5px">Export SVG</button>
+      </div>
+      <div class="tw-plot-wrap">
+        <svg id="right-svg" viewBox="0 0 580 310" role="img" aria-label="Right tomographic optimization diagnostic chart"></svg>
+      </div>
+      <div id="right-explain" class="tw-explain"></div>
+    </div>
+  </section>
+
+  <!-- Legacy curve hook hidden cleanly if any external check queries #curve, while primary curve is rendered in #right-svg -->
+  <svg id="curve" viewBox="0 0 600 125" hidden aria-hidden="true"></svg>
+
+  <!-- Deep Benchmark Row: 10-Gene Survey Heatmap + Leave-One-Protein-Out & Inverse-Crime Audit -->
+  <section id="survey" class="tw-dual-grid" aria-label="10-protein survey benchmark and generalization audit">
+    <div class="tw-stage-card">
+      <div class="tw-plot-head" style="flex-wrap:wrap">
+        <h2 style="margin:0;font:650 19px/1.2 Georgia,serif">Which proteins are hardest to reconstruct? (10-Gene Atlas)</h2>
+      </div>
+      <p style="margin:4px 0 10px;font-size:13px;color:var(--tw-muted)">Compare all 10 KEGG + AlphaFold DB v6 central slices across 4 projection counts and 3 tilt wedges (120 deterministic runs). Click any cell to load that experiment above.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 12px;margin-bottom:10px;align-items:end">
+        <div class="tw-field" style="flex:1 1 140px">
+          <label for="surveySpan">Survey tilt span</label>
+          <select id="surveySpan">
+            <option value="180" selected>180° Full tilt</option>
+            <option value="120">120° Cryo-ET (±60°)</option>
+            <option value="90">90° Severe (±45°)</option>
+          </select>
+        </div>
+        <div class="tw-field" style="flex:1 1 170px">
+          <label for="surveyMetric">Heatmap metric</label>
+          <select id="surveyMetric">
+            <option value="error" selected>SIRT Density RMSE</option>
+            <option value="tvError">CS-TV Density RMSE</option>
+            <option value="fbpError">FBP (Ram-Lak) RMSE</option>
+            <option value="frc0143">FRC₀.₁₄₃ Resolution (Å)</option>
+          </select>
+        </div>
+        <button id="surveyExport" class="tw-btn" type="button">Download 120-run CSV</button>
+      </div>
+      <div class="tw-table-wrap">
+        <table id="heat" class="tw-heat-table"></table>
+      </div>
+      <p id="finding" class="tw-explain" style="margin-bottom:0"></p>
+    </div>
+
+    <div class="tw-stage-card">
+      <h2 style="margin:0 0 4px;font:650 19px/1.2 Georgia,serif">Cross-protein error prediction &amp; Inverse-Crime audit</h2>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--tw-muted)">Hold out all 4 angle runs of a selected protein and train on the other 9 proteins (36 runs). Compare a <strong>Projection-Only</strong> sinogram learner (zero ground-truth access) against an <strong>Oracle Reference</strong> neighbor.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 10px;align-items:end">
+        <div class="tw-field" style="flex:1 1 130px">
+          <label for="hold">Held-out protein</label>
+          <select id="hold"></select>
+        </div>
+        <div class="tw-field" style="flex:1 1 210px">
+          <label for="learner">Cross-protein predictor</label>
+          <select id="learner">
+            <option value="proj_knn" selected>Projection-only sinogram k-NN (no reference)</option>
+            <option value="mean">Angle-conditioned training mean</option>
+            <option value="neighbor">Oracle nearest reference density (uses slice)</option>
+          </select>
+        </div>
+        <button id="train" class="tw-btn primary" type="button">Evaluate holdout</button>
+      </div>
+      <div id="evaluation" class="tw-audit-box" aria-live="polite"></div>
+
+      <hr style="border:0;border-top:1px solid #dfebe4;margin:14px 0 12px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px">
+        <div>
+          <strong style="font-size:14px">Kaipio &amp; Somersalo “Inverse Crime” Discretization Test</strong>
+          <p style="margin:2px 0 0;font-size:12.5px;color:var(--tw-muted)">Quantify RMSE inflation when measurements come from a 2× finer continuous grid with a +0.35 px shifted detector rather than the solver’s own matrix <em>A</em>.</p>
+        </div>
+        <button id="run-inverse-crime" class="tw-btn" type="button">Run discretization audit</button>
+      </div>
+      <div id="inverse-crime-box" class="tw-audit-box"></div>
+    </div>
+  </section>
+
+  <!-- 6-Solver Quantitative Leaderboard -->
+  <section class="tw-card" aria-labelledby="leaderboard-title">
+    <div class="tw-plot-head" style="flex-wrap:wrap;margin-bottom:8px">
+      <div>
+        <h2 id="leaderboard-title" style="margin:0;font:650 20px/1.2 Georgia,serif">6-Solver Quantitative Reconstruction Leaderboard</h2>
+        <p style="margin:3px 0 0;font-size:13px;color:var(--tw-muted)">Evaluated simultaneously on the active specimen slice, tilt geometry, electron dose, and CTF setting. Click any row to switch the active solver.</p>
+      </div>
+      <div class="tw-actions-footer" style="margin-top:0">
+        <a class="tw-btn" href="workspace.html">Open Evidence Workspace →</a>
+        <a class="tw-btn" href="methods.html#tomography">Mathematical equations &amp; references →</a>
+      </div>
+    </div>
+    <div class="tw-table-wrap">
+      <table class="tw-board-table">
+        <thead>
+          <tr>
+            <th>Algorithm</th>
+            <th>Family</th>
+            <th>Density RMSE ↓</th>
+            <th>MAE ↓</th>
+            <th>SSIM ↑</th>
+            <th>PSNR (dB) ↑</th>
+            <th>Lin CCC ↑</th>
+            <th>FRC₀.₁₄₃ (Å) ↓</th>
+            <th>‖Ax̂ − y‖ ↓</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="dna-data.js"></script>
+<script src="fold-catalog.js"></script>
+<script src="folds/P00846.js"></script>
+<script src="folds/P0A7J3.js"></script>
+<script src="folds/P00359.js"></script>
+<script src="folds/Q31BY4.js"></script>
+<script src="folds/O23290.js"></script>
+<script src="folds/P04637.js"></script>
+<script src="folds/P68871.js"></script>
+<script src="folds/P01308.js"></script>
+<script src="folds/P0A7G6.js"></script>
+<script src="folds/P00441.js"></script>
+<script src="experimental.js"></script>
+<script src="evidence-records.js"></script>
+<script src="tomography-engine.js"></script>
+<script src="survey-data.js"></script>
+<script src="tomography-workbench.js"></script>
+<script src="studio-nav.js"></script>
+</body>
+</html>

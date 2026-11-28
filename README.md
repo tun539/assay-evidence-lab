@@ -84,6 +84,10 @@ Open [the Kinetics & OOD Benchmark Workbench](https://tun539.github.io/assay-evi
 
 Open [the Simulation & ML Force-Field Workbench](https://tun539.github.io/assay-evidence-lab/simulation.html) (`studio/simulation.html`) to audit **5 physical potentials × 5 conservative MLIP surrogates** (`Harmonic`, `Quartic Taylor`, `Conservative RBF-GP`, `MACE-inspired Radial–Bessel`, and `Neural Committee` with live **Active-Learning DFT query `+ Add x*`**) across symplectic `Velocity Verlet` vs. `Euler`/`RK4`/`BAOAB Langevin` integrators, phase-space portraits, Hamiltonian drift $\Delta H(t)$, and vibrational power spectra $S(\omega)$ (*Fu et al., ICLR 2023*), or switch to **Track B** to compare `Langevin MD`, `MCMC`, `Well-Tempered Metadynamics`, and `BioEmu`-style equilibrium generation across 1D cryptic pockets and 2D **Müller–Brown / Alanine Dipeptide $(\phi, \psi)$ Ramachandran** free-energy landscapes coupled to live 3D protein breathing (`1MBO`, `1UBQ`, `TP53`). See [SIMULATIONS.md](SIMULATIONS.md) for the team exercise and independent MACE metric checker (`python evidence/check_simulation.py`).
 
+## Inside the Specimen · Cryo-ET & Computational Tomography Workbench
+
+Open [Inside the Specimen](https://tun539.github.io/assay-evidence-lab/tomography.html) (`studio/tomography.html`) to reconstruct **16 macromolecular & calibration specimens** (10 KEGG/AlphaFold DB v6 folds, 4 multi-entity RCSB PDB complexes including `8AW3` & `1MBO`, and the Modified Shepp–Logan phantom) across **6 canonical solvers** (`SIRT`, `SART`, `FBP Ram-Lak`, `WBP Hann`, `Poisson MLEM`, and `CS-TV FISTA` compressed sensing). Audit **Gold-Standard $\text{FRC}_{0.143}$ resolution (Å)** vs. the Crowther limit, **2D Fourier Central-Slice Missing-Wedge cones** ($120^\circ$ Cryo-ET $\pm 60^\circ$ & $90^\circ$ limits), **300 kV Cryo-EM CTF phase-flipping**, **low-dose shot noise** ($12\text{–}200\text{ e}^-/\text{Å}^2$), **Leave-One-Tilt-Out validation**, **Hansen's L-curve**, and a **120-run 10-gene Leave-One-Protein-Out + Kaipio & Somersalo Inverse-Crime discretization benchmark**.
+
 ## Classroom and research practical
 
 [Download the classroom files](https://github.com/tun539/assay-evidence-lab/archive/refs/heads/main.zip), extract the ZIP and open `studio/practical.html`. Choose the undergraduate or graduate track, fit the published example or a local CSV, inspect held-concentration errors, and export your lab record and predictions. The [instructor guide](TEACHING.md) includes learning goals, submission requirements, a reference result and marking criteria. Run `node studio/test-fit.cjs` to check the browser fits against the SciPy benchmark.
@@ -128,6 +132,7 @@ python NucleusAudit/verify.py
 python research/verify.py
 node studio/test-fit.cjs
 node studio/test-simulation.cjs
+node studio/test-tomography.cjs
 node studio/test-evidence-records.cjs
 node studio/test-studio-config.cjs
 node studio/test-studio-pages.cjs
