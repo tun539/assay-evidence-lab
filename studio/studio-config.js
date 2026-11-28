@@ -38,7 +38,7 @@ globalThis.STUDIO_CONFIG = {
     { id: 'research', title: 'Research benchmark', href: 'research.html', description: 'Compare model families, probability reliability, and decision thresholds on 569 specimens.', savesToWorkspace: true },
     { id: 'practical', title: 'Enzyme kinetics practical', href: 'practical.html', description: 'Fit four hypotheses on the published assay or your own CSV and export held-out predictions.', savesToWorkspace: true },
     { id: 'audit', title: 'Cellpose and AlphaFold audit', href: 'audit.html', description: 'Inspect one-to-one instance matching and per-residue pLDDT confidence distributions.', savesToWorkspace: true },
-    { id: 'simulation', title: 'Simulation lab', href: 'simulation.html', description: 'Fit a force law, sample a two-state ensemble, and inspect accuracy sweeps.', savesToWorkspace: true },
+    { id: 'simulation', title: 'Simulation & ML force-field workbench', href: 'simulation.html', description: 'Audit 5 MLIP force fields (MACE/GP/Committee), symplectic phase space, vibrational spectra, 2D Ramachandran & Müller–Brown landscapes, and 3D BioEmu ensembles.', savesToWorkspace: true },
     { id: 'language', title: 'Language and physics lab', href: 'language.html', description: 'Trace a bilingual command from trained token weights to a 3D scene.', savesToWorkspace: false },
   ],
 };

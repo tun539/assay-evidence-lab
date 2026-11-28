@@ -36,6 +36,7 @@ jobs:
       - name: Run browser-module unit tests and syntax checks
         run: |
           node studio/test-fit.cjs
+          node studio/test-simulation.cjs
           node studio/test-evidence-records.cjs
           node studio/test-studio-config.cjs
           node studio/test-studio-pages.cjs

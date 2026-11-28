@@ -1,11 +1,247 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="evidence-charts.css"><link rel="stylesheet" href="studio-nav.css"><script src="evidence-charts.js"></script><title>Simulation lab · Assay Evidence Studio</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#eef3ee;color:#153c39;font:16px/1.5 system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:20px clamp(15px,4vw,54px)}a{color:#175749}h1,h2,h3{font-family:Georgia,serif;font-weight:normal;margin:0 0 10px}h1{font-size:clamp(40px,6vw,76px);letter-spacing:-.06em}h2{font-size:28px}p{margin:5px 0 15px}.work{display:grid;grid-template-columns:minmax(225px,1fr) minmax(0,2.4fr);gap:16px}aside,figure,article{margin:0 0 16px;padding:20px;background:white;border:1px solid #bfcec5;border-radius:13px}figure{padding:12px 15px}figcaption{font-weight:650}label{display:block;font-weight:600;margin-top:12px}input,textarea,select,button{font:inherit;max-width:100%}input,textarea,select{display:block;width:100%}input[type=range]{accent-color:#087c67}button,select,textarea{border:1px solid #abc2b6;border-radius:6px;padding:7px}button{cursor:pointer;background:#165849;color:white;margin:8px 6px 0 0}button:disabled{opacity:.5}svg{width:100%;display:block}small{color:#455f55}output{display:block;font-weight:650}textarea{min-height:64px}.legend{font-size:14px}.key{color:#067167}.alt{color:#995028}article{margin-top:4px}.stats{background:#173f39;color:white;border-radius:9px;padding:11px 15px;margin:12px 0}details{margin:12px 0}summary{cursor:pointer}@media(max-width:740px){.work{grid-template-columns:1fr}aside{margin-bottom:0}}
-</style></head><body><a class="skip-link" href="#main">Skip to content</a><header class="studio-header" data-page="simulation.html" data-mission="simulation" data-methods="simulation" data-related-href="transport.html" data-related-label="Molecular transport in 3D →"><a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a></header><main id="main">
-<h1>Simulation lab</h1><p><a href="#sweep">Compare parameter sweeps</a> · <a href="transport.html">Explore molecular transport in 3D →</a></p><p>Change one assumption, compare the resulting curves and explain what the evidence supports.</p>
-<div class="work"><aside><label for="mode">Experiment</label><select id="mode"><option value="force">Learning a force law</option><option value="ensemble">Sampling two conformations</option></select><p id="question"></p>
-<div id="controls"></div><label for="prediction">Your prediction</label><textarea id="prediction" placeholder="What will change, and why?"></textarea><button id="run">Run simulation</button><output id="status" aria-live="polite"></output></aside>
-<section><figure><figcaption id="cap1"></figcaption><div id="plot1"></div><div id="leg1" class="legend"></div></figure><figure><figcaption id="cap2"></figcaption><div id="plot2"></div><div id="leg2" class="legend"></div></figure><div class="stats" id="stats"></div></section></div>
-<article><h2>Research discussion</h2><p id="challenge"></p><label for="brief">Analyst · Claim and evidence</label><textarea id="brief" placeholder="Cite one metric or a specific part of a curve."></textarea><label for="review">Peer reviewer · Alternative explanation</label><textarea id="review" placeholder="Which assumption could change the result?"></textarea><label for="decision">Team lead · Decision and next check</label><textarea id="decision" placeholder="Recommend one action and state what would change your mind."></textarea>
-<button id="export">Export team report</button><button id="csv">Download plotted data</button><button id="save-evidence" type="button">Save to evidence workspace</button> <a href="workspace.html">Open workspace</a><p id="save-status" role="status"></p><details><summary>Methods and teaching notes</summary><p id="method"></p><p>Synthetic teaching models in reduced units. All simulations execute on this device. Export before closing the page.</p><a href="https://github.com/tun539/assay-evidence-lab/blob/main/SIMULATIONS.md">Instructor exercises</a> · <a href="methods.html#simulation">Methods and sources</a></details></article><article id="sweep"><h2>Where does a model lose accuracy?</h2><label>Compare experiments <select id="sweepMode"><option value="force">Force law · training coverage</option><option value="sampling">Two conformations · sampling coverage</option></select></label><p id="sweepGuide"></p><div id="sweepGrid"></div></article></main>
-<script src="sim-engine.js"></script><script src="evidence-records.js"></script><script src="studio-nav.js"></script><script src="sim-view.js"></script><script src="sweep.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Molecular Force-Field, Symplectic Integrator & Biomolecular Ensemble Simulation Workbench: MACE MLIPs, MDsim Hamiltonian stability, Vibrational Power Spectra, BioEmu conformational ensembles, 2D Ramachandran & Müller–Brown free-energy landscapes, and 3D protein breathing.">
+<title>Simulation &amp; ML Force-Field Workbench · Assay Evidence Studio</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="studio-nav.css">
+<link rel="stylesheet" href="simulation.css">
+<script defer src="ubiquitin.js"></script>
+<script defer src="experimental.js"></script>
+<script defer src="fold-catalog.js"></script>
+<script defer src="folds/P04637.js"></script>
+<script defer src="mol3d-engine.js"></script>
+<script defer src="sim-engine.js"></script>
+<script defer src="evidence-records.js"></script>
+<script defer src="simulation-workbench.js"></script>
+<script defer src="studio-nav.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="studio-header" data-page="simulation.html" data-mission="simulation" data-methods="simulation" data-related-href="transport.html" data-related-label="Molecular transport in 3D →">
+  <a class="studio-brand" href="index.html"><span class="studio-brand-mark" aria-hidden="true">∿</span><span>Assay Evidence Studio</span></a>
+</header>
+
+<main class="sw-main" id="main">
+  <!-- Executive Topbar -->
+  <section class="sw-topbar" aria-label="Simulation workbench overview">
+    <div class="sw-title-wrap">
+      <p class="sw-eyebrow">Molecular Force Fields, Symplectic MD &amp; Equilibrium Ensembles · MACE · MDsim · BioEmu · molML</p>
+      <h1>Simulation &amp; Conformational Ensemble Workbench</h1>
+      <p class="sw-subtitle" id="question">Test why static force accuracy is not enough: audit OOD potential holes, symplectic Hamiltonian conservation, vibrational spectra, and barrier-trapped MD vs. BioEmu equilibrium ensembles.</p>
+    </div>
+    <div class="sw-top-actions">
+      <button class="sw-btn" id="export" type="button">Export JSON (MACE Checker)</button>
+      <button class="sw-btn" id="export-md" type="button">Export Audit (.md)</button>
+      <button class="sw-btn" id="csv" type="button">Plotted CSV</button>
+      <button class="sw-btn primary" id="save-evidence" type="button">Save to workspace</button>
+    </div>
+  </section>
+
+  <p id="save-status" role="status" style="margin:0 0 10px;font-weight:650;color:#15533e"></p>
+  <select id="mode" hidden aria-hidden="true">
+    <option value="force">Learning a force law</option>
+    <option value="ensemble">Sampling two conformations</option>
+  </select>
+
+  <!-- Two-Pillar Research Track Switcher -->
+  <div class="sw-track-bar" role="group" aria-label="Simulation track">
+    <button type="button" class="sw-track-card" id="track-force" aria-pressed="true">
+      <span class="sw-track-tag">Track A · MACE &amp; MDsim ("Forces Are Not Enough")</span>
+      <strong>Force-Field Learning, OOD Extrapolation &amp; Symplectic MD</strong>
+      <span class="sub">Compare 5 potentials × 5 surrogates × 4 integrators across PES, phase space, energy drift, VACF spectra &amp; active learning.</span>
+    </button>
+    <button type="button" class="sw-track-card" id="track-ensemble" aria-pressed="false">
+      <span class="sw-track-tag">Track B · Microsoft BioEmu &amp; Enhanced Sampling</span>
+      <strong>Biomolecular Free-Energy Landscapes &amp; 3D Ensemble Breathing</strong>
+      <span class="sub">Contrast Langevin MD, MCMC, WT-Metadynamics &amp; BioEmu i.i.d. generation across 1D cryptic pockets &amp; 2D Ramachandran / Müller–Brown maps.</span>
+    </button>
+  </div>
+
+  <!-- Dynamic Selectors & Continuous Sliders -->
+  <section class="sw-control-panel" aria-label="Simulation parameters">
+    <div class="sw-selectors-grid" id="selector-bar"></div>
+    <div class="sw-sliders-grid" id="controls"></div>
+  </section>
+
+  <!-- Audience Depth, Overlays, Active Learning & Live Trajectory Scrubber -->
+  <div class="sw-toggles-row" aria-label="Audience mode, active learning, and live trajectory playback">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <div class="sw-segmented" role="group" aria-label="Explanation audience depth">
+        <button type="button" data-audience="explorer" aria-pressed="false">Explorer</button>
+        <button type="button" data-audience="student" aria-pressed="true">Student</button>
+        <button type="button" data-audience="researcher" aria-pressed="false">Researcher</button>
+      </div>
+      <button type="button" class="sw-chip" id="toggle-unc" aria-pressed="true">±2σ Epistemic band</button>
+      <button type="button" class="sw-chip" id="toggle-cb" aria-pressed="false">Colorblind palette</button>
+      <button type="button" class="sw-btn accent-rose" id="add-active-anchor" style="min-height:32px;padding:4px 11px;font-size:12.5px">+ Add DFT Query x*</button>
+      <button type="button" class="sw-mini-btn" id="reset-anchors" hidden>Reset anchors</button>
+    </div>
+
+    <div class="sw-scrubber">
+      <button type="button" class="sw-mini-btn" id="play-sim" aria-pressed="false">▶ Play</button>
+      <label for="frame-slider" id="frame-label">Frame 0</label>
+      <input type="range" id="frame-slider" min="0" max="480" value="120">
+      <button type="button" class="sw-mini-btn" id="run" title="Re-compute simulation">Re-run</button>
+    </div>
+  </div>
+  <output id="status" class="visually-hidden" style="position:absolute;left:-9999px" aria-live="polite"></output>
+
+  <!-- 6-Card Quantitative Telemetry Strip -->
+  <section class="sw-kpi-grid" id="sim-kpi-strip" aria-label="Simulation telemetry"></section>
+
+  <!-- Primary Dual-Stage Multi-Graph Workbench -->
+  <div class="sw-dual-grid" id="sim-dual-grid">
+    <!-- Left Stage: Potential, Force & 1D/2D Free-Energy Surfaces -->
+    <section class="sw-card" aria-labelledby="left-stage-title">
+      <div class="sw-card-head">
+        <h2 id="left-stage-title">Potential, Force &amp; Free-Energy Surface</h2>
+        <div class="sw-tabs" id="left-tabs" role="group" aria-label="Left stage graph view"></div>
+      </div>
+      <div class="sw-plot-stage">
+        <svg class="sim-plot" id="left-svg" viewBox="0 0 680 320" role="img" aria-label="Potential energy, force law, parity, or free-energy plot"></svg>
+        <canvas class="sw-canvas-2d" id="left-canvas" width="680" height="320" hidden role="img" aria-label="2D conformational free-energy contour landscape"></canvas>
+      </div>
+      <div class="sw-legend-row">
+        <div class="sw-legend-items" id="left-legend"></div>
+        <button type="button" class="sw-mini-btn" id="export-left-fig">Export Figure</button>
+      </div>
+      <div class="sw-explain" id="left-analysis" aria-live="polite"></div>
+    </section>
+
+    <!-- Right Stage: Trajectory, Phase Space, Hamiltonian Drift & VACF/Autocorrelation -->
+    <section class="sw-card" aria-labelledby="right-stage-title">
+      <div class="sw-card-head">
+        <h2 id="right-stage-title">Dynamics, Phase Space &amp; Spectral Diagnostics</h2>
+        <div class="sw-tabs" id="right-tabs" role="group" aria-label="Right stage graph view"></div>
+      </div>
+      <div class="sw-plot-stage">
+        <svg class="sim-plot" id="right-svg" viewBox="0 0 680 320" role="img" aria-label="Trajectory, phase space, Hamiltonian energy drift, vibrational power spectrum, or autocorrelation plot"></svg>
+      </div>
+      <div class="sw-legend-row">
+        <div class="sw-legend-items" id="right-legend"></div>
+        <button type="button" class="sw-mini-btn" id="export-right-svg">Export SVG</button>
+      </div>
+      <div class="sw-explain" id="right-analysis" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- Deep Diagnostics Row: Sweep Matrix + 3D Biomolecular Conformational Breathing Stage -->
+  <div class="sw-deep-grid" id="sweep">
+    <!-- Left: Interactive Coverage / Barrier Sweep Matrix & Regime Bar Chart -->
+    <section class="sw-card" aria-labelledby="sweep-title">
+      <div class="sw-card-head">
+        <h2 id="sweep-title">OOD Generalization &amp; Barrier Sweep Matrix</h2>
+        <span class="sw-eq-pill">Click any cell to inspect regime</span>
+      </div>
+      <div class="sw-heatmap-wrap">
+        <table class="sw-heatmap-table" id="sweep-heatmap" aria-label="Parameter sweep matrix across training coverage or barrier heights"></table>
+      </div>
+      <div class="sw-plot-stage" style="padding-top:2px">
+        <svg class="sim-plot" id="sweep-bars" viewBox="0 0 620 185" role="img" aria-label="Comparison of In-Domain vs Out-of-Distribution error or Sampler convergence"></svg>
+      </div>
+      <div class="sw-explain" id="sweep-analysis"></div>
+    </section>
+
+    <!-- Right: Live 3D Biomolecular Conformational Breathing Stage -->
+    <section class="sw-card" aria-labelledby="stage3d-title">
+      <div class="sw-card-head">
+        <h2 id="stage3d-title">3D Conformational Ensemble &amp; Mode Coupling</h2>
+        <div class="sw-tabs" id="rep3d-tabs" role="group" aria-label="3D molecular representation">
+          <button type="button" data-rep="cartoon" aria-pressed="true">Cartoon</button>
+          <button type="button" data-rep="tube" aria-pressed="false">Tube</button>
+          <button type="button" data-rep="surface" aria-pressed="false">Surface</button>
+        </div>
+      </div>
+      <div class="sw-3d-wrap">
+        <canvas id="sim-3d-canvas" tabindex="0" aria-label="Interactive 3D protein conformational breathing viewer"></canvas>
+        <div class="sw-3d-hud">
+          <span class="sw-3d-pill" id="hud-protein">PDB 1MBO · Distal Heme Gate</span>
+          <span class="sw-3d-pill" id="hud-conformer">Gate span: — Å</span>
+        </div>
+      </div>
+      <div class="sw-legend-row">
+        <div class="sw-legend-items" id="stage3d-legend">
+          <span>Drag to orbit · Scroll to zoom · Scrub or Play to morph conformer</span>
+        </div>
+        <button type="button" class="sw-mini-btn" id="export-3d-png">Snapshot PNG</button>
+      </div>
+      <div class="sw-explain" id="stage3d-analysis"></div>
+    </section>
+  </div>
+
+  <!-- Quantitative Surrogate / Sampler Leaderboard -->
+  <section class="sw-section-card" aria-labelledby="leaderboard-title">
+    <div class="sw-card-head">
+      <div>
+        <h2 id="leaderboard-title">Architecture &amp; Sampler Benchmark Leaderboard</h2>
+        <p style="margin:3px 0 0;font-size:13.5px;color:#486358">Click any row to switch active force-field architecture or conformational sampler.</p>
+      </div>
+      <a class="sw-btn" href="workspace.html">Open workspace →</a>
+    </div>
+    <div class="sw-table-wrap" style="margin-top:8px">
+      <table class="sw-table">
+        <thead id="leaderboard-head"></thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+    <div class="sw-synthesis-callout" id="leaderboard-synthesis"></div>
+  </section>
+
+  <!-- Role-Based Peer-Review Protocol (Preserves Analyst / Reviewer / Lead Team Exercise!) -->
+  <section class="sw-section-card" aria-labelledby="discussion-title">
+    <div class="sw-card-head">
+      <div>
+        <h2 id="discussion-title">Structured Team Audit &amp; Hypothesis Pre-Registration</h2>
+        <p id="challenge" style="margin:3px 0 0;font-size:13.6px;color:#486358"></p>
+      </div>
+      <span class="sw-eq-pill">Included in JSON &amp; Markdown exports</span>
+    </div>
+    <div class="sw-review-grid">
+      <div>
+        <label for="prediction">1. Pre-Run Hypothesis · What will change and why?</label>
+        <textarea id="prediction" placeholder="Predict how OOD force error, symplectic energy drift, or barrier height ΔG‡ will affect the trajectory before changing controls."></textarea>
+      </div>
+      <div>
+        <label for="brief">2. Analyst · Quantitative Claim &amp; Curve Evidence</label>
+        <textarea id="brief" placeholder="Cite exact metrics (e.g. OOD Force RMSE, Hamiltonian drift %, VACF Δω, or N_eff & ΔG error)."></textarea>
+      </div>
+      <div>
+        <label for="review">3. Peer Reviewer · Confounders &amp; Failure Modes</label>
+        <textarea id="review" placeholder="Identify potential holes, finite-timestep artifacts, or metastable basin trapping."></textarea>
+      </div>
+      <div>
+        <label for="decision">4. Team Lead · Next Calculation or Active-Learning Action</label>
+        <textarea id="decision" placeholder="Recommend adding DFT anchor x*, switching to a symplectic integrator, or applying Metadynamics/BioEmu."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scientific Provenance & Reference Framing -->
+  <section class="sw-section-card" aria-labelledby="methodology-title">
+    <div class="sw-card-head">
+      <h2 id="methodology-title">Scientific Provenance · MACE, MDsim, BioEmu &amp; Independent Verification</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;font-size:13.8px;color:#27463d;margin-top:6px">
+      <div>
+        <h3 style="margin:0 0 5px;font-size:15px;color:#12312a">1. MACE &amp; Conservative Potentials</h3>
+        <p style="margin:0">Inspired by <a href="https://github.com/ACEsuit/mace" target="_blank" rel="noopener noreferrer">MACE (Batatia et al., NeurIPS 2022)</a>, every surrogate here integrates an exact analytical energy <var>Û(x)</var> with <var>F̂(x) = −∇Û(x)</var>. Exported canonical force reports verify to <code>&lt;10⁻¹⁰</code> against vendored MACE metrics via <code>python evidence/check_simulation.py simulation-report.json</code>.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 5px;font-size:15px;color:#12312a">2. “Forces Are Not Enough” (MDsim)</h3>
+        <p style="margin:0">Following <a href="https://arxiv.org/abs/2210.07237" target="_blank" rel="noopener noreferrer">Fu et al. (ICLR 2023)</a>, static test-set force MAE can hide catastrophic polynomial OOD holes (<var>Û → −∞</var>), non-symplectic integrator drift, or distorted vibrational spectra <var>S(ω)</var> computed from the velocity autocorrelation <var>C<sub>vv</sub>(τ)</var>.</p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 5px;font-size:15px;color:#12312a">3. BioEmu &amp; Free-Energy Landscapes</h3>
+        <p style="margin:0">Motivated by <a href="https://github.com/microsoft/bioemu" target="_blank" rel="noopener noreferrer">Microsoft BioEmu (Lewis et al., 2025)</a>, short Langevin MD trajectories suffer Kramers exponential trapping (<var>τ ∝ exp(ΔG‡/k<sub>B</sub>T)</var>), whereas generative i.i.d. equilibrium emulators and Well-Tempered Metadynamics recover multi-basin <var>ΔG</var> across cryptic pockets and 2D <var>(φ, ψ)</var> space.</p>
+      </div>
+    </div>
+    <p id="method" style="margin:12px 0 0;font-size:13px;color:#486358"></p>
+  </section>
+</main>
+
+<div id="sw-tooltip" class="sw-tooltip" hidden></div>
+</body>
+</html>
