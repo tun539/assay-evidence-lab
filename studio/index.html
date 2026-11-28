@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Assay Evidence Studio: interactive biology labs for AlphaFold-style 3D protein, RNA, DNA, and ion models, 10 KEGG genes, enzyme kinetics, molecular ML, tomography, and reproducible evidence packets.">
+<meta name="description" content="Assay Evidence Studio: interactive biology &amp; ML labs for AlphaFold-style 3D protein, RNA, DNA, and ion structures, 6-model OOD enzyme kinetics, MACE/BioEmu force-field &amp; conformational ensemble simulations, tomography, and reproducible evidence packets.">
 <title>Assay Evidence Studio · Scientific model &amp; 3D molecular explorer</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="studio-nav.css">
@@ -135,12 +135,13 @@ a:hover{text-decoration-thickness:2px}
 <main id="main">
 <section class="hero">
   <h1 id="hero-title">Assay <em>Evidence Studio</em></h1>
-  <p id="hero-intro" class="intro">Explore 18 interactive 3D molecular &amp; gene structures inspired by AlphaFold Server and Cosmos Biology, fit enzyme assays, audit ML predictions, and trace every claim back to primary data.</p>
+  <p id="hero-intro" class="intro">Explore 18 interactive 3D molecular &amp; gene structures inspired by AlphaFold Server and Cosmos Biology, audit 6-model enzyme kinetics &amp; OOD holdouts, run MACE/BioEmu force-field &amp; conformational ensemble simulations, and trace every claim back to primary data.</p>
   <div class="hero-actions">
     <a class="hero-link af-accent" href="structure.html">Open 3D Molecular Studio (18 models)</a>
-    <a class="hero-link" href="dna.html">Explore 10-Gene 3D DNA Lab</a>
+    <a class="hero-link" href="dna.html">3D Gene &amp; DNA Lab</a>
+    <a class="hero-link secondary" href="kinetics.html">Kinetics &amp; OOD Workbench</a>
+    <a class="hero-link secondary" href="simulation.html">Simulation &amp; Ensemble Lab</a>
     <a class="hero-link secondary" href="atlas.html">3D Research Atlas</a>
-    <a href="#explorer">Compare models</a>
     <a id="offline-download" href="assay-evidence-studio.zip" download>Download offline ZIP</a>
   </div>
   <div id="workspace-banner" class="workspace-banner" aria-label="Evidence workspace status">
@@ -242,7 +243,9 @@ a:hover{text-decoration-thickness:2px}
   <h2 id="labs-title">Explore the labs</h2>
   <ul id="lab-grid" class="lab-grid">
     <li><a href="structure.html"><strong>3D Molecular &amp; Gene Structure Studio</strong><span>AlphaFold-style 3D cartoon workbench with PDB 8AW3, 10 KEGG gene folds, real PAE maps, audience modes, and local .PDB upload.</span><span class="lab-tag">Saves to workspace</span></a></li>
-    <li><a href="dna.html"><strong>3D Gene &amp; DNA Lab</strong><span>Explore 10 KEGG genes in shaded 3D duplexes, jump from any codon straight into its AlphaFold residue, export FASTA, and assemble reads.</span></a></li>
+    <li><a href="dna.html"><strong>3D Gene &amp; DNA Lab (10 genes)</strong><span>Explore 10 KEGG genes in shaded 3D duplexes, jump from any codon straight into its AlphaFold residue, export FASTA, and assemble reads.</span></a></li>
+    <li><a href="kinetics.html"><strong>Kinetics &amp; OOD benchmark workbench</strong><span>Audit 6 rate laws (Michaelis–Menten, Hill cooperativity &amp; Haldane substrate inhibition) across 9 diagnostic graphs and OOD holdouts.</span><span class="lab-tag">Saves to workspace</span></a></li>
+    <li><a href="simulation.html"><strong>Simulation &amp; ML force-field workbench</strong><span>Audit 5 MLIP force fields (MACE/GP/Committee), symplectic phase space, vibrational spectra, 2D Ramachandran &amp; Müller–Brown landscapes, and 3D BioEmu ensembles.</span><span class="lab-tag">Saves to workspace</span></a></li>
   </ul>
 </section>
 <section class="explorer" id="explorer" aria-labelledby="explorer-title">

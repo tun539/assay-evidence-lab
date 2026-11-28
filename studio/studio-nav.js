@@ -85,7 +85,8 @@
     const resources = [
       ['structure.html', '3D molecular studio (18 models)'],
       ['dna.html', '3D gene & DNA lab (10 genes)'],
-      ['kinetics.html', 'Kinetics workbench'],
+      ['kinetics.html', 'Kinetics & OOD workbench (6 models)'],
+      ['simulation.html', 'Simulation & ML force-field lab'],
       ['molecular.html', 'Molecular learning lab'],
       ['linked.html', 'Linked protein explorer'],
       ['customize.html', 'Customize & deploy', true],
